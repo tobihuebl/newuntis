@@ -135,6 +135,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sp_app;
 REVOKE INSERT, UPDATE, DELETE ON "Tenant" FROM sp_app;
 -- Audit-Log ist nur anhängbar: kein UPDATE, kein DELETE.
 REVOKE UPDATE, DELETE ON "AuditLog" FROM sp_app;
-REVOKE ALL ON "_prisma_migrations" FROM sp_app;
+DO $$
+BEGIN
+  -- Die Tabelle gibt es nicht in Prismas Shadow-Datenbank, nur in echten Datenbanken
+  IF to_regclass('public."_prisma_migrations"') IS NOT NULL THEN
+    REVOKE ALL ON "_prisma_migrations" FROM sp_app;
+  END IF;
+END
+$$;
 -- Künftige Tabellen erhalten dieselben Rechte; Ausnahmen (z. B. Tenant) per eigener Migration.
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO sp_app;

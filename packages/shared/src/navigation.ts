@@ -93,7 +93,22 @@ const NAV: Record<Role, RoleNav> = {
       nachrichten,
       mehr,
     ],
-    routes: ['/freigaben', '/rundschreiben', '/profil', '/plan', '/admin/protokoll'],
+    routes: [
+      '/freigaben',
+      '/rundschreiben',
+      '/profil',
+      '/plan',
+      '/admin/protokoll',
+      // Stammdaten: Direktion darf lesen
+      '/admin/personen',
+      '/admin/personen/[id]',
+      '/admin/klassen',
+      '/admin/klassen/[id]',
+      '/admin/schuljahr',
+      '/admin/raster',
+      '/admin/faecher',
+      '/admin/raeume',
+    ],
   },
   ADMIN: {
     home: '/admin/personen',
@@ -105,6 +120,10 @@ const NAV: Record<Role, RoleNav> = {
       mehr,
     ],
     routes: [
+      '/admin/personen/[id]',
+      '/admin/klassen/[id]',
+      '/admin/faecher',
+      '/admin/raeume',
       '/admin/raster',
       '/admin/rollen',
       '/admin/schuljahr',
@@ -117,6 +136,37 @@ const NAV: Record<Role, RoleNav> = {
     ],
   },
 };
+
+/** Einträge der Seite "Mehr" (Direktion und Administration): alles, was nicht in der Tab-Leiste steht. */
+const MORE: Partial<Record<Role, NavItem[]>> = {
+  PRINCIPAL: [
+    { labelKey: 'freigaben', href: '/freigaben', icon: 'circle-check' },
+    { labelKey: 'rundschreiben', href: '/rundschreiben', icon: 'megaphone' },
+    { labelKey: 'personen', href: '/admin/personen', icon: 'users' },
+    { labelKey: 'klassen', href: '/admin/klassen', icon: 'graduation-cap' },
+    { labelKey: 'schuljahr', href: '/admin/schuljahr', icon: 'calendar-range' },
+    { labelKey: 'raster', href: '/admin/raster', icon: 'clock' },
+    { labelKey: 'faecher', href: '/admin/faecher', icon: 'book-open' },
+    { labelKey: 'raeume', href: '/admin/raeume', icon: 'door-open' },
+    { labelKey: 'protokoll', href: '/admin/protokoll', icon: 'scroll-text' },
+  ],
+  ADMIN: [
+    { labelKey: 'schuljahr', href: '/admin/schuljahr', icon: 'calendar-range' },
+    { labelKey: 'raster', href: '/admin/raster', icon: 'clock' },
+    { labelKey: 'faecher', href: '/admin/faecher', icon: 'book-open' },
+    { labelKey: 'raeume', href: '/admin/raeume', icon: 'door-open' },
+    { labelKey: 'rollen', href: '/admin/rollen', icon: 'shield-check' },
+    { labelKey: 'protokoll', href: '/admin/protokoll', icon: 'scroll-text' },
+    { labelKey: 'datenschutz', href: '/admin/datenschutz', icon: 'lock' },
+    { labelKey: 'rundschreiben', href: '/rundschreiben', icon: 'megaphone' },
+    { labelKey: 'supplierung', href: '/supplierung', icon: 'arrow-left-right' },
+  ],
+};
+
+export function moreFor(roles: readonly Role[]): NavItem[] {
+  const primary = ROLE_PRIORITY.find((r) => roles.includes(r));
+  return (primary && MORE[primary]) || [];
+}
 
 /** Vorrang bei der Wahl der Tab-Leiste, wenn jemand mehrere Rollen hat. */
 const ROLE_PRIORITY: Role[] = ['ADMIN', 'PRINCIPAL', 'HOMEROOM', 'TEACHER', 'GUARDIAN', 'STUDENT'];

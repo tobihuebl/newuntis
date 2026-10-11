@@ -33,3 +33,10 @@ export const getMe = cache(async (): Promise<MeResult> => {
     return { ok: false, status: 503 };
   }
 });
+
+/** GET aus einer Server-Komponente; ein Fehlerstatus wird zur Ausnahme (Next zeigt die Fehlerseite). */
+export async function apiGet<T>(path: string): Promise<T> {
+  const res = await apiFetch(path);
+  if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
+  return (await res.json()) as T;
+}

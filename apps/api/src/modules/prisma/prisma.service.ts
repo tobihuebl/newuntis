@@ -13,8 +13,12 @@ export class PrismaService implements OnModuleDestroy {
   }
 
   /** Eigene, kurze Transaktion für einen Mandanten (unabhängig von der Anfrage-Transaktion). */
-  runAsTenant<T>(tenantId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
-    return withTenant(this.client, tenantId, fn);
+  runAsTenant<T>(
+    tenantId: string,
+    fn: (tx: Tx) => Promise<T>,
+    options?: { timeoutMs?: number },
+  ): Promise<T> {
+    return withTenant(this.client, tenantId, fn, options);
   }
 
   /** Transaktion der laufenden Anfrage (gesetzt vom TenantTransactionInterceptor). */

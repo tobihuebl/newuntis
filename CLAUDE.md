@@ -32,6 +32,13 @@ die Spezifikation anpassen, dann bauen.
 - Datenbankzugriff in Handlern nur über PrismaService.tx (Anfrage-Transaktion mit RLS) oder PrismaService.runAsTenant.
 - API-Integrationstests starten Postgres per Testcontainers (Docker nötig).
 
+## Stammdaten und Import (M2, siehe ADR 0005)
+
+- Admin-API unter /admin/*: Lesen braucht masterdata.read (Direktion + Administration), Schreiben masterdata.write (Administration).
+- Löschen von Personen = Anonymisieren. Enden von Einschreibungen/Verknüpfungen: "gestern" setzen (Datum bis einschließlich gilt noch).
+- CSV-Import: reine Logik in apps/api/src/modules/admin/csv.ts und import.service.ts, Vorschau und Übernehmen teilen dieselbe Prüfung.
+- Server-Komponenten können keine Funktionen an Client-Komponenten geben: Spalten-/Felddefinitionen leben in src/components/admin/managers.tsx.
+
 ## Hinweise zur Umgebung
 
 - pnpm liegt ggf. in ~/.local/bin (corepack); PATH entsprechend setzen.

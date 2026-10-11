@@ -47,6 +47,9 @@ export function LoginForm() {
       <Link href="/passwort-vergessen" className="text-center text-sm text-primary underline">
         {t('forgot')}
       </Link>
+      <Link href="/eltern-code" className="text-center text-sm text-primary underline">
+        {t('guardianCode')}
+      </Link>
     </form>
   );
 }

@@ -7,3 +7,6 @@ export { StatusBadge, type Status, type StatusBadgeProps } from './components/st
 export { Skeleton } from './components/skeleton';
 export { EmptyState, type EmptyStateProps } from './components/empty-state';
 export { ListRow, type ListRowProps } from './components/list-row';
+export { Sheet, type SheetProps } from './components/sheet';
+export { Select, type SelectProps, type SelectOption } from './components/select';
+export { Checkbox, type CheckboxProps } from './components/checkbox';

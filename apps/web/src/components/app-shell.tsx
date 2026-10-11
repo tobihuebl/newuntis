@@ -1,45 +1,12 @@
 'use client';
-import {
-  ArrowLeftRight,
-  BookOpenCheck,
-  CalendarDays,
-  ChartColumn,
-  Ellipsis,
-  GraduationCap,
-  House,
-  LayoutDashboard,
-  ListChecks,
-  MessageSquare,
-  Upload,
-  UserRound,
-  UserRoundX,
-  Users,
-  LogOut,
-  type LucideIcon,
-} from 'lucide-react';
+import { LogOut, Ellipsis } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@sp/ui';
 import type { NavItem } from '@sp/shared';
 import { apiPost } from '../lib/api-client';
-
-const ICONS: Record<string, LucideIcon> = {
-  house: House,
-  'calendar-days': CalendarDays,
-  'list-checks': ListChecks,
-  'message-square': MessageSquare,
-  'user-round': UserRound,
-  'user-round-x': UserRoundX,
-  'book-open-check': BookOpenCheck,
-  users: Users,
-  'graduation-cap': GraduationCap,
-  'layout-dashboard': LayoutDashboard,
-  'arrow-left-right': ArrowLeftRight,
-  'chart-column': ChartColumn,
-  ellipsis: Ellipsis,
-  upload: Upload,
-};
+import { NAV_ICONS } from './nav-icons';
 
 export interface AppShellProps {
   tabs: NavItem[];
@@ -62,7 +29,7 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
   }
 
   const link = (item: NavItem, layout: 'side' | 'tab') => {
-    const Icon = ICONS[item.icon] ?? Ellipsis;
+    const Icon = NAV_ICONS[item.icon] ?? Ellipsis;
     const active = isActive(item.href);
     return (
       <Link

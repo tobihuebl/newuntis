@@ -104,6 +104,7 @@ model Person {
   lastName     String
   birthDate    DateTime?  @db.Date
   externalId   String? // z. B. Schülernummer aus CSV
+  email        String? // Kontakt- und Einladungsadresse (Konto-E-Mail steht in User)
   anonymizedAt DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -129,9 +130,11 @@ model Person {
   pushSubscriptions       PushSubscription[]
   calendarTokens          CalendarToken[]
   invitations             Invitation[]
+  guardianCodes           GuardianCode[]
 
   @@unique([tenantId, externalId])
   @@index([tenantId, kind])
+  @@index([tenantId, email])
   @@index([tenantId, lastName, firstName])
 }
 
@@ -828,4 +831,23 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, userId])
+}
+
+/// Einladungscode für Eltern: verknüpft ein Elternteil beim Einlösen mit genau einem Kind (SD-04).
+/// Der Klartext-Code steht nur im Elternbrief, in der Datenbank nur der Hash.
+model GuardianCode {
+  id          String   @id @default(cuid())
+  tenantId    String
+  studentId   String
+  codeHash    String   @unique
+  maxUses     Int      @default(2) // meist zwei Erziehungsberechtigte
+  uses        Int      @default(0)
+  expiresAt   DateTime
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student Person @relation(fields: [studentId], references: [id])
+
+  @@index([tenantId, studentId])
 }

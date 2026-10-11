@@ -80,6 +80,10 @@ export class Client {
   }
 
   get = (url: string, extra?: Record<string, string>) => this.request('GET', url, undefined, extra);
+  patch = (url: string, payload?: unknown, extra?: Record<string, string>) =>
+    this.request('PATCH', url, payload, extra);
+  del = (url: string, extra?: Record<string, string>) =>
+    this.request('DELETE', url, undefined, extra);
   post = (url: string, payload?: unknown, extra?: Record<string, string>) =>
     this.request('POST', url, payload, extra);
 }
@@ -167,6 +171,14 @@ export class Harness {
       await c.post('/auth/2fa/verify', { code: totpCode(secret) });
     }
     return { client: c, secret };
+  }
+
+  /** Neue Schule mit angemeldeter Administration (inkl. 2FA-Einrichtung). */
+  async tenantWithAdmin(prefix = 'm') {
+    const t = await this.createTenant(prefix);
+    const u = await this.createUser(t.id, [{ role: 'ADMIN' }]);
+    const { client } = await this.loginFully(t.slug, u.email);
+    return { tenant: t, admin: client, adminPersonId: u.personId, adminEmail: u.email };
   }
 
   async close(): Promise<void> {

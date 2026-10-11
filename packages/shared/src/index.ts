@@ -4,3 +4,4 @@ export * from './env';
 export * from './permissions';
 export * from './navigation';
 export * from './auth';
+export * from './masterdata';

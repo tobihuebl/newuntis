@@ -9,6 +9,8 @@ export function createAdapter(): FastifyAdapter {
     logger: process.env.NODE_ENV !== 'test',
     // Next.js bzw. Caddy stehen davor und setzen X-Forwarded-*. Die API-Ports sind nicht öffentlich erreichbar.
     trustProxy: true,
+    // CSV-Import bis 5 MB (importInput.csv), dazu etwas Spielraum für JSON
+    bodyLimit: 6 * 1024 * 1024,
   });
 }
 
