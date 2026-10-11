@@ -15,7 +15,9 @@
     "db:migrate": "pnpm --filter @sp/db migrate",
     "db:seed": "pnpm --filter @sp/db seed",
     "db:reset": "pnpm --filter @sp/db reset",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:setup-app-role": "pnpm --filter @sp/db setup-app-role",
+    "tenant:create": "pnpm --filter @sp/db tenant:create"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

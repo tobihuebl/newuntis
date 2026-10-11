@@ -4,6 +4,13 @@ import { z } from 'zod';
 export const tenantSettingsSchema = z.object({
   /** Datum eines Montags einer A-Woche (YYYY-MM-DD), Grundlage für Wochenmuster A/B. */
   abWeekReferenceMonday: z.iso.date().optional(),
+  security: z
+    .object({
+      sessionIdleMinutes: z.number().int().min(5).default(480),
+      maxFailedLogins: z.number().int().min(3).default(5),
+      lockoutMinutes: z.number().int().min(1).default(15),
+    })
+    .default({ sessionIdleMinutes: 480, maxFailedLogins: 5, lockoutMinutes: 15 }),
   absence: z
     .object({
       excuseDeadlineDays: z.number().int().min(0).default(7),

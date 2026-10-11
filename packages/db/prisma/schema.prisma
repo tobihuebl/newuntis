@@ -72,6 +72,12 @@ enum SubstitutionKind {
   SUPERVISION
 }
 
+enum SessionStage {
+  ACTIVE
+  NEEDS_2FA_VERIFY // Passwort geprüft, TOTP-Code fehlt noch
+  NEEDS_2FA_SETUP // Rolle verlangt 2FA, TOTP ist noch nicht eingerichtet
+}
+
 enum SubstitutionStatus {
   OPEN
   ASSIGNED
@@ -122,6 +128,7 @@ model Person {
   notificationPreferences NotificationPreference[]
   pushSubscriptions       PushSubscription[]
   calendarTokens          CalendarToken[]
+  invitations             Invitation[]
 
   @@unique([tenantId, externalId])
   @@index([tenantId, kind])
@@ -129,18 +136,23 @@ model Person {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  tenantId     String
-  personId     String    @unique
-  email        String
-  passwordHash String?
-  totpSecret   String? // verschlüsselt gespeichert
-  totpEnabled  Boolean   @default(false)
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  tenantId         String
+  personId         String    @unique
+  email            String
+  passwordHash     String?
+  totpSecret       String? // verschlüsselt gespeichert
+  totpEnabled      Boolean   @default(false)
+  lastLoginAt      DateTime?
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime? // temporäre Sperre nach wiederholten Fehlversuchen
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  person Person @relation(fields: [personId], references: [id])
+  person        Person               @relation(fields: [personId], references: [id])
+  sessions      Session[]
+  recoveryCodes RecoveryCode[]
+  resetTokens   PasswordResetToken[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -750,4 +762,70 @@ model AuditLog {
   updatedAt DateTime @default(now())
 
   @@index([tenantId, createdAt])
+}
+
+// ───────────────────────── Sitzungen und Zugangsdaten (M1) ─────────────────────────
+
+model Session {
+  id                String       @id @default(cuid())
+  tenantId          String
+  userId            String
+  tokenHash         String       @unique // SHA-256 des Cookie-Werts, der Klartext liegt nur im Cookie
+  csrfToken         String
+  stage             SessionStage @default(ACTIVE)
+  userAgent         String?
+  lastSeenAt        DateTime     @default(now())
+  absoluteExpiresAt DateTime
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+}
+
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  tenantId  String
+  userId    String
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+}
+
+model Invitation {
+  id          String    @id @default(cuid())
+  tenantId    String
+  personId    String
+  email       String
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@index([tenantId, personId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tenantId  String
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
 }

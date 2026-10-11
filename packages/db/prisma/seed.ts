@@ -5,7 +5,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import { hash } from '@node-rs/argon2';
-import { tenantSettingsSchema } from '@sp/shared';
+import { DEFAULT_PERIODS, tenantSettingsSchema } from '@sp/shared';
 import { createPrisma } from '../src/index';
 import type { Prisma } from '@prisma/client';
 
@@ -127,16 +127,6 @@ const SPECIAL_ROOM: Record<string, string> = {
 };
 
 const CLASS_NAMES = ['1A', '1B', '2A', '2B', '3A', '4A'];
-const PERIODS = [
-  ['08:00', '08:50'],
-  ['08:55', '09:45'],
-  ['10:00', '10:50'],
-  ['10:55', '11:45'],
-  ['11:50', '12:40'],
-  ['12:45', '13:35'],
-  ['13:40', '14:30'],
-  ['14:35', '15:25'],
-];
 
 async function main() {
   const prisma = createPrisma();
@@ -189,15 +179,7 @@ async function main() {
       label: label!,
     })),
   });
-  await prisma.period.createMany({
-    data: PERIODS.map(([startTime, endTime], i) => ({
-      tenantId,
-      number: i + 1,
-      startTime: startTime!,
-      endTime: endTime!,
-      blocksDouble: i === 1 || i === 3,
-    })),
-  });
+  await prisma.period.createMany({ data: DEFAULT_PERIODS.map((p) => ({ tenantId, ...p })) });
 
   const subjectId = new Map<string, string>();
   for (const s of SUBJECTS) subjectId.set(s.code, id());

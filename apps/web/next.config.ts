@@ -1,9 +1,21 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from 'next';
 
+// .env liegt im Repository-Stamm
+try {
+  process.loadEnvFile(new URL('../../.env', import.meta.url).pathname);
+} catch {
+  // keine .env: Variablen kommen aus der Umgebung
+}
+
 const nextConfig: NextConfig = {
   transpilePackages: ['@sp/ui', '@sp/shared'],
   poweredByHeader: false,
+  // Browser sprechen nur mit der Web-App (gleicher Origin); die API ist nicht öffentlich erreichbar.
+  async rewrites() {
+    const api = process.env.API_URL ?? 'http://localhost:4000';
+    return [{ source: '/api/v1/:path*', destination: `${api}/api/v1/:path*` }];
+  },
   async headers() {
     return [
       {

@@ -20,6 +20,9 @@ jobs:
           --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       DATABASE_URL: postgresql://sp:sp@localhost:5432/schulplattform
+      DATABASE_APP_URL: postgresql://sp_app:sp_app@localhost:5432/schulplattform
+      BASE_DOMAIN: localhost
+      ENCRYPTION_KEY: Y2ktb25seS1lbmNyeXB0aW9uLWtleS0zMi1ieXRlcyE=
       SESSION_SECRET: ci-only-secret-with-at-least-32-chars!!
       APP_URL: http://localhost:3000
       API_URL: http://localhost:4000

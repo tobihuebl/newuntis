@@ -1,8 +1,6 @@
 import 'reflect-metadata';
-import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { parseServerEnv } from '@sp/shared';
-import { AppModule } from './app.module';
+import { createApp } from './app.factory';
 
 try {
   process.loadEnvFile(new URL('../../../.env', `file://${__dirname}/`).pathname);
@@ -12,12 +10,7 @@ try {
 
 async function bootstrap() {
   const env = parseServerEnv(process.env);
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter({ logger: true }),
-  );
-  app.setGlobalPrefix('api/v1', { exclude: ['healthz', 'readyz'] });
-  app.enableShutdownHooks();
+  const app = await createApp();
   const port = Number(new URL(env.API_URL).port || 4000);
   await app.listen(port, '0.0.0.0');
 }

@@ -2,6 +2,16 @@ import { z } from 'zod';
 
 export const serverEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
+  DATABASE_APP_URL: z.string().min(1),
+  BASE_DOMAIN: z.string().min(1),
+  /** 32 Byte, base64: verschlüsselt TOTP-Geheimnisse. */
+  ENCRYPTION_KEY: z.string().refine((v) => {
+    try {
+      return atob(v).length === 32;
+    } catch {
+      return false;
+    }
+  }, '32 Byte base64 erwartet'),
   SESSION_SECRET: z.string().min(32),
   APP_URL: z.url(),
   API_URL: z.url(),

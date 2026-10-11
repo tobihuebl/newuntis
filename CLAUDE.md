@@ -7,6 +7,7 @@ die Spezifikation anpassen, dann bauen.
 
 - pnpm install, pnpm dev, pnpm lint, pnpm typecheck, pnpm test
 - pnpm db:migrate, pnpm db:seed, pnpm db:reset, pnpm tenant:create (ab M1)
+- Schule anlegen: pnpm tenant:create --name "…" --slug … --admin-email … --admin-first … --admin-last …
 - Lokale Dienste: docker compose up -d (Postgres, Mailpit, S3-kompatibler Speicher)
 
 ## Regeln
@@ -22,6 +23,14 @@ die Spezifikation anpassen, dann bauen.
 - Vor Abschluss einer Aufgabe: lint, typecheck und Tests grün.
 - Entscheidungen mit Folgen als ADR in docs/adr/ festhalten.
 - Barrierefreiheit (WCAG 2.2 AA) und Offline-Verhalten gehören zur Definition of Done.
+
+## Mandanten und Auth (M1, siehe ADR 0004)
+
+- Mandant = Subdomain (demo.localhost:3000). Lokal im Browser: http://demo.localhost:3000
+- API verbindet als Rolle sp_app (DATABASE_APP_URL, unterliegt RLS); Migrationen/Seed als Eigentümer (DATABASE_URL).
+- Neue Route: @Public(), @Authenticated() oder @Can(action) deklarieren. Neue Aktion: Matrix in packages/shared/src/permissions.ts, Tests entstehen automatisch.
+- Datenbankzugriff in Handlern nur über PrismaService.tx (Anfrage-Transaktion mit RLS) oder PrismaService.runAsTenant.
+- API-Integrationstests starten Postgres per Testcontainers (Docker nötig).
 
 ## Hinweise zur Umgebung
 
