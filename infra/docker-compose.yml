@@ -1,0 +1,29 @@
+name: schulplattform
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: sp
+      POSTGRES_PASSWORD: sp
+      POSTGRES_DB: schulplattform
+    ports: ['5432:5432']
+    volumes: ['pgdata:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sp -d schulplattform']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ['1025:1025', '8025:8025']
+  # S3-kompatibler Speicher für lokale Entwicklung (siehe docs/adr/0002-s3-lokal-seaweedfs.md)
+  s3:
+    image: chrislusf/seaweedfs:latest
+    command: server -dir=/data -s3 -s3.port=9000 -s3.config=/etc/seaweedfs/s3.json
+    ports: ['9000:9000']
+    volumes:
+      - 's3data:/data'
+      - './seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro'
+volumes:
+  pgdata:
+  s3data:

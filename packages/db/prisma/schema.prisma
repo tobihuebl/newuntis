@@ -1,0 +1,753 @@
+// Verbindliche Feldliste: docs/spec.md Abschnitte 8 und 10.
+// Jede Tabelle außer Tenant hat tenantId (Row-Level-Security, siehe Migration "enable_rls").
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  GUARDIAN
+  TEACHER
+  HOMEROOM
+  PRINCIPAL
+  ADMIN
+}
+
+enum PersonKind {
+  STUDENT
+  TEACHER
+  GUARDIAN
+  STAFF
+}
+
+enum WeekPattern {
+  EVERY
+  A
+  B
+}
+
+enum TimetableStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum OccurrenceStatus {
+  SCHEDULED
+  CANCELLED
+  SUBSTITUTED
+  ROOM_CHANGED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+}
+
+enum AbsenceStatus {
+  REPORTED
+  EXCUSED
+  REJECTED
+  UNEXCUSED
+}
+
+enum TeacherAbsenceKind {
+  SICK
+  TRAINING
+  LEAVE
+  OTHER
+}
+
+enum SubstitutionKind {
+  SUBSTITUTE
+  CANCEL
+  ROOM_CHANGE
+  SUPERVISION
+}
+
+enum SubstitutionStatus {
+  OPEN
+  ASSIGNED
+  PUBLISHED
+}
+
+// ───────────────────────── Mandant, Personen, Rechte ─────────────────────────
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  timezone  String   @default("Europe/Vienna")
+  settings  Json     @default("{}") // Fristen, Grenzwerte, Altersgrenzen
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Person {
+  id           String     @id @default(cuid())
+  tenantId     String
+  kind         PersonKind
+  firstName    String
+  lastName     String
+  birthDate    DateTime?  @db.Date
+  externalId   String? // z. B. Schülernummer aus CSV
+  anonymizedAt DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  user                    User?
+  roles                   RoleAssignment[]
+  guardianLinks           GuardianLink[]           @relation("LinkGuardian")
+  studentLinks            GuardianLink[]           @relation("LinkStudent")
+  homeroomClasses         SchoolClass[]            @relation("Homeroom")
+  enrollments             Enrollment[]
+  groupMemberships        GroupMember[]
+  lessonTeachers          LessonTeacher[]
+  requirements            LessonRequirement[]
+  attendances             Attendance[]
+  absences                Absence[]
+  teacherAbsences         TeacherAbsence[]
+  substitutions           Substitution[]
+  occurrenceTeachers      OccurrenceTeacher[]
+  threadParticipations    ThreadParticipant[]
+  announcementReads       AnnouncementRead[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  pushSubscriptions       PushSubscription[]
+  calendarTokens          CalendarToken[]
+
+  @@unique([tenantId, externalId])
+  @@index([tenantId, kind])
+  @@index([tenantId, lastName, firstName])
+}
+
+model User {
+  id           String    @id @default(cuid())
+  tenantId     String
+  personId     String    @unique
+  email        String
+  passwordHash String?
+  totpSecret   String? // verschlüsselt gespeichert
+  totpEnabled  Boolean   @default(false)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model RoleAssignment {
+  id        String   @id @default(cuid())
+  tenantId  String
+  personId  String
+  role      Role
+  classId   String? // nur bei HOMEROOM (Klassenvorstand)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  person Person       @relation(fields: [personId], references: [id])
+  class  SchoolClass? @relation(fields: [classId], references: [id])
+
+  @@index([tenantId, personId])
+  @@index([tenantId, classId])
+}
+
+model GuardianLink {
+  id         String    @id @default(cuid())
+  tenantId   String
+  guardianId String // Person
+  studentId  String // Person
+  canExcuse  Boolean   @default(true)
+  validFrom  DateTime  @db.Date
+  validTo    DateTime? @db.Date
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  guardian Person @relation("LinkGuardian", fields: [guardianId], references: [id])
+  student  Person @relation("LinkStudent", fields: [studentId], references: [id])
+
+  @@index([tenantId, guardianId])
+  @@index([tenantId, studentId])
+}
+
+// ───────────────────────── Stammdaten ─────────────────────────
+
+model SchoolYear {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String // "2026/27"
+  startsOn  DateTime @db.Date
+  endsOn    DateTime @db.Date
+  isCurrent Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  freeDays   SchoolFreeDay[]
+  classes    SchoolClass[]
+  groups     Group[]
+  timetables TimetableVersion[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isCurrent])
+}
+
+model SchoolFreeDay {
+  id           String   @id @default(cuid())
+  tenantId     String
+  schoolYearId String
+  fromDate     DateTime @db.Date
+  toDate       DateTime @db.Date
+  label        String // Ferien, Feiertag, schulautonom frei
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id])
+
+  @@index([tenantId, fromDate, toDate])
+}
+
+model SchoolClass {
+  id                String   @id @default(cuid())
+  tenantId          String
+  schoolYearId      String
+  name              String // "3A"
+  homeroomTeacherId String? // Person
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  schoolYear      SchoolYear          @relation(fields: [schoolYearId], references: [id])
+  homeroomTeacher Person?             @relation("Homeroom", fields: [homeroomTeacherId], references: [id])
+  enrollments     Enrollment[]
+  roleAssignments RoleAssignment[]
+  lessons         Lesson[]
+  requirements    LessonRequirement[]
+  occurrences     Occurrence[]
+  exams           Exam[]
+
+  @@unique([tenantId, schoolYearId, name])
+  @@index([tenantId, schoolYearId])
+}
+
+model Enrollment {
+  id        String    @id @default(cuid())
+  tenantId  String
+  studentId String
+  classId   String
+  fromDate  DateTime  @db.Date
+  toDate    DateTime? @db.Date
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  student Person      @relation(fields: [studentId], references: [id])
+  class   SchoolClass @relation(fields: [classId], references: [id])
+
+  @@index([tenantId, classId])
+  @@index([tenantId, studentId])
+}
+
+model Group {
+  id           String   @id @default(cuid())
+  tenantId     String
+  schoolYearId String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  schoolYear   SchoolYear          @relation(fields: [schoolYearId], references: [id])
+  members      GroupMember[]
+  lessons      Lesson[]
+  requirements LessonRequirement[]
+  occurrences  Occurrence[]
+  exams        Exam[]
+
+  @@index([tenantId, schoolYearId])
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  tenantId  String
+  groupId   String
+  studentId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group   Group  @relation(fields: [groupId], references: [id])
+  student Person @relation(fields: [studentId], references: [id])
+
+  @@unique([groupId, studentId])
+  @@index([tenantId, studentId])
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  code      String
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lessons      Lesson[]
+  requirements LessonRequirement[]
+  occurrences  Occurrence[]
+  exams        Exam[]
+
+  @@unique([tenantId, code])
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  capacity  Int?
+  kind      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lessons       Lesson[]
+  occurrences   Occurrence[]
+  substitutions Substitution[]
+
+  @@unique([tenantId, name])
+}
+
+model Period {
+  id           String   @id @default(cuid())
+  tenantId     String
+  number       Int
+  startTime    String // "08:00" lokal
+  endTime      String // "08:50"
+  blocksDouble Boolean  @default(false) // Doppelstunde über diese Grenze nicht erlaubt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([tenantId, number])
+}
+
+// ───────────────────────── Stundenplan ─────────────────────────
+
+model TimetableVersion {
+  id            String          @id @default(cuid())
+  tenantId      String
+  schoolYearId  String
+  status        TimetableStatus @default(DRAFT)
+  validFrom     DateTime        @db.Date
+  publishedAt   DateTime?
+  publishedById String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  schoolYear   SchoolYear          @relation(fields: [schoolYearId], references: [id])
+  lessons      Lesson[]
+  requirements LessonRequirement[]
+
+  @@index([tenantId, schoolYearId, status])
+}
+
+model Lesson {
+  id          String      @id @default(cuid())
+  tenantId    String
+  versionId   String
+  subjectId   String
+  classId     String? // genau eines von classId oder groupId
+  groupId     String?
+  roomId      String?
+  weekday     Int // 1 = Montag bis 5 = Freitag
+  periodStart Int
+  periodCount Int         @default(1) // 2 = Doppelstunde
+  weekPattern WeekPattern @default(EVERY)
+  version     Int         @default(1) // optimistische Sperre im Editor
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  timetable   TimetableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  subject     Subject          @relation(fields: [subjectId], references: [id])
+  class       SchoolClass?     @relation(fields: [classId], references: [id])
+  group       Group?           @relation(fields: [groupId], references: [id])
+  room        Room?            @relation(fields: [roomId], references: [id])
+  teachers    LessonTeacher[]
+  occurrences Occurrence[]
+
+  @@index([tenantId, versionId, weekday, periodStart])
+  @@index([tenantId, classId])
+  @@index([tenantId, roomId])
+}
+
+model LessonTeacher {
+  lessonId  String
+  teacherId String
+  tenantId  String
+
+  lesson  Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  teacher Person @relation(fields: [teacherId], references: [id])
+
+  @@id([lessonId, teacherId])
+  @@index([tenantId, teacherId])
+}
+
+model LessonRequirement {
+  id           String   @id @default(cuid())
+  tenantId     String
+  versionId    String
+  subjectId    String
+  classId      String?
+  groupId      String?
+  teacherId    String
+  hoursPerWeek Int
+  preferDouble Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  timetable TimetableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  subject   Subject          @relation(fields: [subjectId], references: [id])
+  class     SchoolClass?     @relation(fields: [classId], references: [id])
+  group     Group?           @relation(fields: [groupId], references: [id])
+  teacher   Person           @relation(fields: [teacherId], references: [id])
+
+  @@index([tenantId, versionId])
+}
+
+model Occurrence {
+  id          String           @id @default(cuid())
+  tenantId    String
+  lessonId    String?
+  date        DateTime         @db.Date
+  periodStart Int
+  periodCount Int
+  startsAt    DateTime
+  endsAt      DateTime
+  classId     String?
+  groupId     String?
+  subjectId   String
+  roomId      String? // wirksamer Raum nach Änderungen
+  status      OccurrenceStatus @default(SCHEDULED)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  lesson       Lesson?             @relation(fields: [lessonId], references: [id])
+  class        SchoolClass?        @relation(fields: [classId], references: [id])
+  group        Group?              @relation(fields: [groupId], references: [id])
+  subject      Subject             @relation(fields: [subjectId], references: [id])
+  room         Room?               @relation(fields: [roomId], references: [id])
+  teachers     OccurrenceTeacher[] // wirksame Lehrer nach Supplierung
+  classbook    ClassbookEntry?
+  attendances  Attendance[]
+  substitution Substitution?
+
+  @@unique([lessonId, date])
+  @@index([tenantId, date])
+  @@index([tenantId, classId, date])
+}
+
+model OccurrenceTeacher {
+  occurrenceId String
+  teacherId    String
+  tenantId     String
+
+  occurrence Occurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  teacher    Person     @relation(fields: [teacherId], references: [id])
+
+  @@id([occurrenceId, teacherId])
+  @@index([tenantId, teacherId])
+}
+
+// ───────────────────────── Klassenbuch, Anwesenheit ─────────────────────────
+
+model ClassbookEntry {
+  id            String    @id @default(cuid())
+  tenantId      String
+  occurrenceId  String    @unique
+  topic         String?
+  homework      String?
+  homeworkDueOn DateTime? @db.Date
+  note          String? // nur Lehrer und Klassenvorstand
+  closedAt      DateTime?
+  closedById    String?
+  version       Int       @default(1) // optimistische Sperre
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  occurrence Occurrence @relation(fields: [occurrenceId], references: [id])
+
+  @@index([tenantId, closedAt])
+}
+
+model Attendance {
+  id               String           @id @default(cuid())
+  tenantId         String
+  occurrenceId     String
+  studentId        String
+  status           AttendanceStatus @default(PRESENT)
+  lateMinutes      Int?
+  recordedById     String
+  clientMutationId String? // Idempotenz bei Offline-Sync
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  occurrence Occurrence @relation(fields: [occurrenceId], references: [id])
+  student    Person     @relation(fields: [studentId], references: [id])
+
+  @@unique([occurrenceId, studentId])
+  @@unique([tenantId, clientMutationId])
+  @@index([tenantId, studentId])
+}
+
+// ───────────────────────── Abwesenheit, Supplierung ─────────────────────────
+
+model Absence {
+  id            String        @id @default(cuid())
+  tenantId      String
+  studentId     String
+  fromAt        DateTime
+  toAt          DateTime
+  reason        String?
+  status        AbsenceStatus @default(REPORTED)
+  reportedById  String
+  reviewedById  String?
+  reviewedAt    DateTime?
+  reviewComment String?
+  attachmentId  String? // FileAsset
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  student    Person     @relation(fields: [studentId], references: [id])
+  attachment FileAsset? @relation(fields: [attachmentId], references: [id])
+
+  @@index([tenantId, studentId, fromAt])
+  @@index([tenantId, status])
+}
+
+model TeacherAbsence {
+  id           String             @id @default(cuid())
+  tenantId     String
+  teacherId    String
+  fromAt       DateTime
+  toAt         DateTime
+  kind         TeacherAbsenceKind
+  approvedById String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  teacher Person @relation(fields: [teacherId], references: [id])
+
+  @@index([tenantId, teacherId, fromAt])
+}
+
+model Substitution {
+  id                  String             @id @default(cuid())
+  tenantId            String
+  occurrenceId        String             @unique
+  kind                SubstitutionKind
+  substituteTeacherId String?
+  newRoomId           String?
+  note                String?
+  status              SubstitutionStatus @default(OPEN)
+  publishedAt         DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  occurrence        Occurrence @relation(fields: [occurrenceId], references: [id])
+  substituteTeacher Person?    @relation(fields: [substituteTeacherId], references: [id])
+  newRoom           Room?      @relation(fields: [newRoomId], references: [id])
+
+  @@index([tenantId, status])
+}
+
+model Exam {
+  id          String   @id @default(cuid())
+  tenantId    String
+  classId     String?
+  groupId     String?
+  subjectId   String
+  date        DateTime @db.Date
+  title       String
+  kind        String // Schularbeit, Test, Mündlich
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  class   SchoolClass? @relation(fields: [classId], references: [id])
+  group   Group?       @relation(fields: [groupId], references: [id])
+  subject Subject      @relation(fields: [subjectId], references: [id])
+
+  @@index([tenantId, date])
+  @@index([tenantId, classId, date])
+}
+
+// ───────────────────────── Kommunikation ─────────────────────────
+
+model Thread {
+  id          String   @id @default(cuid())
+  tenantId    String
+  subject     String
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages     Message[]
+  participants ThreadParticipant[]
+
+  @@index([tenantId, createdAt])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  tenantId  String
+  threadId  String
+  senderId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, threadId, createdAt])
+}
+
+model ThreadParticipant {
+  threadId   String
+  personId   String
+  tenantId   String
+  lastReadAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  person Person @relation(fields: [personId], references: [id])
+
+  @@id([threadId, personId])
+  @@index([tenantId, personId])
+}
+
+model Announcement {
+  id           String    @id @default(cuid())
+  tenantId     String
+  title        String
+  body         String
+  audience     Json // Rollen, Klassen, Gruppen
+  requiresRead Boolean   @default(false)
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  reads AnnouncementRead[]
+
+  @@index([tenantId, publishedAt])
+}
+
+model AnnouncementRead {
+  announcementId String
+  personId       String
+  tenantId       String
+  readAt         DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  person       Person       @relation(fields: [personId], references: [id])
+
+  @@id([announcementId, personId])
+  @@index([tenantId, personId])
+}
+
+// ───────────────────────── Benachrichtigungen, Dateien, Audit ─────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  tenantId  String
+  personId  String
+  type      String
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@index([tenantId, personId, createdAt])
+}
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  tenantId  String
+  personId  String
+  type      String
+  channel   String
+  enabled   Boolean
+  quietFrom String?
+  quietTo   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@unique([personId, type, channel])
+  @@index([tenantId, personId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  tenantId  String
+  personId  String
+  endpoint  String   @unique
+  keys      Json
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@index([tenantId, personId])
+}
+
+model CalendarToken {
+  id        String   @id @default(cuid())
+  tenantId  String
+  personId  String
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@index([tenantId, personId])
+}
+
+model FileAsset {
+  id        String   @id @default(cuid())
+  tenantId  String
+  key       String
+  mime      String
+  size      Int
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  absences Absence[]
+
+  @@index([tenantId, ownerId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  actorId   String?
+  action    String // z. B. "absence.excuse", "person.read"
+  entity    String
+  entityId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+}

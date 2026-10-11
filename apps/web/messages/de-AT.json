@@ -1,0 +1,17 @@
+{
+  "app": { "name": "Schulplattform" },
+  "today": {
+    "title": "Heute",
+    "emptyTitle": "Noch keine Stunden",
+    "emptyDescription": "Sobald ein Stundenplan veröffentlicht ist, siehst du hier deinen Tag."
+  },
+  "status": {
+    "present": "Anwesend",
+    "late": "Verspätet",
+    "absent": "Abwesend",
+    "excused": "Entschuldigt",
+    "cancelled": "Entfall",
+    "substituted": "Supplierung",
+    "roomChanged": "Raumwechsel"
+  }
+}
