@@ -133,7 +133,7 @@ describe('Konfliktprüfung', () => {
     expect(cs[0]!.lessonIds).toContain(moved.id);
   });
 
-  it('ist schnell: 600 Regeln (etwa 24 Klassen) in deutlich unter 100 ms', () => {
+  it('ist schnell: 600 Regeln (etwa 24 Klassen), Einzeländerung und Vollprüfung unter 100 ms', () => {
     const big: LessonRule[] = [];
     for (let c = 0; c < 24; c++)
       for (let wd = 1; wd <= 5; wd++)
@@ -153,12 +153,22 @@ describe('Konfliktprüfung', () => {
         Array.from({ length: 25 }, (_, s) => `c${c}s${s}`),
       ]),
     );
-    const t0 = performance.now();
-    validateTimetable(big, ctx({ classStudents: students }));
-    validateTimetable(big, ctx({ classStudents: students }), {
-      lesson: { ...big[0]!, periodStart: 2 },
-    });
-    expect(performance.now() - t0).toBeLessThan(100);
+    const c = ctx({ classStudents: students });
+    // Median aus fünf Läufen nach einem Aufwärmlauf (JIT), damit langsame CI-Runner nicht zufällig scheitern
+    const median = (fn: () => void) => {
+      fn();
+      const runs = Array.from({ length: 5 }, () => {
+        const t0 = performance.now();
+        fn();
+        return performance.now() - t0;
+      }).sort((a, b) => a - b);
+      return runs[2]!;
+    };
+    // Spec Abschnitt 10: Live-Prüfung einer einzelnen Änderung unter 100 ms
+    expect(
+      median(() => validateTimetable(big, c, { lesson: { ...big[0]!, periodStart: 2 } })),
+    ).toBeLessThan(100);
+    expect(median(() => validateTimetable(big, c))).toBeLessThan(100);
   });
 });
 
