@@ -30,7 +30,12 @@ export class RateLimitGuard implements CanActivate {
       context.getClass(),
     ]);
     // Tests schalten die Begrenzung ab, außer ein Test fordert sie ausdrücklich an (SP_TEST_RATELIMIT=on).
-    if (!cfg || (process.env.NODE_ENV === 'test' && process.env.SP_TEST_RATELIMIT !== 'on'))
+    // E2E-Läufe (viele Anmeldungen von einer IP) setzen SP_E2E_NO_RATELIMIT; nie in Betrieb setzen.
+    if (
+      !cfg ||
+      (process.env.NODE_ENV === 'test' && process.env.SP_TEST_RATELIMIT !== 'on') ||
+      process.env.SP_E2E_NO_RATELIMIT === 'true'
+    )
       return true;
     const req = context.switchToHttp().getRequest<FastifyRequest>();
     const key = `${req.ip}|${req.method}|${req.routeOptions?.url ?? req.url}|${req.tenant?.id ?? ''}`;

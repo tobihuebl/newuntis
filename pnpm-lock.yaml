@@ -311,6 +311,9 @@ importers:
       testcontainers:
         specifier: ^12.2.0
         version: 12.2.0
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
       unplugin-swc:
         specifier: ^2.0.0
         version: 2.0.0(@swc/core@1.16.13(@swc/helpers@0.5.23))(esbuild@0.28.2)(rolldown@1.2.13)(rollup@4.64.5)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))

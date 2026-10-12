@@ -73,6 +73,12 @@ function EventStream() {
         void qc.invalidateQueries({ queryKey: ['today'] });
         void qc.invalidateQueries({ queryKey: ['classbook'] });
       });
+      es.addEventListener('notification.new', () => {
+        void qc.invalidateQueries({ queryKey: ['notifications'] });
+      });
+      es.addEventListener('absence.reviewed', () => {
+        void qc.invalidateQueries({ queryKey: ['absences'] });
+      });
       for (const type of ['timetable.published', 'substitution.published', 'resync'])
         es.addEventListener(type, everything);
     };

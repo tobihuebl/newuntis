@@ -29,8 +29,9 @@ export function LoginForm() {
     }
   }
 
+  // POST: auch wenn vor dem Laden von JavaScript abgeschickt, landen Zugangsdaten nie in der URL
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <h1 className="text-2xl font-semibold">{t('loginTitle')}</h1>
       <Input label={t('email')} name="email" type="email" autoComplete="username" required />
       <Input

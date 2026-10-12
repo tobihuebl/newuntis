@@ -312,6 +312,16 @@ function StudentToday({ data }: { data: TodayResponse }) {
   return (
     <>
       <ChildSwitcher data={data} />
+      {data.view === 'guardian' && data.studentId ? (
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" asChild>
+            <Link href={`/kind/${data.studentId}/fehlzeiten`}>{t('absences')}</Link>
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link href={`/abwesenheit/neu?kind=${data.studentId}`}>{t('reportAbsence')}</Link>
+          </Button>
+        </div>
+      ) : null}
       {lessons.length === 0 ? (
         <Card>
           <EmptyState

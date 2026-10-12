@@ -123,6 +123,44 @@ export class ExamsController {
     };
   }
 
+  /** Auswahl für das Formular: Klassen mit Fächern, für die die Person Prüfungen eintragen darf. */
+  @Can('exam.write')
+  @Get('options')
+  async options(@TenantId() tenantId: string, @Actor() me: Principal) {
+    const tx = this.prisma.tx;
+    const user = await this.policy.loadUser(tenantId, me);
+    const all = user.roles.includes('PRINCIPAL');
+    const lessons = await tx.lesson.findMany({
+      where: {
+        timetable: { status: 'PUBLISHED' },
+        classId: { not: null },
+        ...(all ? {} : { teachers: { some: { teacherId: me.personId } } }),
+      },
+      select: {
+        class: { select: { id: true, name: true } },
+        subject: { select: { id: true, name: true } },
+      },
+    });
+    const byClass = new Map<string, { id: string; name: string; subjects: Map<string, string> }>();
+    for (const l of lessons) {
+      if (!l.class) continue;
+      const c = byClass.get(l.class.id) ?? { ...l.class, subjects: new Map<string, string>() };
+      c.subjects.set(l.subject.id, l.subject.name);
+      byClass.set(l.class.id, c);
+    }
+    return {
+      classes: [...byClass.values()]
+        .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+        .map((c) => ({
+          id: c.id,
+          name: c.name,
+          subjects: [...c.subjects]
+            .map(([id, name]) => ({ id, name }))
+            .sort((a, b) => a.name.localeCompare(b.name, 'de')),
+        })),
+    };
+  }
+
   private mayEdit(
     user: PolicyUser,
     me: Principal,

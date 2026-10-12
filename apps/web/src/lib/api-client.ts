@@ -44,3 +44,26 @@ export async function apiRequest<T = unknown>(
 
 export const apiPost = <T = unknown>(path: string, body?: unknown, csrfToken?: string) =>
   apiRequest<T>('POST', path, body, csrfToken);
+
+/** Datei als Rohdaten hochladen (Fotos, PDF); der Server prüft Typ, Größe und Viren. */
+export async function apiUpload<T = unknown>(
+  path: string,
+  file: Blob,
+  csrfToken: string,
+): Promise<T> {
+  const res = await fetch(`/api/v1${path}`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'content-type': file.type || 'application/octet-stream',
+      [CSRF_HEADER]: csrfToken,
+    },
+    body: file,
+  });
+  const data: unknown = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const p = data as Partial<ApiProblem>;
+    throw new ApiError({ ...p, status: res.status, title: p.title ?? 'Fehler' });
+  }
+  return data as T;
+}

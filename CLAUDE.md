@@ -55,6 +55,16 @@ die Spezifikation anpassen, dann bauen.
 - Echtzeit: EventsService.emit innerhalb der Transaktion (pg_notify), Ereignisse nur mit Ids.
 - E2E: pnpm e2e (Docker nötig, eigene Ports 3100/4100). Service Worker nur im Produktions-Build.
 
+## Abwesenheit, Supplierung, Benachrichtigungen (M5, siehe ADR 0008)
+
+- Benachrichtigungen nur über NotificationsService.emit(tx, …) in der Transaktion des Fachmoduls; Texte in @sp/shared/notifications.ts, ohne Namen.
+- Hintergrund-Jobs: QueueService.register(...) in onModuleInit; Jobs mit QueueService.send(..., tx) transaktional einstellen.
+- E-Mails nur über MailQueue mit React-Email-Vorlage (apps/api/src/modules/mail/templates.tsx).
+- Uploads nur über FilesService (Typprüfung, Virenscan, signierte Links).
+- Klassenbuch "abwesend" → AbsencesService.syncFromClassbook; Supplierungen ändern Termine erst beim Veröffentlichen.
+- Übersetzungsschlüssel ohne Punkt (next-intl), ein Test prüft das.
+- VAPID-Schlüssel: pnpm --filter @sp/api vapid (Ausgabe in .env eintragen).
+
 ## Hinweise zur Umgebung
 
 - pnpm liegt ggf. in ~/.local/bin (corepack); PATH entsprechend setzen.

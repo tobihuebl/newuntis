@@ -82,7 +82,7 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
 
   if (step.name === 'confirm') {
     return (
-      <form onSubmit={confirm} className="flex flex-col gap-4" noValidate>
+      <form method="post" onSubmit={confirm} className="flex flex-col gap-4" noValidate>
         <h1 className="text-2xl font-semibold">{t('setupTitle')}</h1>
         <p className="text-muted">{t('setupHelp')}</p>
         <img

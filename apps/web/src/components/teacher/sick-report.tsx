@@ -1,0 +1,158 @@
+'use client';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { addDays, type TeacherAbsenceItem } from '@sp/shared';
+import { Button, Card, Checkbox, Input, Select, Skeleton, Textarea } from '@sp/ui';
+import { dateTimeOf, todayVienna } from '../../lib/dates';
+import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
+
+const PERIODS = Array.from({ length: 10 }, (_, i) => ({
+  value: String(i + 1),
+  label: `${i + 1}.`,
+}));
+
+/** Krankmeldung der Lehrkraft (AB-04): löst die Supplierungsplanung aus. */
+export function SickReport() {
+  const t = useTranslations('sick');
+  const problem = useProblemText();
+  const today = todayVienna();
+  const list = useApi<{ data: TeacherAbsenceItem[] }>(
+    ['teacher-absences', 'mine'],
+    `/teacher-absences?from=${today}&to=${addDays(today, 60)}`,
+  );
+  const create = useApiMutation<object, TeacherAbsenceItem>('POST', () => '/teacher-absences', [
+    ['teacher-absences'],
+  ]);
+  const remove = useApiMutation<string>('DELETE', (id) => `/teacher-absences/${id}`, [
+    ['teacher-absences'],
+  ]);
+  const [from, setFrom] = useState(today);
+  const [to, setTo] = useState(today);
+  const [partial, setPartial] = useState(false);
+  const [fp, setFp] = useState('1');
+  const [tp, setTp] = useState('6');
+  const [note, setNote] = useState('');
+  const [sent, setSent] = useState(false);
+
+  return (
+    <div className="mx-auto flex max-w-xl flex-col gap-4 p-4">
+      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <p className="text-muted">{t('help')}</p>
+      <Card>
+        <form
+          className="flex flex-col gap-4"
+          noValidate
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setSent(false);
+            await create.mutateAsync({
+              fromDate: from,
+              toDate: to,
+              fromPeriod: partial ? Number(fp) : null,
+              toPeriod: partial ? Number(tp) : null,
+              kind: 'SICK',
+              note: note || null,
+            });
+            setSent(true);
+            setNote('');
+          }}
+        >
+          <div className="flex flex-wrap gap-3">
+            <Input
+              label={t('from')}
+              type="date"
+              value={from}
+              min={today}
+              onChange={(e) => setFrom(e.target.value)}
+              className="w-44"
+            />
+            <Input
+              label={t('to')}
+              type="date"
+              value={to}
+              min={from}
+              onChange={(e) => setTo(e.target.value)}
+              className="w-44"
+            />
+          </div>
+          <Checkbox
+            label={t('onlyLessons')}
+            checked={partial}
+            onChange={(e) => setPartial(e.target.checked)}
+          />
+          {partial ? (
+            <div className="flex flex-wrap gap-3">
+              <Select
+                label={t('fromPeriod')}
+                value={fp}
+                onChange={(e) => setFp(e.target.value)}
+                options={PERIODS}
+              />
+              <Select
+                label={t('toPeriod')}
+                value={tp}
+                onChange={(e) => setTp(e.target.value)}
+                options={PERIODS}
+              />
+            </div>
+          ) : null}
+          <Textarea
+            label={t('note')}
+            value={note}
+            maxLength={500}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          {create.error ? (
+            <p role="alert" className="text-sm text-danger">
+              {problem(create.error)}
+            </p>
+          ) : null}
+          <p role="status" className="text-sm text-success">
+            {sent ? t('sent') : ''}
+          </p>
+          <Button type="submit" disabled={create.isPending} className="self-start">
+            {t('send')}
+          </Button>
+        </form>
+      </Card>
+      <section aria-labelledby="mine" className="flex flex-col gap-2">
+        <h2 id="mine" className="text-lg font-semibold">
+          {t('mine')}
+        </h2>
+        {!list.data ? (
+          <Skeleton className="h-16 w-full" />
+        ) : list.data.data.length === 0 ? (
+          <p className="text-muted">{t('none')}</p>
+        ) : (
+          <Card className="p-0">
+            <ul>
+              {list.data.data.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 last:border-b-0"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {dateTimeOf(a.fromAt)} – {dateTimeOf(a.toAt)}
+                    </p>
+                    <p className="text-sm text-muted">
+                      {t('affected', {
+                        n:
+                          a.substitutions.open +
+                          a.substitutions.assigned +
+                          a.substitutions.published,
+                      })}
+                    </p>
+                  </div>
+                  <Button variant="ghost" onClick={() => remove.mutate(a.id)}>
+                    {t('delete')}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+      </section>
+    </div>
+  );
+}

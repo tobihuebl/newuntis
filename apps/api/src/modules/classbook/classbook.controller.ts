@@ -31,6 +31,20 @@ export class ClassbookController {
     return this.todayService.today(this.prisma.tx, tenantId, me, user, q.studentId);
   }
 
+  /** Hausübungen der nächsten zwei Wochen (Seite "Aufgaben" bzw. "Termine"). */
+  @Can('timetable.read.own')
+  @Get('me/homework')
+  async homework(
+    @TenantId() tenantId: string,
+    @Actor() me: Principal,
+    @Query(new ZodPipe(todayQuery)) q: z.infer<typeof todayQuery>,
+  ) {
+    const user = await this.policy.loadUser(tenantId, me);
+    return {
+      data: await this.todayService.homework(this.prisma.tx, tenantId, me, user, q.studentId),
+    };
+  }
+
   /** KB-04: offene Einträge der eigenen Stunden. */
   @Can('classbook.write')
   @Get('classbook/open')

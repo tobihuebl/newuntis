@@ -32,12 +32,35 @@ for (const scheme of ['light', 'dark'] as const) {
       const href = await first.getAttribute('href');
       await check(page, href!);
       await check(page, '/plan');
+      await check(page, '/pruefungen');
+      await check(page, '/krankmeldung');
+      await check(page, '/klasse');
     });
 
-    test('Schüler:in: Heute und Plan', async ({ page }) => {
+    test('Schüler:in: Heute, Plan, Aufgaben, Profil, Benachrichtigungen', async ({ page }) => {
       await login(page, accounts().studentEmail, /\/heute$/);
       await check(page, '/heute');
       await check(page, '/plan');
+      await check(page, '/aufgaben');
+      await check(page, '/profil');
+      await check(page, '/benachrichtigungen');
+    });
+
+    test('Eltern: Abwesenheit melden, Fehlzeiten, Termine', async ({ page }) => {
+      await login(page, accounts().guardianEmail, /\/heute(\?.*)?$/);
+      await check(page, '/abwesenheit/neu');
+      await check(page, '/termine');
+      await page.goto('/heute');
+      const href = await page
+        .getByRole('link', { name: 'Fehlzeiten' })
+        .first()
+        .getAttribute('href');
+      await check(page, href!);
+    });
+
+    test('Direktion: Supplierung', async ({ page }) => {
+      await login(page, accounts().principalEmail, /\/lagebild$/);
+      await check(page, '/supplierung');
     });
 
     test('Administration: Personen und Stundenplan', async ({ page }) => {

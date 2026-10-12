@@ -56,7 +56,7 @@ export function TokenPasswordForm({ token, kind }: { token: string; kind: 'invit
     );
   }
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <h1 className="text-2xl font-semibold">{texts.title}</h1>
       <Input
         label={t('newPassword')}

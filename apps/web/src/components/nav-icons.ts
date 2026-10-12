@@ -9,6 +9,7 @@ import {
   Clock,
   DoorOpen,
   Ellipsis,
+  FileCheck,
   GraduationCap,
   House,
   LayoutDashboard,
@@ -16,6 +17,7 @@ import {
   Lock,
   Megaphone,
   MessageSquare,
+  NotebookPen,
   ScrollText,
   ShieldCheck,
   Upload,
@@ -27,6 +29,8 @@ import {
 
 /** Lucide-Symbole der Navigation, nach Namen aus @sp/shared (kebab-case). */
 export const NAV_ICONS: Record<string, LucideIcon> = {
+  'file-check': FileCheck,
+  'notebook-pen': NotebookPen,
   house: House,
   'calendar-days': CalendarDays,
   'list-checks': ListChecks,

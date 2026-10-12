@@ -184,10 +184,12 @@ Mobil: Tab-Leiste unten mit höchstens 5 Einträgen. Desktop: Seitenleiste links
 | --- | --- | --- |
 | Schüler | Heute, Plan, Aufgaben, Nachrichten, Profil | `/heute`, `/plan`, `/aufgaben`, `/noten`, `/nachrichten`, `/profil` |
 | Eltern | Heute, Plan, Abwesenheit, Nachrichten, Profil | `/heute`, `/kind/[id]/plan`, `/kind/[id]/fehlzeiten`, `/abwesenheit/neu`, `/nachrichten`, `/termine` |
-| Lehrer | Heute, Klassenbuch, Klassen, Nachrichten, Profil | `/heute`, `/klassenbuch/[occurrenceId]`, `/klassen/[id]`, `/pruefungen`, `/noten`, `/raeume`, `/nachrichten` |
+| Lehrer | Heute, Klassenbuch, Klassen, Nachrichten, Profil | `/heute`, `/klassenbuch/[occurrenceId]`, `/klassen/[id]`, `/pruefungen`, `/krankmeldung`, `/noten`, `/raeume`, `/nachrichten` |
 | Klassenvorstand | wie Lehrer, dazu Meine Klasse | `/klasse/[id]/uebersicht`, `/klasse/[id]/entschuldigungen`, `/klasse/[id]/fehlzeiten` |
 | Direktion | Lagebild, Supplierung, Auswertung, Nachrichten, Mehr | `/lagebild`, `/supplierung`, `/auswertung`, `/freigaben`, `/rundschreiben` |
 | Administration | Personen, Klassen, Stundenplan, Import, Mehr | `/admin/personen`, `/admin/klassen`, `/admin/stundenplan`, `/admin/raster`, `/admin/import`, `/admin/rollen`, `/admin/schuljahr`, `/admin/protokoll`, `/admin/datenschutz` |
+
+Für alle Rollen zusätzlich `/profil` und `/benachrichtigungen` (Glocke in der Kopfzeile).
 
 **Schlüssel-Screens (Layout):**
 
@@ -311,7 +313,7 @@ enum WeekPattern { EVERY A B }
 enum TimetableStatus { DRAFT PUBLISHED ARCHIVED }
 enum OccurrenceStatus { SCHEDULED CANCELLED SUBSTITUTED ROOM_CHANGED }
 enum AttendanceStatus { PRESENT LATE ABSENT }
-enum AbsenceStatus { REPORTED EXCUSED REJECTED UNEXCUSED }
+enum AbsenceStatus { OPEN REPORTED EXCUSED REJECTED UNEXCUSED } // OPEN: aus dem Klassenbuch, Entschuldigung ausständig (M5, ADR 0008)
 enum TeacherAbsenceKind { SICK TRAINING LEAVE OTHER }
 enum SubstitutionKind { SUBSTITUTE CANCEL ROOM_CHANGE SUPERVISION }
 enum SubstitutionStatus { OPEN ASSIGNED PUBLISHED }
@@ -610,16 +612,16 @@ Noten (`Grade`, `GradeCategory`) kommen in V1 hinzu und folgen denselben Regeln.
 | Bereich | Endpunkte | Rollen |
 | --- | --- | --- |
 | Konto | `POST /auth/login`, `POST /auth/2fa/verify`, `POST /auth/logout`, `POST /auth/invite/accept`, `POST /auth/password/reset-request`, `POST /auth/password/reset` | alle |
-| Profil | `GET /me`, `PATCH /me/preferences`, `GET /me/export` | alle |
+| Profil | `GET /me`, `GET/PATCH /me/preferences`, `GET /me/sessions`, `DELETE /me/sessions/:id`, `GET /me/homework`, `GET /me/export` | alle |
 | Heute | `GET /today` (rollenabhängige Zusammenfassung) | alle |
 | Pläne | `GET /me/timetable?from&to`, `GET /classes/:id/timetable`, `GET /teachers/:id/timetable`, `GET /rooms/:id/timetable`, `GET /calendar/:token.ics` | alle, je nach Recht |
 | Klassenbuch | `GET /occurrences/:id`, `PUT /occurrences/:id/classbook`, `PUT /occurrences/:id/attendance`, `POST /occurrences/:id/close`, `GET /classbook/open` | Lehrer, Klassenvorstand, Direktion |
-| Abwesenheit | `POST /absences`, `GET /absences`, `PATCH /absences/:id/review`, `POST /absences/:id/attachments` | Eltern, Klassenvorstand, Direktion, Administration |
-| Lehrerabwesenheit | `POST /teacher-absences`, `GET /teacher-absences` | Lehrer, Direktion, Administration |
-| Supplierung | `GET /substitutions?date`, `GET /substitutions/:id/suggestions`, `PATCH /substitutions/:id`, `POST /substitutions/publish` | Direktion, Administration (lesen: alle Betroffenen) |
-| Prüfungen | `GET /exams`, `POST /exams`, `PATCH /exams/:id`, `DELETE /exams/:id` | Lehrer, Direktion (lesen: Schüler, Eltern) |
+| Abwesenheit | `POST /absences`, `GET /absences`, `PATCH /absences/:id/review`, `POST /absences/:id/attachments`, `GET /absences/:id/attachment` (signierter Link) | Eltern, Klassenvorstand, Direktion, Administration |
+| Lehrerabwesenheit | `POST /teacher-absences`, `GET /teacher-absences`, `PUT/DELETE /teacher-absences/:id` | Lehrer (nur sich selbst), Direktion, Administration |
+| Supplierung | `GET /substitutions?date`, `GET /substitutions/:id/suggestions`, `PATCH /substitutions/:id`, `POST /substitutions/publish`, `POST /substitutions` (Änderung ohne Abwesenheit, z. B. Entfall), `DELETE /substitutions/:id` | Direktion, Administration (lesen: alle Betroffenen) |
+| Prüfungen | `GET /exams`, `GET /exams/options`, `POST /exams`, `PATCH /exams/:id`, `DELETE /exams/:id` | Lehrer, Direktion (lesen: Schüler, Eltern) |
 | Nachrichten | `GET /threads`, `POST /threads`, `POST /threads/:id/messages`, `GET /announcements`, `POST /announcements`, `POST /announcements/:id/read` | je nach Rechte-Matrix |
-| Benachrichtigungen | `GET /notifications`, `POST /notifications/:id/read`, `POST /push/subscribe`, `DELETE /push/subscribe` | alle |
+| Benachrichtigungen | `GET /notifications`, `POST /notifications/:id/read`, `POST /notifications/read-all`, `GET/PATCH /me/preferences`, `POST /push/subscribe`, `DELETE /push/subscribe` | alle |
 | Echtzeit | `GET /events` (Server-Sent Events) | alle |
 | Stammdaten | `GET/POST/PATCH/DELETE /admin/{persons,classes,groups,subjects,rooms,school-years,periods}`, `POST /admin/guardian-links`, `POST /admin/invitations` | Administration |
 | Import | `POST /admin/import/persons?dryRun=true`, `POST /admin/import/persons/commit` | Administration |
@@ -698,7 +700,7 @@ Beide Abläufe haben feste Zustände, jede Zustandsänderung wird im Audit-Log f
 
 **Abwesenheit:**
 
-- Eine Fehlzeit entsteht, wenn ein Lehrer im Klassenbuch "abwesend" setzt. Melden Eltern vorab, startet der Ablauf direkt bei `REPORTED`.
+- Eine Fehlzeit entsteht, wenn ein Lehrer im Klassenbuch "abwesend" setzt (Status `OPEN`, aufeinanderfolgende Stunden eines Tages ergeben einen Block). Melden Eltern vorab, startet der Ablauf direkt bei `REPORTED`; noch nicht entschuldigte Fehlzeiten im gemeldeten Zeitraum gehen in der Meldung auf.
 - Fehlt die Meldung, erhalten Eltern Erinnerungen. Zeitpunkte und die Frist (`settings.absence.excuseDeadlineDays`) sind pro Schule einstellbar.
 - Nach Ablauf der Frist setzt ein Job den Status `UNEXCUSED`. Eltern können danach weiterhin nachmelden, der Ablauf beginnt dann wieder bei `REPORTED`.
 - Der Klassenvorstand entscheidet `EXCUSED` oder `REJECTED`, immer mit optionalem Kommentar. Eltern werden per Push informiert, nach einer Ablehnung können sie erneut melden.

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
+import { cookies } from 'next/headers';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import './globals.css';
 
@@ -25,8 +26,10 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
+  // Farbschema aus dem Profil (Cookie), sonst wie das Gerät (prefers-color-scheme)
+  const theme = (await cookies()).get('sp_theme')?.value;
   return (
-    <html lang={locale}>
+    <html lang={locale} data-theme={theme === 'light' || theme === 'dark' ? theme : undefined}>
       <body>
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>

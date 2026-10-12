@@ -29,7 +29,7 @@ export function ResetRequestForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <h1 className="text-2xl font-semibold">{t('resetRequestTitle')}</h1>
       <p className="text-muted">{t('resetRequestHelp')}</p>
       {done ? (

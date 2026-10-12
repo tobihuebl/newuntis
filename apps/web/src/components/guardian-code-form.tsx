@@ -49,7 +49,7 @@ export function GuardianCodeForm() {
     );
   }
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+    <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <h1 className="text-2xl font-semibold">{t('title')}</h1>
       <p className="text-muted">{t('help')}</p>
       <Input label={t('code')} name="code" autoComplete="off" required placeholder="XXXX-XXXX-XX" />

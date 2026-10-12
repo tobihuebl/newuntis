@@ -1,7 +1,7 @@
 /* Service Worker der Schulplattform (Spec Abschnitt 12): App-Hülle und Seiten für Heute, Plan und Klassenbuch.
  * Daten (Termine, Schülerlisten, Outbox) liegen in IndexedDB und werden von der App selbst verwaltet;
  * API-Aufrufe gehen nie durch einen Cache. */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const STATIC = `sp-static-${VERSION}`;
 const PAGES = `sp-pages-${VERSION}`;
 const OFFLINE = '/offline';
@@ -112,4 +112,43 @@ self.addEventListener('message', (event) => {
           Promise.all(keys.filter((k) => k.startsWith('sp-pages')).map((k) => caches.delete(k))),
         ),
     );
+});
+
+/* Web-Push (Spec Abschnitt 12): Texte ohne Namen, Details lädt die App nach dem Öffnen. */
+self.addEventListener('push', (event) => {
+  const data = (() => {
+    try {
+      return event.data ? event.data.json() : {};
+    } catch {
+      return {};
+    }
+  })();
+  const title = data.title || 'Schulplattform';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || '',
+      tag: data.tag || 'sp',
+      renotify: true,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { url: typeof data.url === 'string' && data.url.startsWith('/') ? data.url : '/' },
+      lang: 'de-AT',
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if (new URL(c.url).origin === self.location.origin && 'focus' in c) {
+          c.navigate(url).catch(() => undefined);
+          return c.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    }),
+  );
 });

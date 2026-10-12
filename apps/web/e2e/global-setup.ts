@@ -57,6 +57,8 @@ export default async function globalSetup() {
     BASE_DOMAIN: 'localhost',
     ENCRYPTION_KEY: Buffer.alloc(32, 9).toString('base64'),
     JOBS_ENABLED: 'false',
+    // viele Anmeldungen von derselben IP; die Begrenzung selbst prüfen die API-Tests
+    SP_E2E_NO_RATELIMIT: 'true',
     NEXT_DIST_DIR: '.next-e2e',
     NEXT_TELEMETRY_DISABLED: '1',
   };
@@ -80,6 +82,15 @@ export default async function globalSetup() {
   );
   const adminEmail = await one(
     `SELECT u.email FROM "User" u JOIN "RoleAssignment" r ON r."personId" = u."personId" AND r.role = 'ADMIN' LIMIT 1`,
+  );
+  const principalEmail = await one(
+    `SELECT u.email FROM "User" u JOIN "RoleAssignment" r ON r."personId" = u."personId" AND r.role = 'PRINCIPAL' LIMIT 1`,
+  );
+  const guardianEmail = await one(
+    `SELECT u.email FROM "User" u
+       JOIN "GuardianLink" g ON g."guardianId" = u."personId" AND g."canExcuse"
+       JOIN "Enrollment" e ON e."studentId" = g."studentId"
+       JOIN "SchoolClass" c ON c.id = e."classId" AND c.name = '3A' ORDER BY u.email LIMIT 1`,
   );
   const studentEmail = await one(
     `SELECT u.email FROM "User" u
@@ -109,7 +120,14 @@ export default async function globalSetup() {
   rmSync(resolve(__dirname, '.state-totp.json'), { force: true }); // frische Datenbank: 2FA neu einrichten
   writeFileSync(
     STATE_FILE,
-    JSON.stringify({ teacherEmail, adminEmail, studentEmail, databaseUrl: owner }),
+    JSON.stringify({
+      teacherEmail,
+      adminEmail,
+      studentEmail,
+      principalEmail,
+      guardianEmail,
+      databaseUrl: owner,
+    }),
   );
 
   return async () => {

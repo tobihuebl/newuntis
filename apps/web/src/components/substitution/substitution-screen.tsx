@@ -1,0 +1,589 @@
+'use client';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
+import {
+  addDays,
+  SUBSTITUTION_KINDS,
+  TEACHER_ABSENCE_KINDS,
+  type PlanEntry,
+  type PlanResponse,
+  type SubstitutionDay,
+  type SubstitutionItem,
+  type SubstitutionKindName,
+  type Suggestion,
+} from '@sp/shared';
+import {
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  EmptyState,
+  Input,
+  SegmentedControl,
+  Select,
+  Sheet,
+  Skeleton,
+  cn,
+} from '@sp/ui';
+import { dateTimeOf, longDate, timeOf, todayVienna } from '../../lib/dates';
+import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
+import { periodLabel } from '../today/lesson-row';
+
+interface Directory {
+  classes: { id: string; name: string }[];
+  teachers: { id: string; name: string }[];
+  rooms: { id: string; name: string }[];
+}
+const PERIODS = Array.from({ length: 10 }, (_, i) => ({
+  value: String(i + 1),
+  label: `${i + 1}.`,
+}));
+
+/** Supplierung planen und veröffentlichen (SU-01 bis SU-04, Direktion und Administration). */
+export function SubstitutionScreen() {
+  const t = useTranslations('substitution');
+  const router = useRouter();
+  const date = useSearchParams().get('datum') ?? todayVienna();
+  const q = useApi<SubstitutionDay>(['substitutions', date], `/substitutions?date=${date}`);
+  const directory = useApi<Directory>(['directory'], '/timetable/directory');
+  const publish = useApiMutation<object, { published: number }>(
+    'POST',
+    () => '/substitutions/publish',
+    [['substitutions']],
+  );
+  const [editing, setEditing] = useState<SubstitutionItem | null>(null);
+  const [creating, setCreating] = useState<PlanEntry | null>(null);
+  const [absenceOpen, setAbsenceOpen] = useState(false);
+  const [published, setPublished] = useState<number | null>(null);
+  const go = (d: string) => router.replace(`/supplierung?datum=${d}`);
+  const items = q.data?.items ?? [];
+  const pending = items.filter((i) => i.status === 'ASSIGNED');
+
+  return (
+    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4 pb-28">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">{t('title')}</h1>
+          <p className="text-muted">{longDate(date)}</p>
+        </div>
+        <nav aria-label={t('title')} className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={() => go(addDays(date, -1))}>
+            {t('prevDay')}
+          </Button>
+          <Button variant="ghost" onClick={() => go(todayVienna())}>
+            {t('today')}
+          </Button>
+          <Button variant="secondary" onClick={() => go(addDays(date, 1))}>
+            {t('nextDay')}
+          </Button>
+        </nav>
+      </div>
+
+      <AbsentTeachers day={q.data} onAdd={() => setAbsenceOpen(true)} />
+
+      {q.isPending ? (
+        <Skeleton className="h-40 w-full" />
+      ) : items.length === 0 ? (
+        <Card>
+          <EmptyState title={t('none')} />
+        </Card>
+      ) : (
+        <>
+          <ItemSection
+            title={t('open')}
+            items={items.filter((i) => i.status === 'OPEN')}
+            onEdit={setEditing}
+            tone="danger"
+          />
+          <ItemSection title={t('assigned')} items={pending} onEdit={setEditing} tone="warning" />
+          <ItemSection
+            title={t('published')}
+            items={items.filter((i) => i.status === 'PUBLISHED')}
+            onEdit={setEditing}
+            tone="success"
+          />
+        </>
+      )}
+
+      <ChangeLesson date={date} directory={directory.data} onPick={setCreating} />
+
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-surface p-3 md:bottom-0 md:left-64">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-3">
+          <Button
+            disabled={pending.length === 0 || publish.isPending}
+            onClick={async () => {
+              const r = await publish.mutateAsync({ date });
+              setPublished(r.published);
+            }}
+          >
+            {t('publish', { count: pending.length })}
+          </Button>
+          <p role="status" className="text-sm text-success">
+            {published !== null ? t('publishedOk', { count: published }) : ''}
+          </p>
+        </div>
+      </div>
+
+      <ActionSheet
+        item={editing}
+        entry={creating}
+        rooms={q.data?.rooms ?? []}
+        onClose={() => {
+          setEditing(null);
+          setCreating(null);
+        }}
+      />
+      <AbsenceSheet
+        open={absenceOpen}
+        date={date}
+        teachers={directory.data?.teachers ?? []}
+        onClose={() => setAbsenceOpen(false)}
+      />
+    </div>
+  );
+}
+
+function summary(t: ReturnType<typeof useTranslations>, i: SubstitutionItem): string {
+  const action = t(`actions.${i.kind}`);
+  if ((i.kind === 'SUBSTITUTE' || i.kind === 'SUPERVISION') && i.substitute)
+    return `${action}: ${i.substitute.name}`;
+  if (i.kind === 'ROOM_CHANGE' && i.newRoom) return `${action} → ${i.newRoom.name}`;
+  return i.status === 'OPEN' ? '' : action;
+}
+
+function ItemSection({
+  title,
+  items,
+  onEdit,
+  tone,
+}: {
+  title: string;
+  items: SubstitutionItem[];
+  onEdit: (i: SubstitutionItem) => void;
+  tone: 'danger' | 'warning' | 'success';
+}) {
+  const t = useTranslations('substitution');
+  const tt = useTranslations('today');
+  if (items.length === 0) return null;
+  return (
+    <section aria-label={title} className="flex flex-col gap-2">
+      <h2 className="flex items-center gap-2 text-lg font-semibold">
+        {title} <Badge tone={tone}>{items.length}</Badge>
+      </h2>
+      <Card className="p-0">
+        <ul>
+          {items.map((i) => (
+            <li
+              key={i.id}
+              className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+              data-substitution={i.status}
+            >
+              <div className="w-20 shrink-0 text-sm tabular-nums">
+                <p className="font-medium">{timeOf(i.occurrence.startsAt)}</p>
+                <p className="text-xs text-muted">{periodLabel(tt, i.occurrence)}</p>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">
+                  {i.occurrence.class?.name ?? i.occurrence.group?.name} ·{' '}
+                  {i.occurrence.subject.name}
+                </p>
+                <p className="text-sm text-muted">
+                  {t('planned')}:{' '}
+                  {i.plannedTeachers
+                    .map((p) =>
+                      p.id === i.absentTeacher?.id ? `${p.name} (${t('absent')})` : p.name,
+                    )
+                    .join(', ') || '–'}
+                  {i.occurrence.room ? ` · ${i.occurrence.room.name}` : ''}
+                </p>
+                {summary(t, i) ? <p className="text-sm font-medium">{summary(t, i)}</p> : null}
+                {i.changedAfterPublish ? <Badge tone="warning">{t('changed')}</Badge> : null}
+              </div>
+              <Button variant="secondary" onClick={() => onEdit(i)}>
+                {t('choose')}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </section>
+  );
+}
+
+/** Aktion festlegen: Vertretung mit Vorschlägen, Entfall, Raumwechsel, Betreuung. */
+function ActionSheet({
+  item,
+  entry,
+  rooms,
+  onClose,
+}: {
+  item: SubstitutionItem | null;
+  entry: PlanEntry | null;
+  rooms: { id: string; name: string }[];
+  onClose: () => void;
+}) {
+  const t = useTranslations('substitution');
+  const tc = useTranslations('common');
+  const problem = useProblemText();
+  const target = item?.occurrence ?? entry;
+  const [kind, setKind] = useState<SubstitutionKindName>('SUBSTITUTE');
+  const [teacher, setTeacher] = useState('');
+  const [room, setRoom] = useState('');
+  const [note, setNote] = useState('');
+  useEffect(() => {
+    setKind(item && item.status !== 'OPEN' ? item.kind : entry ? 'CANCEL' : 'SUBSTITUTE');
+    setTeacher(item?.substitute?.id ?? '');
+    setRoom(item?.newRoom?.id ?? '');
+    setNote(item?.note ?? '');
+  }, [item, entry]);
+  const sug = useApi<{ teachers: Suggestion[]; freeRooms: { id: string; name: string }[] }>(
+    ['suggestions', item?.id],
+    item ? `/substitutions/${item.id}/suggestions` : null,
+  );
+  const save = useApiMutation<object>('PATCH', () => `/substitutions/${item?.id}`, [
+    ['substitutions'],
+  ]);
+  const create = useApiMutation<object>('POST', () => '/substitutions', [['substitutions']]);
+  const remove = useApiMutation<string>('DELETE', (id) => `/substitutions/${id}`, [
+    ['substitutions'],
+  ]);
+  const needsTeacher = kind === 'SUBSTITUTE' || kind === 'SUPERVISION';
+  const roomOptions = (sug.data?.freeRooms ?? rooms).map((r) => ({ value: r.id, label: r.name }));
+  const body = {
+    kind,
+    substituteTeacherId: needsTeacher ? teacher || null : null,
+    newRoomId: kind === 'CANCEL' ? null : room || null,
+    note: note || null,
+  };
+  const error = save.error ?? create.error ?? remove.error;
+
+  return (
+    <Sheet
+      open={target !== null}
+      onOpenChange={(o) => (o ? undefined : onClose())}
+      title={
+        target ? `${target.class?.name ?? target.group?.name ?? ''} · ${target.subject.name}` : ''
+      }
+      description={target ? `${longDate(target.date)}, ${timeOf(target.startsAt)}` : undefined}
+      closeLabel={tc('close')}
+    >
+      <SegmentedControl
+        label={t('action')}
+        value={kind}
+        onChange={setKind}
+        options={SUBSTITUTION_KINDS.map((k) => ({ value: k, label: t(`actions.${k}`) }))}
+      />
+      {needsTeacher ? (
+        item ? (
+          <fieldset className="flex flex-col gap-1">
+            <legend className="mb-1 text-sm font-medium">{t('suggestions')}</legend>
+            {!sug.data ? (
+              <Skeleton className="h-24 w-full" />
+            ) : sug.data.teachers.length === 0 ? (
+              <p className="text-sm text-muted">{t('noSuggestions')}</p>
+            ) : (
+              <ul className="max-h-64 overflow-y-auto rounded-sm border border-border">
+                {sug.data.teachers.map((s) => (
+                  <li key={s.teacher.id} className="border-b border-border last:border-b-0">
+                    <label
+                      className={cn(
+                        'flex min-h-12 cursor-pointer items-center gap-3 px-3',
+                        teacher === s.teacher.id && 'bg-surface-2',
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="substitute"
+                        value={s.teacher.id}
+                        checked={teacher === s.teacher.id}
+                        onChange={() => setTeacher(s.teacher.id)}
+                        className="size-4 accent-[var(--primary)]"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-medium">{s.teacher.name}</span>
+                        <span className="block text-xs text-muted">
+                          {t('fairness', { n: s.count })}
+                        </span>
+                      </span>
+                      {s.teachesSubject ? (
+                        <Badge tone="success">{t('teachesSubject')}</Badge>
+                      ) : null}
+                      {s.knowsClass ? <Badge tone="info">{t('knowsClass')}</Badge> : null}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </fieldset>
+        ) : null
+      ) : null}
+      {kind !== 'CANCEL' ? (
+        <Select
+          label={kind === 'ROOM_CHANGE' ? t('room') : t('roomOptional')}
+          value={room}
+          emptyLabel="–"
+          onChange={(e) => setRoom(e.target.value)}
+          options={roomOptions}
+        />
+      ) : null}
+      <Input
+        label={t('note')}
+        value={note}
+        maxLength={500}
+        onChange={(e) => setNote(e.target.value)}
+      />
+      {error ? (
+        <p role="alert" className="text-sm text-danger">
+          {problem(error)}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          disabled={(needsTeacher && !teacher && !!item) || (kind === 'ROOM_CHANGE' && !room)}
+          onClick={async () => {
+            if (item) await save.mutateAsync(body);
+            else if (entry) await create.mutateAsync({ occurrenceId: entry.id, ...body });
+            onClose();
+          }}
+        >
+          {t('save')}
+        </Button>
+        {item ? (
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              await remove.mutateAsync(item.id);
+              onClose();
+            }}
+          >
+            {t('remove')}
+          </Button>
+        ) : null}
+      </div>
+    </Sheet>
+  );
+}
+
+function AbsentTeachers({ day, onAdd }: { day: SubstitutionDay | undefined; onAdd: () => void }) {
+  const t = useTranslations('substitution');
+  const del = useApiMutation<string>('DELETE', (id) => `/teacher-absences/${id}`, [
+    ['substitutions'],
+  ]);
+  return (
+    <section aria-labelledby="absent" className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="absent" className="text-lg font-semibold">
+          {t('absentTeachers')}
+        </h2>
+        <Button variant="secondary" onClick={onAdd}>
+          {t('addAbsence')}
+        </Button>
+      </div>
+      {!day ? null : day.absences.length === 0 ? (
+        <p className="text-muted">{t('noAbsent')}</p>
+      ) : (
+        <Card className="p-0">
+          <ul>
+            {day.absences.map((a) => (
+              <li
+                key={a.id}
+                className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 last:border-b-0"
+              >
+                <div>
+                  <p className="font-medium">{a.teacher.name}</p>
+                  <p className="text-sm text-muted">
+                    {t(`kinds.${a.kind}`)} · {dateTimeOf(a.fromAt)} – {dateTimeOf(a.toAt)}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    if (window.confirm(t('deleteAbsenceConfirm'))) del.mutate(a.id);
+                  }}
+                >
+                  {t('deleteAbsence')}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+    </section>
+  );
+}
+
+function AbsenceSheet({
+  open,
+  date,
+  teachers,
+  onClose,
+}: {
+  open: boolean;
+  date: string;
+  teachers: { id: string; name: string }[];
+  onClose: () => void;
+}) {
+  const t = useTranslations('substitution');
+  const ts = useTranslations('sick');
+  const tc = useTranslations('common');
+  const problem = useProblemText();
+  const create = useApiMutation<object>('POST', () => '/teacher-absences', [['substitutions']]);
+  const [teacherId, setTeacherId] = useState('');
+  const [from, setFrom] = useState(date);
+  const [to, setTo] = useState(date);
+  const [kind, setKind] = useState<(typeof TEACHER_ABSENCE_KINDS)[number]>('SICK');
+  const [partial, setPartial] = useState(false);
+  const [fp, setFp] = useState('1');
+  const [tp, setTp] = useState('6');
+  useEffect(() => {
+    setFrom(date);
+    setTo(date);
+  }, [date, open]);
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={(o) => (o ? undefined : onClose())}
+      title={t('addAbsence')}
+      closeLabel={tc('close')}
+    >
+      <Select
+        label={t('teacher')}
+        value={teacherId}
+        emptyLabel="–"
+        onChange={(e) => setTeacherId(e.target.value)}
+        options={teachers.map((x) => ({ value: x.id, label: x.name }))}
+      />
+      <div className="flex flex-wrap gap-3">
+        <Input
+          label={ts('from')}
+          type="date"
+          value={from}
+          onChange={(e) => setFrom(e.target.value)}
+          className="w-44"
+        />
+        <Input
+          label={ts('to')}
+          type="date"
+          value={to}
+          min={from}
+          onChange={(e) => setTo(e.target.value)}
+          className="w-44"
+        />
+      </div>
+      <Checkbox
+        label={ts('onlyLessons')}
+        checked={partial}
+        onChange={(e) => setPartial(e.target.checked)}
+      />
+      {partial ? (
+        <div className="flex flex-wrap gap-3">
+          <Select
+            label={ts('fromPeriod')}
+            value={fp}
+            onChange={(e) => setFp(e.target.value)}
+            options={PERIODS}
+          />
+          <Select
+            label={ts('toPeriod')}
+            value={tp}
+            onChange={(e) => setTp(e.target.value)}
+            options={PERIODS}
+          />
+        </div>
+      ) : null}
+      <Select
+        label={t('kind')}
+        value={kind}
+        onChange={(e) => setKind(e.target.value as typeof kind)}
+        options={TEACHER_ABSENCE_KINDS.map((k) => ({ value: k, label: t(`kinds.${k}`) }))}
+      />
+      {create.error ? (
+        <p role="alert" className="text-sm text-danger">
+          {problem(create.error)}
+        </p>
+      ) : null}
+      <Button
+        disabled={!teacherId || create.isPending}
+        className="self-start"
+        onClick={async () => {
+          await create.mutateAsync({
+            teacherId,
+            fromDate: from,
+            toDate: to,
+            kind,
+            fromPeriod: partial ? Number(fp) : null,
+            toPeriod: partial ? Number(tp) : null,
+          });
+          onClose();
+        }}
+      >
+        {tc('save')}
+      </Button>
+    </Sheet>
+  );
+}
+
+/** Stunde ändern ohne Abwesenheit (Ausflug, Raumwechsel, Entfall): Klasse wählen, dann Stunde. */
+function ChangeLesson({
+  date,
+  directory,
+  onPick,
+}: {
+  date: string;
+  directory: Directory | undefined;
+  onPick: (e: PlanEntry) => void;
+}) {
+  const t = useTranslations('substitution');
+  const tt = useTranslations('today');
+  const [classId, setClassId] = useState('');
+  const plan = useApi<PlanResponse>(
+    ['class-day', classId, date],
+    classId ? `/classes/${classId}/timetable?from=${date}&to=${date}` : null,
+  );
+  return (
+    <section aria-labelledby="change" className="flex flex-col gap-2">
+      <h2 id="change" className="text-lg font-semibold">
+        {t('changeLesson')}
+      </h2>
+      <p className="text-sm text-muted">{t('changeLessonHelp')}</p>
+      <Select
+        label={t('class')}
+        value={classId}
+        emptyLabel="–"
+        onChange={(e) => setClassId(e.target.value)}
+        options={(directory?.classes ?? []).map((c) => ({ value: c.id, label: c.name }))}
+      />
+      {classId && plan.data ? (
+        plan.data.entries.length === 0 ? (
+          <p className="text-muted">{t('noLessons')}</p>
+        ) : (
+          <Card className="p-0">
+            <ul>
+              {plan.data.entries.map((e) => (
+                <li key={e.id} className="border-b border-border last:border-b-0">
+                  <button
+                    type="button"
+                    disabled={e.planned || e.status !== 'SCHEDULED'}
+                    onClick={() => onPick(e)}
+                    className="flex min-h-12 w-full items-center gap-3 px-4 text-left hover:bg-surface-2 disabled:opacity-60"
+                  >
+                    <span className="w-24 shrink-0 text-sm tabular-nums">
+                      {timeOf(e.startsAt)} · {periodLabel(tt, e)}
+                    </span>
+                    <span className="flex-1">
+                      {e.subject.name} · {e.teachers.map((x) => x.name).join(', ')}
+                    </span>
+                    {e.status !== 'SCHEDULED' ? (
+                      <span className="text-sm text-muted">{t('alreadyChanged')}</span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )
+      ) : null}
+    </section>
+  );
+}

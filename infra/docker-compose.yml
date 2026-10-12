@@ -24,6 +24,11 @@ services:
     volumes:
       - 's3data:/data'
       - './seaweedfs-s3.json:/etc/seaweedfs/s3.json:ro'
+  # Virenscan für Uploads (optional lokal: docker compose --profile scan up -d; braucht ca. 2 GB RAM)
+  clamav:
+    image: clamav/clamav:stable
+    profiles: ['scan']
+    ports: ['3310:3310']
 volumes:
   pgdata:
   s3data:

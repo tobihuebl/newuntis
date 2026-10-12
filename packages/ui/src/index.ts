@@ -10,3 +10,6 @@ export { ListRow, type ListRowProps } from './components/list-row';
 export { Sheet, type SheetProps } from './components/sheet';
 export { Select, type SelectProps, type SelectOption } from './components/select';
 export { Checkbox, type CheckboxProps } from './components/checkbox';
+export { Switch, type SwitchProps } from './components/switch';
+export { SegmentedControl, type SegmentedControlProps } from './components/segmented-control';
+export { Textarea, type TextareaProps } from './components/textarea';

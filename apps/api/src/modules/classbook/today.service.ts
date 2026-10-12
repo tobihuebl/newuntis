@@ -115,6 +115,47 @@ export class TodayService {
     return base;
   }
 
+  /** Hausübungen der nächsten zwei Wochen (Schüler:innen: eigene, Eltern: eines Kindes). */
+  async homework(
+    tx: Tx,
+    tenantId: string,
+    me: Principal,
+    user: PolicyUser,
+    studentId?: string,
+  ): Promise<TodayResponse['homework']> {
+    const date = todayIn(await this.classbook.timezone(tx, tenantId));
+    const sid =
+      studentId ?? (user.roles.includes('STUDENT') ? me.personId : user.guardianOfStudentIds?.[0]);
+    if (!sid) return [];
+    if (!can(user, 'timetable.read.own', { studentId: sid }))
+      throw new ForbiddenException({ title: 'Keine Berechtigung für dieses Kind' });
+    const filter = await this.plans.studentFilter(tx, sid, date);
+    const or = [
+      ...(filter.classIds.length ? [{ classId: { in: filter.classIds } }] : []),
+      ...(filter.groupIds.length ? [{ groupId: { in: filter.groupIds } }] : []),
+    ];
+    if (or.length === 0) return [];
+    const rows = await tx.classbookEntry.findMany({
+      where: {
+        homework: { not: null },
+        homeworkDueOn: { gte: asDate(date), lte: asDate(addDays(date, 14)) },
+        occurrence: { OR: or },
+      },
+      include: {
+        occurrence: {
+          select: { subject: { select: { id: true, name: true, code: true, color: true } } },
+        },
+      },
+      orderBy: { homeworkDueOn: 'asc' },
+    });
+    return rows.map((h) => ({
+      occurrenceId: h.occurrenceId,
+      subject: h.occurrence.subject,
+      text: h.homework!,
+      dueOn: iso(h.homeworkDueOn!),
+    }));
+  }
+
   private async teacherDay(
     tx: Tx,
     personId: string,

@@ -9,6 +9,7 @@ import type { NavItem } from '@sp/shared';
 import { apiPost } from '../lib/api-client';
 import { clearOfflineData, db } from '../offline/db';
 import { NAV_ICONS } from './nav-icons';
+import { NotificationBell } from './notifications/bell';
 import { OfflineBanner } from './sync-status';
 
 export interface AppShellProps {
@@ -86,15 +87,18 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
             <p className="truncate text-sm font-medium">{userName}</p>
             <p className="truncate text-xs text-muted">{roleLabels.join(', ')}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => void logout()}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 text-sm text-muted hover:bg-surface-2 hover:text-text"
-          >
-            <LogOut aria-hidden="true" size={18} />
-            <span className="hidden sm:inline">{t('logout')}</span>
-            <span className="sr-only sm:hidden">{t('logout')}</span>
-          </button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 text-sm text-muted hover:bg-surface-2 hover:text-text"
+            >
+              <LogOut aria-hidden="true" size={18} />
+              <span className="hidden sm:inline">{t('logout')}</span>
+              <span className="sr-only sm:hidden">{t('logout')}</span>
+            </button>
+          </div>
         </header>
         <OfflineBanner />
         <div id="main" tabIndex={-1} className="min-w-0 flex-1">

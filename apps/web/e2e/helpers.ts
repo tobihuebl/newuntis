@@ -13,6 +13,8 @@ export const accounts = () =>
     teacherEmail: string;
     adminEmail: string;
     studentEmail: string;
+    principalEmail: string;
+    guardianEmail: string;
   };
 
 type Secrets = Record<string, { secret: string; step: number }>;
