@@ -17,10 +17,21 @@ export interface FieldShellProps {
 }
 
 export function describedBy(id: string, hint?: string, error?: string): string | undefined {
-  return [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(Boolean).join(' ') || undefined;
+  return (
+    [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(Boolean).join(' ') ||
+    undefined
+  );
 }
 
-export function FieldShell({ id, label, hint, error, hideLabel, className, children }: FieldShellProps) {
+export function FieldShell({
+  id,
+  label,
+  hint,
+  error,
+  hideLabel,
+  className,
+  children,
+}: FieldShellProps) {
   return (
     <div className={cn('pf-field', className)}>
       <label htmlFor={id} className={cn('pf-field__label', hideLabel && 'sr-only')}>

@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { navigationFor } from '@sp/shared';
-import { AppShell } from '../../src/components/app-shell';
+import { navViews, navigationFor } from '@sp/shared';
 import { AppProviders } from '../../src/components/providers';
+import { AppShell } from '../../src/components/shell/app-shell';
 import { getMe } from '../../src/lib/api-server';
+import { navigationOf } from '../../src/lib/nav-server';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const r = await getMe();
@@ -14,7 +15,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (me.needsOnboarding) redirect('/willkommen');
   const t = await getTranslations('roles');
   const roles = [...new Set(me.user.roles.map((x) => x.role))];
-  const nav = navigationFor(roles);
+  const nav = await navigationOf(me);
+  const views = navViews(roles).map((role) => ({
+    role,
+    label: t(role),
+    home: navigationFor(roles, role).home,
+  }));
   return (
     <AppProviders
       csrfToken={me.csrfToken}
@@ -23,9 +29,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       clearAfterIdleDays={me.tenant.offlineClearAfterIdleDays}
     >
       <AppShell
+        view={nav.view}
         tabs={nav.tabs}
+        sections={nav.sections}
+        views={views}
         userName={`${me.user.firstName} ${me.user.lastName}`}
-        roleLabels={roles.map((role) => t(role))}
+        roleLabel={nav.view ? t(nav.view) : ''}
+        schoolName={me.tenant.name}
         csrfToken={me.csrfToken}
       >
         {children}

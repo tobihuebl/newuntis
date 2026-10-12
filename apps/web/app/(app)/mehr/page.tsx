@@ -1,30 +1,30 @@
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { moreFor } from '@sp/shared';
-import { Card, ListRow } from '@sp/ui';
-import { NAV_ICONS } from '../../../src/components/nav-icons';
+import { moreSections, navViews, navigationFor } from '@sp/shared';
+import { MoreScreen } from '../../../src/components/shell/more-screen';
+import { navigationOf } from '../../../src/lib/nav-server';
 import { requireRoute } from '../../../src/lib/route-guard';
 
 export default async function MorePage() {
   const me = await requireRoute('/mehr');
   const t = await getTranslations('nav');
-  const items = moreFor(me.user.roles.map((r) => r.role));
+  const tr = await getTranslations('roles');
+  const nav = await navigationOf(me);
+  const roles = [...new Set(me.user.roles.map((r) => r.role))];
   return (
-    <div className="mx-auto max-w-2xl p-4">
-      <h1 className="mb-4 text-h1">{t('moreTitle')}</h1>
-      <Card className="p-0">
-        {items.map((i) => {
-          const Icon = NAV_ICONS[i.icon];
-          return (
-            <Link key={i.href} href={i.href} className="block hover:bg-bg-sunken">
-              <ListRow
-                title={t(i.labelKey)}
-                leading={Icon ? <Icon aria-hidden="true" size={20} /> : null}
-              />
-            </Link>
-          );
-        })}
-      </Card>
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:px-6">
+      <h1 className="text-h1">{t('moreTitle')}</h1>
+      <MoreScreen
+        sections={moreSections(nav)}
+        views={navViews(roles).map((role) => ({
+          role,
+          label: tr(role),
+          home: navigationFor(roles, role).home,
+        }))}
+        view={nav.view}
+        userName={`${me.user.firstName} ${me.user.lastName}`}
+        roleLabel={nav.view ? tr(nav.view) : ''}
+        schoolName={me.tenant.name}
+      />
     </div>
   );
 }

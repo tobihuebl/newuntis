@@ -39,7 +39,32 @@
     "benachrichtigungen": "Benachrichtigungen",
     "krankmeldung": "Krankmeldung",
     "einstellungen": "Einstellungen",
-    "unread": "{count, plural, one {# ungelesen} other {# ungelesen}}"
+    "unread": "{count, plural, one {# ungelesen} other {# ungelesen}}",
+    "chat": "Chat",
+    "hausuebungen": "Hausübungen",
+    "termine": "Termine",
+    "uebersicht": "Übersicht",
+    "pruefungskalender": "Prüfungskalender",
+    "stammdaten": "Stammdaten",
+    "schule": "Schule",
+    "rechte": "Rechte",
+    "search": "Seite suchen",
+    "searchShortcut": "Strg K",
+    "searchShortcutMac": "⌘ K",
+    "commandTitle": "Seite suchen",
+    "commandPlaceholder": "Seite oder Bereich",
+    "commandEmpty": "Keine passende Seite.",
+    "commandHint": "Pfeiltasten wählen, Enter öffnet.",
+    "roleSwitch": "Rolle wechseln",
+    "theme": "Darstellung",
+    "openMenu": "Menü öffnen",
+    "countOpen": "{count} offen",
+    "unreadDot": "neue Nachrichten",
+    "account": "Konto",
+    "school": "Schule",
+    "close": "Schließen",
+    "offlineChip": "Offline",
+    "pendingChip": "{count, plural, one {# wartet} other {# warten}}"
   },
   "today": {
     "title": "Heute",
@@ -542,7 +567,7 @@
     "authExpired": "Sitzung abgelaufen. Bitte neu anmelden, die Änderungen bleiben gespeichert.",
     "login": "Anmelden",
     "retry": "Erneut versuchen",
-    "banner": "Keine Verbindung. Heute, Stundenplan und Klassenbuch funktionieren weiter mit dem gespeicherten Stand."
+    "banner": "Offline. {count, plural, =0 {Heute, Stundenplan und Klassenbuch funktionieren mit dem gespeicherten Stand.} one {# Eintrag wartet auf Verbindung.} other {# Einträge warten auf Verbindung.}}"
   },
   "offline": {
     "title": "Offline",
@@ -1247,5 +1272,43 @@
     "emptySub": "Sobald eine Lehrkraft fehlt, erscheint hier der Vorschlag.",
     "rowName": "Anna Berger",
     "rowSub": "3B · seit 08:00"
+  },
+  "adminOverview": {
+    "overline": "Administration",
+    "title": "Übersicht",
+    "intro": "Richten Sie die Schule Schritt für Schritt ein. Erledigte Schritte erkennt PROfessor selbst.",
+    "setupTitle": "Schule einrichten",
+    "progress": "{done} von {total} erledigt",
+    "done": "Erledigt",
+    "open": "Offen",
+    "error": "Der Stand konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "items": {
+      "schoolYear": {
+        "title": "Schuljahr und Ferien",
+        "text": "Schuljahr, Semester und schulfreie Tage anlegen."
+      },
+      "periods": {
+        "title": "Unterrichtsraster",
+        "text": "Stunden und Pausen der Schule festlegen."
+      },
+      "masterdata": {
+        "title": "Klassen, Fächer und Räume",
+        "text": "Grundlage für Stundenplan und Klassenbuch."
+      },
+      "persons": {
+        "title": "Personen per CSV",
+        "text": "Schülerinnen und Schüler, Eltern und Lehrkräfte importieren."
+      },
+      "access": {
+        "title": "Rechte und Einladungen",
+        "text": "Direktion und Lehrkräfte einladen, Rollen vergeben."
+      },
+      "timetable": {
+        "title": "Stundenplan veröffentlichen",
+        "text": "Erst dann sehen alle ihren Plan."
+      }
+    },
+    "quick": "Häufig gebraucht"
   }
 }

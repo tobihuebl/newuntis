@@ -23,6 +23,7 @@ for (const scheme of ['light', 'dark'] as const) {
     test('öffentliche Seiten', async ({ page }) => {
       await check(page, '/login');
       await check(page, '/passwort-vergessen');
+      await check(page, '/komponenten');
     });
 
     test('Lehrkraft: Heute, Klassenbuch, Plan', async ({ page }) => {
@@ -91,7 +92,9 @@ for (const scheme of ['light', 'dark'] as const) {
     });
 
     test('Administration: Personen und Stundenplan', async ({ page }) => {
-      await login(page, accounts().adminEmail, /\/admin\/personen$/);
+      await login(page, accounts().adminEmail, /\/admin$/);
+      await check(page, '/admin');
+      await check(page, '/mehr');
       await check(page, '/admin/personen');
       await check(page, '/admin/stundenplan');
       await check(page, '/admin/datenschutz');

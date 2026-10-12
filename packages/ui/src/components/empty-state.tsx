@@ -13,7 +13,13 @@ export interface EmptyStateProps {
 }
 
 /** Leerzustand (Design System, pf-empty): Kachel-Raster statt Illustration, positive Sprache. */
-export function EmptyState({ title, description, action, as: Tag = 'h2', className }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  description,
+  action,
+  as: Tag = 'h2',
+  className,
+}: EmptyStateProps) {
   return (
     <div className={cn('pf-empty', className)}>
       <div className="pf-empty__tiles" aria-hidden="true">

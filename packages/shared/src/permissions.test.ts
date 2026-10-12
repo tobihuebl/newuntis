@@ -8,7 +8,7 @@ import {
   type PolicyUser,
   type Scope,
 } from './permissions';
-import { isRouteAllowed, navigationFor } from './navigation';
+import { isRouteAllowed, moreSections, navViews, navigationFor } from './navigation';
 
 const ME = 'person-me';
 
@@ -117,6 +117,41 @@ describe('Navigation', () => {
   it('jede Rolle hat höchstens 5 Tabs', () => {
     for (const r of ROLES) expect(navigationFor([r]).tabs.length).toBeLessThanOrEqual(5);
   });
+  it('Tab-Leiste: fünf Tabs, genau eine Hauptaktion in der Mitte, rechts Mehr (Design System)', () => {
+    for (const r of ROLES) {
+      const { tabs } = navigationFor([r]);
+      expect(tabs).toHaveLength(5);
+      expect(tabs.filter((t) => t.primary).map((t) => tabs.indexOf(t))).toEqual([2]);
+      expect(tabs[4]?.href).toBe('/mehr');
+    }
+  });
+  it('Hauptaktion je Rolle wie im Design System', () => {
+    const main = (r: Role) => navigationFor([r]).tabs[2]?.href;
+    expect(main('STUDENT')).toBe('/aufgaben');
+    expect(main('GUARDIAN')).toBe('/abwesenheit/neu');
+    expect(main('TEACHER')).toBe('/klassenbuch');
+    expect(main('HOMEROOM')).toBe('/klassenbuch');
+    expect(main('PRINCIPAL')).toBe('/freigaben');
+    expect(main('ADMIN')).toBe('/admin/import');
+  });
+  it('jede Seite der Navigation ist auch erlaubt, Mehr zeigt nur, was nicht in den Tabs steht', () => {
+    for (const r of ROLES) {
+      const nav = navigationFor([r]);
+      for (const sec of nav.sections)
+        for (const i of sec.items) expect(isRouteAllowed(nav, i.href)).toBe(true);
+      const tabHrefs = new Set(nav.tabs.map((t) => t.href));
+      for (const sec of moreSections(nav))
+        for (const i of sec.items) expect(tabHrefs.has(i.href)).toBe(false);
+    }
+  });
+  it('Rolle wechseln: gewählte Ansicht, nur aus den eigenen Rollen, Klassenvorstand ersetzt Lehrer', () => {
+    expect(navViews(['TEACHER', 'HOMEROOM', 'GUARDIAN'])).toEqual(['HOMEROOM', 'GUARDIAN']);
+    expect(navigationFor(['TEACHER', 'GUARDIAN'], 'GUARDIAN').view).toBe('GUARDIAN');
+    expect(navigationFor(['TEACHER', 'GUARDIAN'], 'GUARDIAN').tabs[2]?.href).toBe(
+      '/abwesenheit/neu',
+    );
+    expect(navigationFor(['TEACHER'], 'ADMIN').view).toBe('TEACHER');
+  });
   it('Schüler sehen keine Admin- und Lehrerrouten', () => {
     const nav = navigationFor(['STUDENT']);
     expect(isRouteAllowed(nav, '/heute')).toBe(true);
@@ -128,14 +163,14 @@ describe('Navigation', () => {
     expect(isRouteAllowed(nav, '/klassenbuch/abc123')).toBe(true);
     expect(isRouteAllowed(nav, '/klassenbuch/abc/zusatz')).toBe(false);
   });
-  it('Landeseite: Direktion und Administration landen auf ihrem Lagebild bzw. der Personenverwaltung', () => {
+  it('Landeseite: Direktion und Administration landen auf ihrem Lagebild bzw. der Übersicht', () => {
     expect(navigationFor(['STUDENT']).home).toBe('/heute');
     expect(navigationFor(['PRINCIPAL']).home).toBe('/lagebild');
-    expect(navigationFor(['ADMIN']).home).toBe('/admin/personen');
+    expect(navigationFor(['ADMIN']).home).toBe('/admin');
   });
   it('mehrere Rollen: Tab-Leiste der wichtigsten, Routen aller Rollen', () => {
     const nav = navigationFor(['TEACHER', 'GUARDIAN']);
-    expect(nav.tabs[1]?.href).toBe('/klassenbuch');
+    expect(nav.tabs[2]?.href).toBe('/klassenbuch');
     expect(isRouteAllowed(nav, '/kind/k1/fehlzeiten')).toBe(true);
   });
 });

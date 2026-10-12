@@ -32,7 +32,11 @@ export interface ChipProps
 
 export function Chip({ tone, icon: Icon, className, children, ...props }: ChipProps) {
   return (
-    <span className={cn(chipVariants({ tone }), className)} data-tone={tone ?? 'neutral'} {...props}>
+    <span
+      className={cn(chipVariants({ tone }), className)}
+      data-tone={tone ?? 'neutral'}
+      {...props}
+    >
       {Icon ? <Icon aria-hidden="true" /> : null}
       {children}
     </span>

@@ -20,6 +20,7 @@ import {
   NotebookPen,
   ScrollText,
   Settings,
+  Thermometer,
   ShieldCheck,
   Upload,
   UserRound,
@@ -56,4 +57,5 @@ export const NAV_ICONS: Record<string, LucideIcon> = {
   'shield-check': ShieldCheck,
   lock: Lock,
   settings: Settings,
+  thermometer: Thermometer,
 };

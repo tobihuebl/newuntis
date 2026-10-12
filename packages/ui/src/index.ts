@@ -19,3 +19,12 @@ export { Sheet, type SheetProps } from './components/sheet';
 export { Skeleton } from './components/skeleton';
 export { EmptyState, type EmptyStateProps } from './components/empty-state';
 export { Logo, type LogoProps } from './components/logo';
+export {
+  Sidebar,
+  TabBar,
+  type NavEntry,
+  type NavSectionEntry,
+  type LinkComponent,
+  type SidebarProps,
+  type TabBarProps,
+} from './components/navigation';

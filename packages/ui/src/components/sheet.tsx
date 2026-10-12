@@ -22,7 +22,14 @@ const SWIPE_CLOSE = 96;
  * derselben Füllung. Schließen per Wischen, Esc, Zurück und sichtbarem Schließen-Button; Fokusfalle und Rückgabe
  * des Fokus kommen von Radix. Genau ein Primär-Button im Inhalt.
  */
-export function Sheet({ open, onOpenChange, title, description, closeLabel, children }: SheetProps) {
+export function Sheet({
+  open,
+  onOpenChange,
+  title,
+  description,
+  closeLabel,
+  children,
+}: SheetProps) {
   const [drag, setDrag] = React.useState(0);
   const start = React.useRef<number | null>(null);
 

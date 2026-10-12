@@ -33,10 +33,14 @@ describe('Button', () => {
 
 describe('Input', () => {
   it('verknüpft Beschriftung, Hilfetext und Fehlermeldung mit dem Feld', () => {
-    render(<Input label="E-Mail" hint="Adresse der Schule" error="Bitte eine E-Mail-Adresse angeben." />);
+    render(
+      <Input label="E-Mail" hint="Adresse der Schule" error="Bitte eine E-Mail-Adresse angeben." />,
+    );
     const field = screen.getByLabelText('E-Mail');
     expect(field).toHaveAttribute('aria-invalid', 'true');
-    expect(field).toHaveAccessibleDescription('Adresse der Schule Bitte eine E-Mail-Adresse angeben.');
+    expect(field).toHaveAccessibleDescription(
+      'Adresse der Schule Bitte eine E-Mail-Adresse angeben.',
+    );
     expect(field).toHaveClass('pf-input');
   });
 });
@@ -66,7 +70,10 @@ describe('Chip und StatusBadge', () => {
 describe('KpiTile', () => {
   it('liest Zahl und Wort als ein Element vor und wird mit href zum Link', () => {
     render(<KpiTile value={3} label="Supplierungen" href="/supplierung" />);
-    expect(screen.getByRole('link', { name: '3 Supplierungen' })).toHaveAttribute('href', '/supplierung');
+    expect(screen.getByRole('link', { name: '3 Supplierungen' })).toHaveAttribute(
+      'href',
+      '/supplierung',
+    );
   });
 });
 
@@ -107,7 +114,12 @@ describe('Skeleton und Toast (Zeitverhalten)', () => {
     function Trigger() {
       const toast = useToast();
       return (
-        <button type="button" onClick={() => toast({ text: 'Eintrag gespeichert', action: { label: 'Rückgängig', onClick: undo } })}>
+        <button
+          type="button"
+          onClick={() =>
+            toast({ text: 'Eintrag gespeichert', action: { label: 'Rückgängig', onClick: undo } })
+          }
+        >
           auslösen
         </button>
       );

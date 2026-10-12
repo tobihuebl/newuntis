@@ -2,8 +2,8 @@
 import { CloudOff, Check, LoaderCircle, TriangleAlert, WifiOff } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
-import { Button, cn } from '@sp/ui';
+import { useEffect, useRef, useState } from 'react';
+import { Banner, Button, Chip, cn, useToast } from '@sp/ui';
 import { useSyncState } from '../offline/hooks';
 import { sync } from '../offline/sync';
 
@@ -86,18 +86,42 @@ export function SyncStatus({ className }: { className?: string }) {
   );
 }
 
-/** Hinweis oben bei fehlender Verbindung (Spec Abschnitt 6: Zustand "Offline"). */
+/**
+ * Offline-Banner oben (Design System, pf-banner): bleibt bis zur Verbindung, zählt wartende Einträge. Nach der
+ * Synchronisation meldet ein Toast "Synchronisiert".
+ */
 export function OfflineBanner() {
   const t = useTranslations('sync');
   const online = useOnline();
+  const s = useSyncState();
+  const toast = useToast();
+  const hadPending = useRef(false);
+  useEffect(() => {
+    if (s.pending > 0) hadPending.current = true;
+    else if (online && hadPending.current && s.failed.length === 0) {
+      hadPending.current = false;
+      toast({ text: t('synced') });
+    }
+  }, [online, s.pending, s.failed.length, toast, t]);
   if (online) return null;
   return (
-    <div
-      role="status"
-      className="flex items-center gap-2 border-b border-signal bg-bg-raised px-4 py-2 text-body-sm text-signal-ink"
-    >
-      <WifiOff aria-hidden="true" size={16} />
-      <span>{t('banner')}</span>
+    <div className="px-4 pt-3 lg:px-6">
+      <Banner role="status" icon={WifiOff}>
+        {t('banner', { count: s.pending })}
+      </Banner>
     </div>
+  );
+}
+
+/** Kleiner Status-Chip in der Topbar: offline oder wartende Einträge. */
+export function OfflineChip() {
+  const t = useTranslations('nav');
+  const online = useOnline();
+  const s = useSyncState();
+  if (online && s.pending === 0) return null;
+  return (
+    <Chip tone="late" icon={online ? LoaderCircle : CloudOff}>
+      {online ? t('pendingChip', { count: s.pending }) : t('offlineChip')}
+    </Chip>
   );
 }

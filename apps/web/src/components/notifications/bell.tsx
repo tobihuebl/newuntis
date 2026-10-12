@@ -13,13 +13,13 @@ export function NotificationBell() {
     <Link
       href="/benachrichtigungen"
       aria-label={t('bell', { count: unread })}
-      className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-ink-muted hover:bg-bg-sunken hover:text-ink"
+      className="relative inline-flex size-(--tap-min) items-center justify-center rounded-md text-ink-muted hover:bg-brand-soft hover:text-ink"
     >
-      <Bell aria-hidden="true" size={20} />
+      <Bell aria-hidden="true" className="size-5" />
       {unread > 0 ? (
         <span
           aria-hidden="true"
-          className="absolute right-1 top-1 min-w-5 rounded-full bg-danger px-1 text-center text-[11px] font-semibold leading-5 text-on-brand tabular-nums"
+          className="absolute top-0.5 right-0.5 min-w-5 rounded-pill bg-brand px-1 text-center text-caption text-on-brand"
         >
           {unread > 99 ? '99+' : unread}
         </span>

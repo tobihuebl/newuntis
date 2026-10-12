@@ -33,14 +33,17 @@ export interface LogoProps {
  * Logo PROfessor (Design System, pf-logo): Raster-P und Wortmarke in Bricolage Grotesque 800. Die Wortmarke ist
  * Live-Text, bis sie als Pfad vorliegt (Audit E10). Nie umfärben, drehen oder mit Punkt schreiben.
  */
-export function Logo({ onNight, symbolOnly, size = 'md', label = 'PROfessor', className }: LogoProps) {
+export function Logo({
+  onNight,
+  symbolOnly,
+  size = 'md',
+  label = 'PROfessor',
+  className,
+}: LogoProps) {
   const fontSize = SIZES[size];
   const tile = onNight ? 'fill-creme' : 'fill-brand';
   return (
-    <span
-      className={cn('pf-logo', onNight && 'pf-logo--night', className)}
-      style={{ fontSize }}
-    >
+    <span className={cn('pf-logo', onNight && 'pf-logo--night', className)} style={{ fontSize }}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 332 564"

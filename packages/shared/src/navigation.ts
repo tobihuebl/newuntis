@@ -1,4 +1,4 @@
-/** Navigation je Rolle (docs/spec.md Abschnitt 5). Mobil höchstens 5 Tabs, Desktop Seitenleiste. */
+/** Navigation je Rolle (Design System "Web und Mobile" Abschnitt 3, Spec Abschnitt 5): Tab-Leiste mobil, Seitenleiste ab 1024 px. */
 import type { Role } from './constants';
 
 export interface NavItem {
@@ -7,34 +7,94 @@ export interface NavItem {
   href: string;
   /** Name eines Lucide-Icons (kebab-case). */
   icon: string;
+  /** Hauptaktion der Rolle: mittlerer Tab, als Amber-Taste angehoben (Design System, Navigation). */
+  primary?: boolean;
+  /** Zähler (Amber) nur für Dinge mit Frist; Quelle sind vorhandene Abfragen. */
+  count?: NavCount;
+}
+
+export type NavCount = 'openEntries' | 'openSubstitutions';
+
+/** Abschnitt der Seitenleiste, optional mit Überschrift (z. B. "Schule"). */
+export interface NavSection {
+  labelKey?: string;
+  items: NavItem[];
 }
 
 interface RoleNav {
   home: string;
+  /** Mobile Tab-Leiste: genau fünf, Mitte = Hauptaktion, rechts "Mehr". */
   tabs: NavItem[];
-  /** Weitere erlaubte Routen (Muster mit [param]), die nicht als Tab erscheinen. */
+  /** Seitenleiste ab 1024 px; was nicht in den Tabs steht, zeigt mobil das Mehr-Sheet. */
+  sections: NavSection[];
+  /** Weitere erlaubte Routen (Muster mit [param]), die nicht in der Navigation erscheinen. */
   routes: string[];
 }
 
-const heute: NavItem = { labelKey: 'heute', href: '/heute', icon: 'house' };
-const plan: NavItem = { labelKey: 'plan', href: '/plan', icon: 'calendar-days' };
-const nachrichten: NavItem = {
-  labelKey: 'nachrichten',
-  href: '/nachrichten',
-  icon: 'message-square',
-};
-const profil: NavItem = { labelKey: 'profil', href: '/profil', icon: 'user-round' };
-const mehr: NavItem = { labelKey: 'mehr', href: '/mehr', icon: 'ellipsis' };
+const item = (
+  labelKey: string,
+  href: string,
+  icon: string,
+  extra: Partial<NavItem> = {},
+): NavItem => ({
+  labelKey,
+  href,
+  icon,
+  ...extra,
+});
 
+const heute = item('heute', '/heute', 'house');
+const plan = item('plan', '/plan', 'calendar-days');
+const stundenplan = item('stundenplan', '/plan', 'calendar-days');
+const nachrichten = item('nachrichten', '/nachrichten', 'message-square');
+const chat = item('chat', '/nachrichten', 'message-square');
+const mehr = item('mehr', '/mehr', 'ellipsis');
+const klassenbuch = item('klassenbuch', '/klassenbuch', 'book-open-check', {
+  count: 'openEntries',
+});
+const pruefungen = item('pruefungen', '/pruefungen', 'notebook-pen');
+const klassen = item('klassen', '/klassen', 'users');
+const raeume = item('raeume', '/raeume', 'door-open');
+const krankmeldung = item('krankmeldung', '/krankmeldung', 'thermometer');
+const lagebild = item('lagebild', '/lagebild', 'layout-dashboard');
+const supplierung = item('supplierung', '/supplierung', 'arrow-left-right', {
+  count: 'openSubstitutions',
+});
+const auswertung = item('auswertung', '/auswertung', 'chart-column');
+const freigaben = item('freigaben', '/freigaben', 'circle-check');
+const rundschreiben = item('rundschreiben', '/rundschreiben', 'megaphone');
+const entschuldigungen = item('entschuldigungen', '/klasse', 'file-check');
+const adminStundenplan = item('stundenplan', '/admin/stundenplan', 'calendar-range');
+const personen = item('personen', '/admin/personen', 'users');
+const adminKlassen = item('klassen', '/admin/klassen', 'graduation-cap');
+const faecher = item('faecher', '/admin/faecher', 'book-open');
+const adminRaeume = item('raeume', '/admin/raeume', 'door-open');
+const schuljahr = item('schuljahr', '/admin/schuljahr', 'calendar-range');
+const raster = item('raster', '/admin/raster', 'clock');
+const protokoll = item('protokoll', '/admin/protokoll', 'scroll-text');
+const einstellungen = item('einstellungen', '/admin/einstellungen', 'settings');
+
+const primary = (i: NavItem, labelKey = i.labelKey): NavItem => ({ ...i, labelKey, primary: true });
+
+const TEACHER_ROUTES = [
+  '/klassenbuch/[occurrenceId]',
+  '/klassen/[id]',
+  '/pruefungen',
+  '/krankmeldung',
+  '/noten',
+  '/raeume',
+  '/plan',
+];
+
+/** Navigation je Rolle nach dem Design System ("Web und Mobile", Abschnitt 3; Entscheidung F2 im Design-Audit). */
 const NAV: Record<Role, RoleNav> = {
   STUDENT: {
     home: '/heute',
-    tabs: [
-      heute,
-      plan,
-      { labelKey: 'aufgaben', href: '/aufgaben', icon: 'list-checks' },
-      nachrichten,
-      profil,
+    tabs: [heute, plan, primary(item('hausuebungen', '/aufgaben', 'list-checks')), chat, mehr],
+    sections: [
+      {
+        items: [heute, stundenplan, item('hausuebungen', '/aufgaben', 'list-checks'), nachrichten],
+      },
     ],
     routes: ['/noten', '/abwesenheit/neu'],
   },
@@ -43,188 +103,193 @@ const NAV: Record<Role, RoleNav> = {
     tabs: [
       heute,
       plan,
-      { labelKey: 'abwesenheit', href: '/abwesenheit/neu', icon: 'user-round-x' },
+      primary(item('abwesenheit', '/abwesenheit/neu', 'user-round-x')),
       nachrichten,
-      profil,
+      mehr,
+    ],
+    sections: [
+      {
+        items: [
+          heute,
+          stundenplan,
+          item('abwesenheit', '/abwesenheit/neu', 'user-round-x'),
+          item('termine', '/termine', 'calendar-range'),
+          nachrichten,
+        ],
+      },
     ],
     routes: ['/kind/[id]/plan', '/kind/[id]/fehlzeiten', '/termine'],
   },
   TEACHER: {
     home: '/heute',
-    tabs: [
-      heute,
-      { labelKey: 'klassenbuch', href: '/klassenbuch', icon: 'book-open-check' },
-      { labelKey: 'klassen', href: '/klassen', icon: 'users' },
-      nachrichten,
-      profil,
+    tabs: [heute, plan, primary(klassenbuch), chat, mehr],
+    sections: [
+      { items: [heute, stundenplan, klassenbuch, pruefungen, nachrichten] },
+      { labelKey: 'schule', items: [klassen, raeume, krankmeldung] },
     ],
-    routes: [
-      '/klassenbuch/[occurrenceId]',
-      '/klassen/[id]',
-      '/pruefungen',
-      '/krankmeldung',
-      '/noten',
-      '/raeume',
-      '/plan',
-    ],
+    routes: TEACHER_ROUTES,
   },
   HOMEROOM: {
     home: '/heute',
-    tabs: [
-      heute,
-      { labelKey: 'klassenbuch', href: '/klassenbuch', icon: 'book-open-check' },
-      { labelKey: 'meineKlasse', href: '/klasse', icon: 'graduation-cap' },
-      nachrichten,
-      profil,
+    tabs: [heute, plan, primary(klassenbuch), chat, mehr],
+    sections: [
+      {
+        items: [
+          heute,
+          stundenplan,
+          klassenbuch,
+          item('meineKlasse', '/klasse', 'graduation-cap'),
+          pruefungen,
+          nachrichten,
+        ],
+      },
+      { labelKey: 'schule', items: [klassen, raeume, auswertung, krankmeldung] },
     ],
     routes: [
-      '/klassenbuch/[occurrenceId]',
-      '/plan',
-      '/pruefungen',
-      '/krankmeldung',
+      ...TEACHER_ROUTES,
       '/klasse/[id]/uebersicht',
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
       '/klassen',
-      '/klassen/[id]',
-      '/raeume',
       '/auswertung',
     ],
   },
   PRINCIPAL: {
     home: '/lagebild',
-    tabs: [
-      { labelKey: 'lagebild', href: '/lagebild', icon: 'layout-dashboard' },
-      { labelKey: 'supplierung', href: '/supplierung', icon: 'arrow-left-right' },
-      { labelKey: 'auswertung', href: '/auswertung', icon: 'chart-column' },
-      nachrichten,
-      mehr,
+    tabs: [lagebild, supplierung, primary(freigaben), nachrichten, mehr],
+    sections: [
+      {
+        items: [
+          lagebild,
+          supplierung,
+          item('pruefungskalender', '/pruefungen', 'notebook-pen'),
+          auswertung,
+          freigaben,
+          nachrichten,
+          rundschreiben,
+        ],
+      },
+      {
+        labelKey: 'schule',
+        items: [
+          entschuldigungen,
+          item('plan', '/plan', 'calendar-days'),
+          item('stundenplaene', '/admin/stundenplan', 'calendar-range'),
+          personen,
+          adminKlassen,
+          schuljahr,
+          raster,
+          faecher,
+          adminRaeume,
+          protokoll,
+          einstellungen,
+        ],
+      },
     ],
     routes: [
-      '/freigaben',
-      '/rundschreiben',
       '/rundschreiben/neu',
       '/rundschreiben/[id]',
       '/profil',
       '/klassen',
       '/klassen/[id]',
       '/raeume',
-      '/admin/einstellungen',
       '/klassenbuch/[occurrenceId]', // Korrektur durch die Direktion
-      '/klasse',
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
-      '/pruefungen',
-      '/plan',
-      '/admin/protokoll',
       // Stammdaten: Direktion darf lesen
-      '/admin/personen',
       '/admin/personen/[id]',
-      '/admin/klassen',
       '/admin/klassen/[id]',
-      '/admin/schuljahr',
-      '/admin/raster',
-      '/admin/faecher',
-      '/admin/raeume',
-      '/admin/stundenplan',
       '/admin/stundenplan/[id]',
     ],
   },
   ADMIN: {
-    home: '/admin/personen',
+    home: '/admin',
     tabs: [
-      { labelKey: 'personen', href: '/admin/personen', icon: 'users' },
-      { labelKey: 'klassen', href: '/admin/klassen', icon: 'graduation-cap' },
-      { labelKey: 'stundenplan', href: '/admin/stundenplan', icon: 'calendar-days' },
-      { labelKey: 'import', href: '/admin/import', icon: 'upload' },
+      item('uebersicht', '/admin', 'layout-dashboard'),
+      adminStundenplan,
+      primary(item('import', '/admin/import', 'upload')),
+      nachrichten,
       mehr,
+    ],
+    sections: [
+      {
+        items: [
+          item('uebersicht', '/admin', 'layout-dashboard'),
+          adminStundenplan,
+          item('import', '/admin/import', 'upload'),
+          item('rechte', '/admin/rollen', 'shield-check'),
+          nachrichten,
+        ],
+      },
+      {
+        labelKey: 'stammdaten',
+        items: [personen, adminKlassen, faecher, adminRaeume, schuljahr, raster],
+      },
+      {
+        labelKey: 'schule',
+        items: [
+          lagebild,
+          auswertung,
+          supplierung,
+          rundschreiben,
+          entschuldigungen,
+          item('abwesenheitMelden', '/abwesenheit/neu', 'user-round-x'),
+          item('plan', '/plan', 'calendar-days'),
+          item('datenschutz', '/admin/datenschutz', 'lock'),
+          protokoll,
+          einstellungen,
+        ],
+      },
     ],
     routes: [
       '/admin/personen/[id]',
       '/admin/klassen/[id]',
-      '/admin/faecher',
-      '/admin/raeume',
       '/admin/stundenplan/[id]',
-      '/plan',
-      '/admin/raster',
-      '/admin/rollen',
-      '/admin/schuljahr',
-      '/admin/protokoll',
-      '/admin/datenschutz',
-      '/admin/einstellungen',
-      '/nachrichten',
-      '/rundschreiben',
       '/rundschreiben/neu',
       '/rundschreiben/[id]',
-      '/lagebild',
-      '/auswertung',
-      '/supplierung',
       '/profil',
-      '/abwesenheit/neu',
-      '/klasse',
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
     ],
   },
 };
 
-/** Einträge der Seite "Mehr" (Direktion und Administration): alles, was nicht in der Tab-Leiste steht. */
-const MORE: Partial<Record<Role, NavItem[]>> = {
-  PRINCIPAL: [
-    { labelKey: 'stundenplaene', href: '/admin/stundenplan', icon: 'calendar-days' },
-    { labelKey: 'plan', href: '/plan', icon: 'calendar-range' },
-    { labelKey: 'freigaben', href: '/freigaben', icon: 'circle-check' },
-    { labelKey: 'rundschreiben', href: '/rundschreiben', icon: 'megaphone' },
-    { labelKey: 'entschuldigungen', href: '/klasse', icon: 'file-check' },
-    { labelKey: 'pruefungen', href: '/pruefungen', icon: 'notebook-pen' },
-    { labelKey: 'personen', href: '/admin/personen', icon: 'users' },
-    { labelKey: 'klassen', href: '/admin/klassen', icon: 'graduation-cap' },
-    { labelKey: 'schuljahr', href: '/admin/schuljahr', icon: 'calendar-range' },
-    { labelKey: 'raster', href: '/admin/raster', icon: 'clock' },
-    { labelKey: 'faecher', href: '/admin/faecher', icon: 'book-open' },
-    { labelKey: 'raeume', href: '/admin/raeume', icon: 'door-open' },
-    { labelKey: 'protokoll', href: '/admin/protokoll', icon: 'scroll-text' },
-    { labelKey: 'einstellungen', href: '/admin/einstellungen', icon: 'settings' },
-  ],
-  ADMIN: [
-    { labelKey: 'lagebild', href: '/lagebild', icon: 'layout-dashboard' },
-    { labelKey: 'auswertung', href: '/auswertung', icon: 'chart-column' },
-    { labelKey: 'plan', href: '/plan', icon: 'calendar-range' },
-    { labelKey: 'schuljahr', href: '/admin/schuljahr', icon: 'calendar-range' },
-    { labelKey: 'raster', href: '/admin/raster', icon: 'clock' },
-    { labelKey: 'faecher', href: '/admin/faecher', icon: 'book-open' },
-    { labelKey: 'raeume', href: '/admin/raeume', icon: 'door-open' },
-    { labelKey: 'rollen', href: '/admin/rollen', icon: 'shield-check' },
-    { labelKey: 'protokoll', href: '/admin/protokoll', icon: 'scroll-text' },
-    { labelKey: 'datenschutz', href: '/admin/datenschutz', icon: 'lock' },
-    { labelKey: 'einstellungen', href: '/admin/einstellungen', icon: 'settings' },
-    { labelKey: 'nachrichten', href: '/nachrichten', icon: 'message-square' },
-    { labelKey: 'rundschreiben', href: '/rundschreiben', icon: 'megaphone' },
-    { labelKey: 'supplierung', href: '/supplierung', icon: 'arrow-left-right' },
-    { labelKey: 'entschuldigungen', href: '/klasse', icon: 'file-check' },
-    { labelKey: 'abwesenheitMelden', href: '/abwesenheit/neu', icon: 'user-round-x' },
-  ],
-};
-
-export function moreFor(roles: readonly Role[]): NavItem[] {
-  const primary = ROLE_PRIORITY.find((r) => roles.includes(r));
-  return (primary && MORE[primary]) || [];
-}
-
-/** Vorrang bei der Wahl der Tab-Leiste, wenn jemand mehrere Rollen hat. */
+/** Vorrang bei der Wahl der Navigation, wenn jemand mehrere Rollen hat. */
 const ROLE_PRIORITY: Role[] = ['ADMIN', 'PRINCIPAL', 'HOMEROOM', 'TEACHER', 'GUARDIAN', 'STUDENT'];
 
+/**
+ * Ansichten, zwischen denen eine Person wechseln kann ("Rolle wechseln" im Mehr-Sheet). Klassenvorstand enthält
+ * die Lehreransicht, deshalb zählt Lehrer daneben nicht als eigene Ansicht.
+ */
+export function navViews(roles: readonly Role[]): Role[] {
+  const ordered = ROLE_PRIORITY.filter((r) => roles.includes(r));
+  return ordered.filter((r) => !(r === 'TEACHER' && ordered.includes('HOMEROOM')));
+}
+
 export interface Navigation {
+  /** Rolle, deren Navigation gezeigt wird. */
+  view: Role | null;
   home: string;
   tabs: NavItem[];
-  /** Alle Routenmuster, die diese Person öffnen darf. */
+  sections: NavSection[];
+  /** Alle Routenmuster, die diese Person öffnen darf (alle Rollen zusammen). */
   allowedRoutes: string[];
 }
 
-export function navigationFor(roles: readonly Role[]): Navigation {
-  const ordered = ROLE_PRIORITY.filter((r) => roles.includes(r));
-  const primary = ordered[0];
-  if (!primary) return { home: '/profil', tabs: [profil], allowedRoutes: ['/profil'] };
+/** Navigation für die Rollen einer Person; `preferred` ist die gewählte Ansicht (Cookie pf-role), wenn erlaubt. */
+export function navigationFor(roles: readonly Role[], preferred?: string | null): Navigation {
+  const views = navViews(roles);
+  const view = views.find((r) => r === preferred) ?? views[0];
+  if (!view) {
+    const profil = item('profil', '/profil', 'user-round');
+    return {
+      view: null,
+      home: '/profil',
+      tabs: [profil],
+      sections: [],
+      allowedRoutes: ['/profil'],
+    };
+  }
   const allowed = new Set<string>([
     '/profil',
     '/nachrichten',
@@ -234,11 +299,23 @@ export function navigationFor(roles: readonly Role[]): Navigation {
     '/mehr',
     '/benachrichtigungen',
   ]);
-  for (const role of ordered) {
-    for (const t of NAV[role].tabs) allowed.add(t.href);
-    for (const r of NAV[role].routes) allowed.add(r);
+  for (const role of ROLE_PRIORITY.filter((r) => roles.includes(r))) {
+    const n = NAV[role];
+    allowed.add(n.home);
+    for (const t of n.tabs) allowed.add(t.href);
+    for (const sec of n.sections) for (const i of sec.items) allowed.add(i.href);
+    for (const r of n.routes) allowed.add(r);
   }
-  return { home: NAV[primary].home, tabs: NAV[primary].tabs, allowedRoutes: [...allowed] };
+  const n = NAV[view];
+  return { view, home: n.home, tabs: n.tabs, sections: n.sections, allowedRoutes: [...allowed] };
+}
+
+/** Einträge für "Mehr" (mobil): alles aus der Seitenleiste, was nicht in der Tab-Leiste steht. */
+export function moreSections(nav: Navigation): NavSection[] {
+  const inTabs = new Set(nav.tabs.map((t) => t.href));
+  return nav.sections
+    .map((s) => ({ ...s, items: s.items.filter((i) => !inTabs.has(i.href)) }))
+    .filter((s) => s.items.length > 0);
 }
 
 function patternToRegExp(pattern: string): RegExp {

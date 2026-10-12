@@ -24,7 +24,7 @@ test('Nachricht an die Eltern der Klasse, Antwort, Rundschreiben mit Lesebestät
     .getByRole('textbox', { name: 'Nachricht', exact: true })
     .fill('Am Freitag ist Wandertag. Bitte feste Schuhe mitgeben.');
   await kv.getByRole('button', { name: 'Senden' }).click();
-  await expect(kv.getByRole('status')).toContainText('Gespräche angelegt');
+  await expect(kv.getByRole('status').filter({ hasText: 'Gespräche angelegt' })).toBeVisible();
 
   // Elternteil: Hinweis in Heute, Gespräch öffnen, antworten
   const parentCtx = await browser.newContext();

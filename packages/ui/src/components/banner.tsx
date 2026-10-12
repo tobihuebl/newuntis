@@ -11,7 +11,14 @@ export interface BannerProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /** Banner (Design System, pf-banner): dauerhafter Zustand am Ort, z. B. offline mit Anzahl wartender Einträge. */
-export function Banner({ tone = 'signal', icon: Icon, action, className, children, ...props }: BannerProps) {
+export function Banner({
+  tone = 'signal',
+  icon: Icon,
+  action,
+  className,
+  children,
+  ...props
+}: BannerProps) {
   return (
     <div
       className={cn(

@@ -12,6 +12,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.2.0",
     "@sp/shared": "workspace:*",
     "@sp/ui": "workspace:*",
     "@tanstack/react-query": "^5.104.1",

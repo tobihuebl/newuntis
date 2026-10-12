@@ -10,7 +10,12 @@ import { cn } from '../cn';
  */
 export const cardVariants = cva('pf-card', {
   variants: {
-    tone: { default: '', night: 'pf-card--night', signal: 'pf-card--signal', brand: 'pf-card--brand' },
+    tone: {
+      default: '',
+      night: 'pf-card--night',
+      signal: 'pf-card--signal',
+      brand: 'pf-card--brand',
+    },
     flat: { true: 'pf-card--flat', false: '' },
     interactive: { true: 'pf-card--interactive pf-focusable block', false: '' },
   },

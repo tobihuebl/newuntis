@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { accounts, login } from './helpers';
 
 test('Administration veröffentlicht einen neuen Stundenplan', async ({ page }) => {
-  await login(page, accounts().adminEmail, /\/admin\/personen$/);
+  await login(page, accounts().adminEmail, /\/admin$/);
   await page.goto('/admin/stundenplan');
   await page.getByRole('button', { name: 'Neuer Entwurf' }).click();
   const dialog = page.getByRole('dialog');

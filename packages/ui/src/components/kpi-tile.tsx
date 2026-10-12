@@ -37,8 +37,7 @@ export function KpiTile({
       )}
       {...props}
     >
-      <span className="pf-kpi__num">{value}</span>{' '}
-      <span className="pf-kpi__label">{label}</span>
+      <span className="pf-kpi__num">{value}</span> <span className="pf-kpi__label">{label}</span>
     </Comp>
   );
 }

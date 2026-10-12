@@ -18,7 +18,10 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
     return (
       <label
         htmlFor={inputId}
-        className={cn('flex min-h-(--tap-min) cursor-pointer items-center gap-3 text-ink', className)}
+        className={cn(
+          'flex min-h-(--tap-min) cursor-pointer items-center gap-3 text-ink',
+          className,
+        )}
       >
         <span className="relative grid size-6 shrink-0 place-items-center">
           <input

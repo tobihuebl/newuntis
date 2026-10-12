@@ -180,16 +180,18 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 
 ## 5. Screens und Navigation
 
-Mobil: Tab-Leiste unten mit höchstens 5 Einträgen. Desktop: Seitenleiste links, Kopfzeile mit Suche und Benachrichtigungen. Nach dem Login landet jede Rolle auf **Heute**. Alle Routen liegen unter `apps/web/app/(app)/`.
+Navigation nach dem Design System (`docs/design-system/README.md`, Abschnitt "Web und Mobile"; Entscheidung F2 im Design-Audit): mobil Tab-Leiste mit genau fünf Tabs, der mittlere ist die Hauptaktion der Rolle (erhobene Amber-Taste), rechts "Mehr" (Sheet mit weiteren Seiten, Profil, Rolle wechseln, Darstellung, Abmelden). Ab 1024 px Nacht-Seitenleiste mit Abschnitten ("Stammdaten", "Schule") und Topbar mit Seitensuche (Strg/Cmd+K), Offline-Status, Glocke und Profil-Menü. Einzige Quelle ist `packages/shared/src/navigation.ts`. Wer mehrere Rollen hat, wechselt die Ansicht im Mehr-Sheet (Cookie `pf-role`); erlaubt sind immer die Routen aller Rollen.
 
-| Rolle | Tab-Leiste (mobil) | Wichtige Routen |
-| --- | --- | --- |
-| Schüler | Heute, Plan, Aufgaben, Nachrichten, Profil | `/heute`, `/plan`, `/aufgaben`, `/noten`, `/nachrichten`, `/profil` |
-| Eltern | Heute, Plan, Abwesenheit, Nachrichten, Profil | `/heute`, `/kind/[id]/plan`, `/kind/[id]/fehlzeiten`, `/abwesenheit/neu`, `/nachrichten`, `/termine` |
-| Lehrer | Heute, Klassenbuch, Klassen, Nachrichten, Profil | `/heute`, `/klassenbuch/[occurrenceId]`, `/klassen/[id]`, `/pruefungen`, `/krankmeldung`, `/noten`, `/raeume`, `/nachrichten` |
-| Klassenvorstand | wie Lehrer, dazu Meine Klasse | `/klasse/[id]/uebersicht`, `/klasse/[id]/entschuldigungen`, `/klasse/[id]/fehlzeiten` |
-| Direktion | Lagebild, Supplierung, Auswertung, Nachrichten, Mehr | `/lagebild`, `/supplierung`, `/auswertung`, `/freigaben`, `/rundschreiben` |
-| Administration | Personen, Klassen, Stundenplan, Import, Mehr | `/admin/personen`, `/admin/klassen`, `/admin/stundenplan`, `/admin/raster`, `/admin/import`, `/admin/rollen`, `/admin/schuljahr`, `/admin/protokoll`, `/admin/datenschutz` |
+| Rolle | Tab-Leiste (mobil, Mitte = Hauptaktion) | Startseite | Seitenleiste (zusätzlich) |
+| --- | --- | --- | --- |
+| Schüler | Heute, Plan, **Hausübungen**, Chat, Mehr | `/heute` | Stundenplan, Hausübungen, Nachrichten |
+| Eltern | Heute, Plan, **Abwesenheit**, Nachrichten, Mehr | `/heute` | Abwesenheit, Termine |
+| Lehrer | Heute, Plan, **Klassenbuch**, Chat, Mehr | `/heute` | Prüfungen; Schule: Klassen, Räume, Krankmeldung |
+| Klassenvorstand | wie Lehrer | `/heute` | Meine Klasse; Schule: Auswertung |
+| Direktion | Lagebild, Supplierung, **Freigaben**, Nachrichten, Mehr | `/lagebild` | Prüfungskalender, Auswertung, Rundschreiben; Schule: Entschuldigungen, Stundenpläne, Stammdaten (lesen), Protokoll, Einstellungen |
+| Administration | Übersicht, Stundenplan, **Import**, Nachrichten, Mehr | `/admin` | Rechte; Stammdaten: Personen, Klassen, Fächer, Räume, Schuljahr, Raster; Schule: Lagebild, Auswertung, Supplierung, Rundschreiben, Entschuldigungen, Datenschutz, Protokoll, Einstellungen |
+
+Die Rolle Schul-IT aus dem Design System gibt es im Datenmodell nicht; ihre Punkte (Import, Datenschutz, Protokoll) liegen bei der Administration. `/admin` ist die Übersicht mit der Checkliste "Schule einrichten" (Schuljahr und Ferien, Raster, Klassen/Fächer/Räume, Personen, Rechte und Einladungen, Stundenplan veröffentlicht).
 
 Für alle Rollen zusätzlich `/profil` und `/benachrichtigungen` (Glocke in der Kopfzeile), dazu `/nachrichten/neu`, `/nachrichten/[id]` (Gespräch) und `/nachrichten/rundschreiben/[id]` (Rundschreiben lesen und bestätigen). Nach dem ersten Login führt `/willkommen` durch Datenschutzhinweis, Push-Einrichtung und kurze Hinweise je Rolle (M6, ADR 0009).
 

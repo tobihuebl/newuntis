@@ -8,13 +8,7 @@ import { cn } from '../cn';
  * Rot gibt es nur für Fehler, deshalb sind abwesend neutral und Entfall ein Hinweis.
  */
 export type Status =
-  | 'present'
-  | 'late'
-  | 'absent'
-  | 'excused'
-  | 'cancelled'
-  | 'substituted'
-  | 'roomChanged';
+  'present' | 'late' | 'absent' | 'excused' | 'cancelled' | 'substituted' | 'roomChanged';
 
 const CONFIG: Record<Status, { tone: ChipTone; Icon: typeof Check; strike: boolean }> = {
   present: { tone: 'ok', Icon: Check, strike: false },
