@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import type { PlanEntry } from '@sp/shared';
 import { StatusBadge, cn } from '@sp/ui';
 import { timeOf } from '../../lib/dates';
+import { NowLineSlot } from '../now-line';
 
 /** Wer neben dem Fach steht: für Schüler:innen Raum und Lehrkraft, für Lehrkräfte Klasse und Raum. */
 export type Perspective = 'student' | 'teacher';
@@ -44,6 +45,7 @@ export function LessonRow({
   past,
   trailing,
   highlight,
+  timeline,
 }: {
   entry: PlanEntry;
   perspective: Perspective;
@@ -51,6 +53,8 @@ export function LessonRow({
   past?: boolean;
   trailing?: React.ReactNode;
   highlight?: boolean;
+  /** Zeitlinie zeigen; Wert = Ende der vorigen Stunde (null bei der ersten). */
+  timeline?: { previousEndsAt: string | null };
 }) {
   const t = useTranslations('today');
   const cancelled = entry.status === 'CANCELLED';
@@ -85,7 +89,14 @@ export function LessonRow({
     highlight && 'bg-surface-2',
   );
   return (
-    <li className="border-b border-border last:border-b-0">
+    <li className="relative border-b border-border last:border-b-0">
+      {timeline ? (
+        <NowLineSlot
+          startsAt={entry.startsAt}
+          endsAt={entry.endsAt}
+          previousEndsAt={timeline.previousEndsAt}
+        />
+      ) : null}
       {href ? (
         <Link href={href} className={cn(cls, 'hover:bg-surface-2')}>
           {body}

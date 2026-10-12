@@ -23,6 +23,18 @@ function useNow(): number {
   return now;
 }
 
+/** Ende der vorigen Stunden je Eintrag (für die Zeitlinie in Pausen). */
+export function previousEnds<T extends { startsAt: string; endsAt: string }>(
+  list: T[],
+): (string | null)[] {
+  let latest: string | null = null;
+  return list.map((l) => {
+    const prev = latest;
+    if (!latest || l.endsAt > latest) latest = l.endsAt;
+    return prev;
+  });
+}
+
 export function TodaySkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-hidden="true">
@@ -113,6 +125,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
       Date.parse(l.endsAt) > now,
   );
   const subs = data.teacher?.substitutions ?? [];
+  const teacherPrev = previousEnds(data.lessons);
   const progress = (l: TodayLesson) => {
     if (l.classbook === null) return null;
     if (closing.has(l.id) && l.classbook !== 'closed')
@@ -203,7 +216,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
         ) : (
           <Card className="p-0">
             <ul>
-              {data.lessons.map((l) => (
+              {data.lessons.map((l, i) => (
                 <LessonRow
                   key={l.id}
                   entry={l}
@@ -212,6 +225,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
                   past={Date.parse(l.endsAt) <= now}
                   highlight={l.id === current?.id}
                   trailing={progress(l)}
+                  timeline={{ previousEndsAt: teacherPrev[i] ?? null }}
                 />
               ))}
             </ul>
@@ -285,7 +299,9 @@ function StudentToday({ data }: { data: TodayResponse }) {
   const lessons = data.lessons;
   const next = lessons.find((l) => l.status !== 'CANCELLED' && Date.parse(l.endsAt) > now);
   const changes = lessons.filter((l) => l.status !== 'SCHEDULED');
-  const rest = lessons.filter((l) => l.id !== next?.id && l.status === 'SCHEDULED');
+  // Ganzer Tag mit Zeitlinie; Änderungen stehen zusätzlich oben (Spec Abschnitt 5)
+  const rest = lessons;
+  const restPrev = previousEnds(rest);
   const running = next && Date.parse(next.startsAt) <= now;
 
   return (
@@ -354,12 +370,14 @@ function StudentToday({ data }: { data: TodayResponse }) {
           </h2>
           <Card className="p-0">
             <ul>
-              {rest.map((l) => (
+              {rest.map((l, i) => (
                 <LessonRow
                   key={l.id}
                   entry={l}
                   perspective="student"
                   past={Date.parse(l.endsAt) <= now}
+                  highlight={l.id === next?.id && running}
+                  timeline={{ previousEndsAt: restPrev[i] ?? null }}
                 />
               ))}
             </ul>

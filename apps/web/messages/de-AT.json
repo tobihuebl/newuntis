@@ -66,7 +66,8 @@
     "progress_pending": "Abgeschlossen (wird synchronisiert)",
     "cachedAt": "Offline-Stand vom {time}",
     "plan": "Zum Wochenplan",
-    "upcomingSubstitutions": "Supplierungen der nächsten Tage"
+    "upcomingSubstitutions": "Supplierungen der nächsten Tage",
+    "nowAt": "Jetzt"
   },
   "placeholder": {
     "title": "Kommt bald",

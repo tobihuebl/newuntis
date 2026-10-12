@@ -6,7 +6,7 @@ import { weekdayDate } from '../../lib/dates';
 import { useCached, useOutbox } from '../../offline/hooks';
 import { SyncStatus } from '../sync-status';
 import { LessonRow } from '../today/lesson-row';
-import { LoadError, TodaySkeleton } from '../today/today-screen';
+import { LoadError, TodaySkeleton, previousEnds } from '../today/today-screen';
 
 /** Tab "Klassenbuch" der Lehrkräfte: offene Einträge (KB-04) und die Stunden von heute. */
 export function ClassbookList() {
@@ -85,8 +85,9 @@ export function ClassbookList() {
         ) : (
           <Card className="p-0">
             <ul>
-              {today.data.data.lessons.map((l) => (
+              {today.data.data.lessons.map((l, i, all) => (
                 <LessonRow
+                  timeline={{ previousEndsAt: previousEnds(all)[i] ?? null }}
                   key={l.id}
                   entry={l}
                   perspective="teacher"

@@ -1,7 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { addDays, type PlanEntry, type PlanResponse } from '@sp/shared';
 import { StatusBadge, cn } from '@sp/ui';
-import { shortDate } from '../../lib/dates';
+import { shortDate, todayVienna } from '../../lib/dates';
+import { NowLineSlot } from '../now-line';
+import { PlanNowMarker } from './plan-now-marker';
 
 /** Was in einer Karte neben dem Fach steht: bei Klassenplänen die Lehrkraft, bei Lehrer- und Raumplänen die Klasse. */
 export type PlanPerspective = 'student' | 'teacher' | 'room';
@@ -73,6 +75,7 @@ export async function WeekPlan({
 }) {
   const t = await getTranslations();
   const days = [0, 1, 2, 3, 4].map((i) => addDays(plan.from, i));
+  const today = todayVienna();
   const periods = plan.periods;
   const rowOf = new Map(periods.map((p, i) => [p.number, i + 2]));
   const byStart = new Map<string, PlanEntry[]>();
@@ -97,13 +100,22 @@ export async function WeekPlan({
           const entries = plan.entries.filter((e) => e.date === d);
           return (
             <section key={d} aria-labelledby={`day-${d}`}>
-              <h2 id={`day-${d}`} className="mb-2 font-semibold">
+              <h2
+                id={`day-${d}`}
+                aria-current={d === today ? 'date' : undefined}
+                className={cn('mb-2 font-semibold', d === today && 'text-primary')}
+              >
                 {t(`days.${i + 1}`)} {shortDate(d)}
               </h2>
               {entries.length === 0 ? <p className="text-sm text-muted">–</p> : null}
               <ul className="flex flex-col gap-2">
-                {entries.map((e) => (
-                  <li key={e.id} className="flex gap-3">
+                {entries.map((e, ei) => (
+                  <li key={e.id} className="relative flex gap-3">
+                    <NowLineSlot
+                      startsAt={e.startsAt}
+                      endsAt={e.endsAt}
+                      previousEndsAt={ei > 0 ? entries[ei - 1]!.endsAt : null}
+                    />
                     <span className="w-14 shrink-0 pt-2 text-xs text-muted tabular-nums">
                       {periods.find((p) => p.number === e.periodStart)?.startTime}
                       <br />
@@ -135,7 +147,8 @@ export async function WeekPlan({
           <div
             key={d}
             role="columnheader"
-            className="px-1 pb-1 text-sm font-semibold"
+            aria-current={d === today ? 'date' : undefined}
+            className={cn('px-1 pb-1 text-sm font-semibold', d === today && 'text-primary')}
             style={{ gridColumn: i + 2, gridRow: 1 }}
           >
             {t(`days.short${i + 1}`)} {shortDate(d)}
@@ -155,6 +168,7 @@ export async function WeekPlan({
             {p.endTime}
           </div>
         ))}
+        <PlanNowMarker days={days} periods={periods} />
         {days.flatMap((d, di) =>
           periods.map((p) => {
             const entries = byStart.get(`${d}|${p.number}`);
