@@ -39,7 +39,7 @@ export function NotificationList() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
+        <h1 className="text-h1">{t('title')}</h1>
         {unread > 0 ? (
           <Button
             variant="secondary"
@@ -75,20 +75,20 @@ export function NotificationList() {
             {items.map((n) => {
               const text = notificationText(n.type, 1, n.params);
               return (
-                <li key={n.id} className="border-b border-border last:border-b-0">
+                <li key={n.id} className="border-b border-line last:border-b-0">
                   <button
                     type="button"
                     onClick={() => void open(n)}
                     className={cn(
-                      'flex min-h-16 w-full items-start gap-3 px-4 py-3 text-left hover:bg-surface-2',
-                      !n.readAt && 'bg-surface-2/60',
+                      'flex min-h-16 w-full items-start gap-3 px-4 py-3 text-left hover:bg-bg-sunken',
+                      !n.readAt && 'bg-bg-sunken/60',
                     )}
                   >
                     <span
                       aria-hidden="true"
                       className={cn(
                         'mt-2 h-2 w-2 shrink-0 rounded-full',
-                        n.readAt ? 'bg-transparent' : 'bg-primary',
+                        n.readAt ? 'bg-transparent' : 'bg-brand',
                       )}
                     />
                     <span className="min-w-0 flex-1">
@@ -97,9 +97,9 @@ export function NotificationList() {
                         {n.params.correction ? ` (${t('correction')})` : ''}
                         {!n.readAt ? <span className="sr-only">, {t('unread')}</span> : null}
                       </span>
-                      <span className="block text-sm text-muted">{text.body}</span>
+                      <span className="block text-body-sm text-ink-muted">{text.body}</span>
                     </span>
-                    <span className="shrink-0 text-xs text-muted tabular-nums">
+                    <span className="shrink-0 text-caption text-ink-muted tabular-nums">
                       {dateTimeOf(n.createdAt)}
                     </span>
                   </button>

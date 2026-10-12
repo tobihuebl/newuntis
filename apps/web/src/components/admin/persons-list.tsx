@@ -121,9 +121,9 @@ export function PersonsList({
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
+        <h1 className="text-h1">{t('title')}</h1>
         {readOnly ? (
-          <span className="text-sm text-muted">{c('readOnly')}</span>
+          <span className="text-body-sm text-ink-muted">{c('readOnly')}</span>
         ) : (
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" asChild>
@@ -162,7 +162,7 @@ export function PersonsList({
       </div>
 
       <div
-        className="rounded-md border border-border bg-surface"
+        className="rounded-md border border-line bg-bg-raised"
         aria-live="polite"
         aria-busy={loading}
       >
@@ -170,7 +170,7 @@ export function PersonsList({
           <ListRow
             key={p.id}
             title={
-              <Link className="text-primary underline" href={`/admin/personen/${p.id}`}>
+              <Link className="text-brand-text underline" href={`/admin/personen/${p.id}`}>
                 {p.lastName} {p.firstName}
               </Link>
             }
@@ -239,13 +239,13 @@ export function PersonsList({
           ) : null}
           {newKind === 'TEACHER' || newKind === 'STAFF' ? (
             <fieldset className="flex flex-col">
-              <legend className="text-sm font-medium">{t('roles')}</legend>
+              <legend className="text-label">{t('roles')}</legend>
               <Checkbox name="role-PRINCIPAL" label={t('extra.PRINCIPAL')} />
               <Checkbox name="role-ADMIN" label={t('extra.ADMIN')} />
             </fieldset>
           ) : null}
           {formError ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {formError}
             </p>
           ) : null}

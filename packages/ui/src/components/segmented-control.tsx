@@ -20,16 +20,16 @@ export function SegmentedControl<T extends string>({
   const name = React.useId();
   return (
     <fieldset className={cn('flex flex-col gap-1', className)}>
-      <legend className="mb-1 text-sm font-medium text-text">{label}</legend>
-      <div className="inline-flex flex-wrap gap-1 rounded-sm border border-border bg-surface-2 p-1">
+      <legend className="mb-1 text-label text-ink">{label}</legend>
+      <div className="inline-flex flex-wrap gap-1 rounded-sm border border-line bg-bg-sunken p-1">
         {options.map((o) => (
           <label
             key={o.value}
             className={cn(
-              'relative inline-flex min-h-10 min-w-11 cursor-pointer items-center justify-center rounded-sm px-3 text-sm font-medium has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-primary',
+              'relative inline-flex min-h-10 min-w-11 cursor-pointer items-center justify-center rounded-sm px-3 text-label has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-focus',
               value === o.value
-                ? 'bg-surface font-semibold text-text ring-1 ring-border'
-                : 'text-text hover:bg-surface',
+                ? 'bg-bg-raised font-semibold text-ink ring-1 ring-line'
+                : 'text-ink hover:bg-bg-raised',
             )}
           >
             <input

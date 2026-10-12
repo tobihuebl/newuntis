@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as OTPAuth from 'otpauth';
+import { BRAND } from '@sp/shared';
 
 @Injectable()
 export class TotpService {
@@ -16,7 +17,7 @@ export class TotpService {
    * Der Aufrufer speichert die Scheibe, damit ein Code nicht zweimal gilt (Schutz gegen Wiederverwendung).
    */
   counter(secret: string, code: string, now = Date.now()): number | null {
-    const delta = this.totp(secret, 'konto', 'Schulplattform').validate({
+    const delta = this.totp(secret, 'konto', BRAND.name).validate({
       token: code,
       window: 1,
       timestamp: now,

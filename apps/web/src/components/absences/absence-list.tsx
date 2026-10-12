@@ -63,7 +63,7 @@ export function AbsenceList({
       {items.map((a) => (
         <li
           key={a.id}
-          className="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0"
+          className="flex flex-col gap-2 border-b border-line px-4 py-3 last:border-b-0"
           data-absence={a.status}
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -74,18 +74,18 @@ export function AbsenceList({
                 </p>
               ) : null}
               <p className={cn(!showStudent && 'font-medium')}>{absenceRange(a)}</p>
-              <p className="text-sm text-muted">
+              <p className="text-body-sm text-ink-muted">
                 {t('lessons', { n: a.lessons })} · {t(`origin_${a.origin}`)}
                 {a.reasonCode ? ` · ${t(`reasons.${a.reasonCode}`)}` : ''}
               </p>
-              {a.reason ? <p className="text-sm">{a.reason}</p> : null}
+              {a.reason ? <p className="text-body-sm">{a.reason}</p> : null}
               {a.deadline ? (
-                <p className="text-sm text-warning">
+                <p className="text-body-sm text-signal-ink">
                   {t('deadline', { date: weekdayDate(a.deadline) })}
                 </p>
               ) : null}
               {a.reviewComment ? (
-                <p className="text-sm text-muted">
+                <p className="text-body-sm text-ink-muted">
                   {t('comment')}: {a.reviewComment}
                 </p>
               ) : null}

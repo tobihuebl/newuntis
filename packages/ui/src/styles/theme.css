@@ -1,0 +1,249 @@
+/* Erzeugt von scripts/gen-theme.mjs aus docs/design-system/tokens.json. Nicht von Hand ändern. */
+
+/* Dunkel-Variante: explizit gewählt oder System-Dunkel ohne Wahl */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme]) *) {
+      @slot;
+    }
+  }
+}
+
+/* Nur Token-Farben und Token-Schriftstile; Tailwinds Standardpalette und -größen sind abgeschaltet. */
+@theme {
+  --color-*: initial;
+  --text-*: initial;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: initial;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+  --radius-2xl: initial;
+  --radius-3xl: initial;
+  --radius-4xl: initial;
+}
+
+@theme inline {
+  --color-nacht: var(--nacht);
+  --color-kobalt: var(--kobalt);
+  --color-amber: var(--amber);
+  --color-creme: var(--creme);
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-bg-night: var(--bg-night);
+  --color-bg-night-raised: var(--bg-night-raised);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-on-night: var(--ink-on-night);
+  --color-ink-on-night-muted: var(--ink-on-night-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-text: var(--brand-text);
+  --color-signal: var(--signal);
+  --color-on-signal: var(--on-signal);
+  --color-signal-soft: var(--signal-soft);
+  --color-signal-ink: var(--signal-ink);
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-focus: var(--focus);
+  --color-overlay: var(--overlay);
+  --color-on-fach: var(--on-fach);
+  --color-fach-kobalt: var(--fach-kobalt);
+  --color-fach-mint: var(--fach-mint);
+  --color-fach-himmel: var(--fach-himmel);
+  --color-fach-flieder: var(--fach-flieder);
+  --color-fach-rosa: var(--fach-rosa);
+  --color-fach-limette: var(--fach-limette);
+  --color-fach-koralle: var(--fach-koralle);
+  --color-fach-sand: var(--fach-sand);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --font-heading: var(--font-display);
+  --font-body: var(--font-text);
+  --font-sans: var(--font-text);
+  --font-data: var(--font-mono);
+}
+
+/* Schatten wechseln mit dem Theme, deshalb als Variable statt als Tailwind-Schattenwert */
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility shadow-pop {
+  box-shadow: var(--shadow-pop);
+}
+@utility shadow-key-brand {
+  box-shadow: var(--shadow-key-brand);
+}
+@utility shadow-key-signal {
+  box-shadow: var(--shadow-key-signal);
+}
+
+@utility z-nav {
+  z-index: var(--z-nav);
+}
+@utility z-sheet {
+  z-index: var(--z-sheet);
+}
+@utility z-toast {
+  z-index: var(--z-toast);
+}
+
+/* Typografie (tokens.json type.groups): Familie, Größe, Zeilenhöhe, Gewicht, Laufweite */
+@utility text-display-xl {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 50px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  @media (width >= 1024px) {
+    font-size: 72px;
+    line-height: 72px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+  font-variant-numeric: tabular-nums;
+}
+@utility text-display-lg {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 50px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  @media (width >= 1024px) {
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  font-variant-numeric: tabular-nums;
+}
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  @media (width >= 1024px) {
+    font-size: 26px;
+    line-height: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  font-variant-numeric: tabular-nums;
+}
+@utility text-h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-numeral-xl {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 64px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-numeral-lg {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 44px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-body-lg {
+  font-family: var(--font-text);
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+@utility text-body {
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+@utility text-body-strong {
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+@utility text-body-sm {
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+@utility text-label {
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+@utility text-caption {
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+@utility text-overline {
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+@utility text-mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: normal;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-mono-sm {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: normal;
+  font-variant-numeric: tabular-nums;
+}

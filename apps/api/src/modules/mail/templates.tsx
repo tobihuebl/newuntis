@@ -15,8 +15,10 @@ import {
   Text,
 } from '@react-email/components';
 import { render } from '@react-email/render';
+import { BRAND, DESIGN_COLORS } from '@sp/shared';
 
-const colors = { primary: '#4F46E5', text: '#111827', muted: '#6B7280', bg: '#FAFAF9' };
+const c = DESIGN_COLORS.light;
+const colors = { primary: c.brand, text: c.ink, muted: c['ink-muted'], bg: c.bg, line: c.line };
 
 function Layout({
   preview,
@@ -46,9 +48,9 @@ function Layout({
             {title}
           </Heading>
           {children}
-          <Hr style={{ borderColor: '#E5E7EB', margin: '24px 0' }} />
+          <Hr style={{ borderColor: colors.line, margin: '24px 0' }} />
           <Text style={{ color: colors.muted, fontSize: 12 }}>
-            Diese Nachricht wurde automatisch von der Schulplattform versendet. Einstellungen für
+            Diese Nachricht wurde automatisch von {BRAND.name} versendet. Einstellungen für
             Benachrichtigungen findest du im Profil.
           </Text>
         </Container>
@@ -64,7 +66,7 @@ function Action({ href, label }: { href: string; label: string }) {
         href={href}
         style={{
           backgroundColor: colors.primary,
-          color: '#FFFFFF',
+          color: DESIGN_COLORS.light['on-brand'],
           borderRadius: 8,
           padding: '12px 18px',
           fontWeight: 600,
@@ -92,10 +94,10 @@ function content(t: MailTemplate): { subject: string; element: React.ReactElemen
   switch (t.kind) {
     case 'invitation':
       return {
-        subject: `Einladung zur Schulplattform (${t.school})`,
+        subject: `Einladung zu ${BRAND.name} (${t.school})`,
         element: (
           <Layout preview="Lege dein Passwort fest" school={t.school} title="Willkommen!">
-            <Text>Du wurdest zur Schulplattform eingeladen. Lege jetzt dein Passwort fest.</Text>
+            <Text>Du wurdest zu {BRAND.name} eingeladen. Lege jetzt dein Passwort fest.</Text>
             <Action href={t.url} label="Passwort festlegen" />
             <Text>Der Link ist {t.validDays} Tage gültig.</Text>
           </Layout>

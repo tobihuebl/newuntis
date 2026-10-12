@@ -48,7 +48,7 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey: string | null }
     });
   }, []);
 
-  if (!vapidPublicKey) return <p className="text-sm text-muted">{t('pushUnavailable')}</p>;
+  if (!vapidPublicKey) return <p className="text-body-sm text-ink-muted">{t('pushUnavailable')}</p>;
 
   async function enable() {
     setBusy(true);
@@ -96,12 +96,12 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey: string | null }
   return (
     <div className="flex flex-col gap-2" aria-live="polite">
       {state === 'unsupported' ? (
-        <p className="text-sm text-muted">{t('pushUnsupported')}</p>
+        <p className="text-body-sm text-ink-muted">{t('pushUnsupported')}</p>
       ) : null}
-      {state === 'denied' ? <p className="text-sm text-warning">{t('pushDenied')}</p> : null}
+      {state === 'denied' ? <p className="text-body-sm text-signal-ink">{t('pushDenied')}</p> : null}
       {state === 'on' || state === 'off' ? (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm">{state === 'on' ? t('pushOn') : t('pushOff')}</p>
+          <p className="text-body-sm">{state === 'on' ? t('pushOn') : t('pushOff')}</p>
           <Button
             variant={state === 'on' ? 'secondary' : 'primary'}
             disabled={busy}
@@ -112,7 +112,7 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey: string | null }
         </div>
       ) : null}
       {ios ? (
-        <div className="rounded-sm border border-info p-3 text-sm">
+        <div className="rounded-sm border border-brand p-3 text-body-sm">
           <p className="font-medium">{t('iosHint')}</p>
           <p>{t('iosStep1')}</p>
           <p>{t('iosStep2')}</p>

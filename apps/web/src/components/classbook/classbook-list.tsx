@@ -35,10 +35,10 @@ export function ClassbookList() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
       <SyncStatus />
       <section aria-labelledby="open" className="flex flex-col gap-2">
-        <h2 id="open" className="text-lg font-semibold">
+        <h2 id="open" className="text-h3">
           {t('open')}
         </h2>
         {open.isPending ? (
@@ -60,7 +60,7 @@ export function ClassbookList() {
                   href={`/klassenbuch/${o.id}?von=liste`}
                   trailing={
                     <>
-                      <span className="text-xs text-muted">{weekdayDate(o.date)}</span>
+                      <span className="text-caption text-ink-muted">{weekdayDate(o.date)}</span>
                       {progress(o.classbook, o.id)}
                     </>
                   }
@@ -71,7 +71,7 @@ export function ClassbookList() {
         )}
       </section>
       <section aria-labelledby="today" className="flex flex-col gap-2">
-        <h2 id="today" className="text-lg font-semibold">
+        <h2 id="today" className="text-h3">
           {t('todayList')}
         </h2>
         {today.isPending ? (

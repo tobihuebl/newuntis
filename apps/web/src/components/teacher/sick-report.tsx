@@ -36,8 +36,8 @@ export function SickReport() {
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
-      <p className="text-muted">{t('help')}</p>
+      <h1 className="text-h1">{t('title')}</h1>
+      <p className="text-ink-muted">{t('help')}</p>
       <Card>
         <form
           className="flex flex-col gap-4"
@@ -103,11 +103,11 @@ export function SickReport() {
             onChange={(e) => setNote(e.target.value)}
           />
           {create.error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {problem(create.error)}
             </p>
           ) : null}
-          <p role="status" className="text-sm text-success">
+          <p role="status" className="text-body-sm text-brand-text">
             {sent ? t('sent') : ''}
           </p>
           <Button type="submit" disabled={create.isPending} className="self-start">
@@ -116,26 +116,26 @@ export function SickReport() {
         </form>
       </Card>
       <section aria-labelledby="mine" className="flex flex-col gap-2">
-        <h2 id="mine" className="text-lg font-semibold">
+        <h2 id="mine" className="text-h3">
           {t('mine')}
         </h2>
         {!list.data ? (
           <Skeleton className="h-16 w-full" />
         ) : list.data.data.length === 0 ? (
-          <p className="text-muted">{t('none')}</p>
+          <p className="text-ink-muted">{t('none')}</p>
         ) : (
           <Card className="p-0">
             <ul>
               {list.data.data.map((a) => (
                 <li
                   key={a.id}
-                  className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 last:border-b-0"
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <div>
                     <p className="font-medium">
                       {dateTimeOf(a.fromAt)} – {dateTimeOf(a.toAt)}
                     </p>
-                    <p className="text-sm text-muted">
+                    <p className="text-body-sm text-ink-muted">
                       {t('affected', {
                         n:
                           a.substitutions.open +

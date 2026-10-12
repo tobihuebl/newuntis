@@ -20,7 +20,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const selectId = id ?? autoId;
     return (
       <div className="flex flex-col gap-1">
-        <label htmlFor={selectId} className="text-sm font-medium text-text">
+        <label htmlFor={selectId} className="text-label text-ink">
           {label}
         </label>
         <select
@@ -28,7 +28,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           id={selectId}
           aria-invalid={error ? true : undefined}
           className={cn(
-            'min-h-11 rounded-sm border border-border bg-surface-2 px-3 text-text',
+            'min-h-11 rounded-sm border border-line bg-bg-sunken px-3 text-ink',
             error && 'border-danger',
             className,
           )}
@@ -41,7 +41,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
+        {error ? <p className="text-body-sm text-danger-ink">{error}</p> : null}
       </div>
     );
   },

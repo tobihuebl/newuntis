@@ -25,19 +25,19 @@ export function Sheet({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-overlay" />
         <Dialog.Content
           className={cn(
-            'fixed z-50 flex max-h-[90dvh] flex-col gap-4 overflow-y-auto border border-border bg-surface p-4 shadow-none',
+            'fixed z-50 flex max-h-[90dvh] flex-col gap-4 overflow-y-auto border border-line bg-bg-raised p-4 shadow-none',
             'inset-x-0 bottom-0 rounded-t-md',
             'md:inset-auto md:left-1/2 md:top-1/2 md:w-full md:max-w-lg md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-md md:p-6',
           )}
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <Dialog.Title className="text-lg font-semibold text-text">{title}</Dialog.Title>
+              <Dialog.Title className="text-h3 text-ink">{title}</Dialog.Title>
               {description ? (
-                <Dialog.Description className="text-sm text-muted">
+                <Dialog.Description className="text-body-sm text-ink-muted">
                   {description}
                 </Dialog.Description>
               ) : (
@@ -46,7 +46,7 @@ export function Sheet({
             </div>
             <Dialog.Close
               aria-label={closeLabel}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-muted hover:bg-surface-2 hover:text-text"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-ink-muted hover:bg-bg-sunken hover:text-ink"
             >
               <X aria-hidden="true" size={20} />
             </Dialog.Close>

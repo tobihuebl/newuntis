@@ -75,8 +75,8 @@ export function DashboardScreen() {
     <div className="mx-auto flex max-w-5xl flex-col gap-5 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">{t('title')}</h1>
-          <p className="text-sm text-muted">{longDate(date)}</p>
+          <h1 className="text-h1">{t('title')}</h1>
+          <p className="text-body-sm text-ink-muted">{longDate(date)}</p>
         </div>
         <nav aria-label={t('day')} className="flex gap-2">
           <Button variant="secondary" onClick={() => go(prevWeekday(date))}>
@@ -119,17 +119,17 @@ export function DashboardScreen() {
                   <Link
                     href={c.href}
                     className={cn(
-                      'flex min-h-24 flex-col justify-between gap-2 rounded-md border bg-surface p-4 hover:bg-surface-2',
+                      'flex min-h-24 flex-col justify-between gap-2 rounded-md border bg-bg-raised p-4 hover:bg-bg-sunken',
                       n > 0 && c.tone === 'danger' && 'border-danger',
-                      n > 0 && c.tone === 'warning' && 'border-warning',
-                      (n === 0 || c.tone === 'info' || c.tone === 'neutral') && 'border-border',
+                      n > 0 && c.tone === 'warning' && 'border-signal',
+                      (n === 0 || c.tone === 'info' || c.tone === 'neutral') && 'border-line',
                     )}
                   >
-                    <span className="flex items-center gap-2 text-sm text-muted">
+                    <span className="flex items-center gap-2 text-body-sm text-ink-muted">
                       <Icon aria-hidden="true" size={18} />
                       {t(`card_${c.key}`)}
                     </span>
-                    <span className="text-3xl font-semibold tabular-nums">{n}</span>
+                    <span className="text-h1 tabular-nums">{n}</span>
                   </Link>
                 </li>
               );
@@ -138,7 +138,7 @@ export function DashboardScreen() {
 
           {d.teachersAbsent.length > 0 ? (
             <section aria-labelledby="absent-h" className="flex flex-col gap-2">
-              <h2 id="absent-h" className="text-lg font-semibold">
+              <h2 id="absent-h" className="text-h3">
                 {t('absentTeachers')}
               </h2>
               <Card className="p-0">
@@ -146,13 +146,13 @@ export function DashboardScreen() {
                   {d.teachersAbsent.map((a) => (
                     <li
                       key={a.id}
-                      className="flex min-h-12 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 last:border-b-0"
+                      className="flex min-h-12 flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2 last:border-b-0"
                     >
                       <span>
                         <span className="font-medium">{a.teacher.name}</span>
-                        <span className="text-sm text-muted"> · {t(`kind_${a.kind}`)}</span>
+                        <span className="text-body-sm text-ink-muted"> · {t(`kind_${a.kind}`)}</span>
                       </span>
-                      <span className="flex items-center gap-2 text-sm">
+                      <span className="flex items-center gap-2 text-body-sm">
                         {t('affected', { count: a.affected })}
                         {a.open > 0 ? (
                           <Badge tone="warning">{t('open', { count: a.open })}</Badge>
@@ -166,12 +166,12 @@ export function DashboardScreen() {
           ) : null}
 
           <section aria-labelledby="timeline-h" className="flex flex-col gap-2">
-            <h2 id="timeline-h" className="text-lg font-semibold">
+            <h2 id="timeline-h" className="text-h3">
               {t('timeline')}
             </h2>
             {d.timeline.length === 0 ? (
               <Card>
-                <p className="text-muted">{t('timelineEmpty')}</p>
+                <p className="text-ink-muted">{t('timelineEmpty')}</p>
               </Card>
             ) : (
               <Card className="p-0">
@@ -179,9 +179,9 @@ export function DashboardScreen() {
                   {d.timeline.map((x) => (
                     <li
                       key={x.occurrenceId}
-                      className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-2 last:border-b-0"
+                      className="flex min-h-14 items-center gap-3 border-b border-line px-4 py-2 last:border-b-0"
                     >
-                      <span className="w-24 shrink-0 text-sm tabular-nums">
+                      <span className="w-24 shrink-0 text-body-sm tabular-nums">
                         <span className="block font-medium">
                           {x.periodCount > 1
                             ? t('periods', {
@@ -190,21 +190,21 @@ export function DashboardScreen() {
                               })
                             : t('period', { n: x.periodStart })}
                         </span>
-                        <span className="block text-xs text-muted">{timeOf(x.startsAt)}</span>
+                        <span className="block text-caption text-ink-muted">{timeOf(x.startsAt)}</span>
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">
                           {x.className ? `${x.className} · ` : ''}
                           {x.subject}
                         </span>
-                        <span className="block truncate text-sm text-muted">
+                        <span className="block truncate text-body-sm text-ink-muted">
                           {x.teachers.join(', ')}
                         </span>
                       </span>
                       {x.kind === 'missingClassbook' ? (
                         <Link
                           href={`/klassenbuch/${x.occurrenceId}`}
-                          className="text-sm text-primary underline-offset-2 hover:underline"
+                          className="text-body-sm text-brand-text underline-offset-2 hover:underline"
                         >
                           {t('kindmissingClassbook')}
                         </Link>
@@ -223,30 +223,30 @@ export function DashboardScreen() {
             aria-labelledby="missing-h"
             className="flex scroll-mt-4 flex-col gap-2"
           >
-            <h2 id="missing-h" className="text-lg font-semibold">
+            <h2 id="missing-h" className="text-h3">
               {t('missing', { count: d.cards.missingClassbook })}
             </h2>
             {d.missingClassbook.length === 0 ? (
               <Card>
-                <p className="text-muted">{t('missingEmpty')}</p>
+                <p className="text-ink-muted">{t('missingEmpty')}</p>
               </Card>
             ) : (
               <Card className="p-0">
                 <ul>
                   {d.missingClassbook.map((m) => (
-                    <li key={m.occurrenceId} className="border-b border-border last:border-b-0">
+                    <li key={m.occurrenceId} className="border-b border-line last:border-b-0">
                       <Link
                         href={`/klassenbuch/${m.occurrenceId}`}
-                        className="flex min-h-12 items-center gap-3 px-4 py-2 hover:bg-surface-2"
+                        className="flex min-h-12 items-center gap-3 px-4 py-2 hover:bg-bg-sunken"
                       >
-                        <span className="w-28 shrink-0 text-sm tabular-nums">
+                        <span className="w-28 shrink-0 text-body-sm tabular-nums">
                           {weekdayDate(m.date)}, {t('period', { n: m.periodStart })}
                         </span>
                         <span className="min-w-0 flex-1 truncate">
                           {m.className ? `${m.className} · ` : ''}
                           {m.subject}
                         </span>
-                        <span className="hidden truncate text-sm text-muted sm:block">
+                        <span className="hidden truncate text-body-sm text-ink-muted sm:block">
                           {m.teachers.join(', ')}
                         </span>
                       </Link>

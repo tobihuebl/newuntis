@@ -84,7 +84,7 @@ export function ComposeScreen() {
           {t('back')}
         </Link>
       </Button>
-      <h1 className="text-2xl font-semibold">{t('new')}</h1>
+      <h1 className="text-h1">{t('new')}</h1>
       {!options.data && options.isPending ? (
         <Skeleton className="h-48 w-full" />
       ) : (
@@ -110,7 +110,7 @@ export function ComposeScreen() {
                       <button
                         type="button"
                         onClick={() => setSelected(selected.filter((x) => x.id !== r.id))}
-                        className="inline-flex min-h-11 items-center gap-1 rounded-full border border-border bg-surface-2 px-3 text-sm hover:border-danger"
+                        className="inline-flex min-h-11 items-center gap-1 rounded-full border border-line bg-bg-sunken px-3 text-body-sm hover:border-danger"
                       >
                         {r.name}
                         <X aria-hidden="true" size={14} />
@@ -129,17 +129,17 @@ export function ComposeScreen() {
               />
               <Card className="max-h-72 overflow-y-auto p-0">
                 {(options.data?.data ?? []).length === 0 ? (
-                  <p className="p-4 text-sm text-muted">{t('noRecipients')}</p>
+                  <p className="p-4 text-body-sm text-ink-muted">{t('noRecipients')}</p>
                 ) : (
                   <ul>
                     {options.data!.data.map((r) => {
                       const on = selected.some((x) => x.id === r.id);
                       return (
-                        <li key={r.id} className="border-b border-border last:border-b-0">
-                          <label className="flex min-h-12 cursor-pointer items-center gap-3 px-4 py-2 hover:bg-surface-2">
+                        <li key={r.id} className="border-b border-line last:border-b-0">
+                          <label className="flex min-h-12 cursor-pointer items-center gap-3 px-4 py-2 hover:bg-bg-sunken">
                             <input
                               type="checkbox"
-                              className="size-5 accent-[var(--primary)]"
+                              className="size-5 accent-brand"
                               checked={on}
                               onChange={() =>
                                 setSelected(
@@ -150,7 +150,7 @@ export function ComposeScreen() {
                             <span className="min-w-0 flex-1">
                               <span className="block truncate">{r.name}</span>
                               {r.context ? (
-                                <span className="block truncate text-sm text-muted">
+                                <span className="block truncate text-body-sm text-ink-muted">
                                   {r.context}
                                 </span>
                               ) : null}
@@ -163,7 +163,7 @@ export function ComposeScreen() {
                   </ul>
                 )}
               </Card>
-              {selected.length > 1 ? <p className="text-sm text-muted">{t('groupHint')}</p> : null}
+              {selected.length > 1 ? <p className="text-body-sm text-ink-muted">{t('groupHint')}</p> : null}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -182,7 +182,7 @@ export function ComposeScreen() {
                   { value: 'students', label: t('audienceStudents') },
                 ]}
               />
-              <p className="text-sm text-muted">{t('classHint')}</p>
+              <p className="text-body-sm text-ink-muted">{t('classHint')}</p>
             </div>
           )}
 
@@ -202,7 +202,7 @@ export function ComposeScreen() {
             onChange={(e) => setBody(e.target.value)}
           />
           {error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {error}
             </p>
           ) : null}

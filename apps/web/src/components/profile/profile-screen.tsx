@@ -10,30 +10,14 @@ import { Button, Card, Input, SegmentedControl, Skeleton, Switch } from '@sp/ui'
 import { dateTimeOf } from '../../lib/dates';
 import { useApi, useApiMutation } from '../../lib/use-api';
 import { clearOfflineData } from '../../offline/db';
+import { applyTheme, readTheme, type Theme } from '../../lib/theme';
 import { PushToggle } from './push-toggle';
-
-type Theme = 'system' | 'light' | 'dark';
-
-function readTheme(): Theme {
-  const m = /(?:^|; )sp_theme=(light|dark)/.exec(document.cookie);
-  return (m?.[1] as Theme | undefined) ?? 'system';
-}
-
-function applyTheme(theme: Theme) {
-  // Ein Jahr, nur für diese Schule (Subdomain), ohne personenbezogene Daten
-  document.cookie =
-    theme === 'system'
-      ? 'sp_theme=; Max-Age=0; Path=/; SameSite=Lax'
-      : `sp_theme=${theme}; Max-Age=31536000; Path=/; SameSite=Lax`;
-  if (theme === 'system') delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = theme;
-}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const id = `s-${title.replace(/\W+/g, '-')}`;
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h2 id={id} className="text-lg font-semibold">
+      <h2 id={id} className="text-h3">
         {title}
       </h2>
       <Card className="flex flex-col gap-4">{children}</Card>
@@ -56,15 +40,15 @@ export function ProfileScreen(p: ProfileProps) {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
 
       <Section title={t('account')}>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-          <dt className="text-muted">{t('name')}</dt>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body-sm">
+          <dt className="text-ink-muted">{t('name')}</dt>
           <dd>{p.name}</dd>
-          <dt className="text-muted">{t('email')}</dt>
+          <dt className="text-ink-muted">{t('email')}</dt>
           <dd className="break-all">{p.email}</dd>
-          <dt className="text-muted">{t('roles')}</dt>
+          <dt className="text-ink-muted">{t('roles')}</dt>
           <dd>{p.roleLabels.join(', ')}</dd>
         </dl>
         {p.isTeacher ? (
@@ -72,7 +56,7 @@ export function ProfileScreen(p: ProfileProps) {
             <Button variant="secondary" asChild>
               <Link href="/krankmeldung">{t('sick')}</Link>
             </Button>
-            <span className="text-sm text-muted">{t('sickHelp')}</span>
+            <span className="text-body-sm text-ink-muted">{t('sickHelp')}</span>
           </div>
         ) : null}
       </Section>
@@ -92,10 +76,10 @@ export function ProfileScreen(p: ProfileProps) {
             label: t(`themes.${v}`),
           }))}
         />
-        <div className="flex flex-col gap-1 text-sm">
+        <div className="flex flex-col gap-1 text-body-sm">
           <span className="font-medium">{t('language')}</span>
           <span>{t('languageValue')}</span>
-          <span className="text-muted">{t('languageMore')}</span>
+          <span className="text-ink-muted">{t('languageMore')}</span>
         </div>
       </Section>
 
@@ -136,10 +120,10 @@ function NotificationSettings() {
             <PushToggle vapidPublicKey={q.data.vapidPublicKey} />
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-body-sm">
               <caption className="sr-only">{t('channels')}</caption>
               <thead>
-                <tr className="text-left text-muted">
+                <tr className="text-left text-ink-muted">
                   <th scope="col" className="py-2 pr-2 font-medium">
                     {t('type')}
                   </th>
@@ -156,14 +140,14 @@ function NotificationSettings() {
               </thead>
               <tbody>
                 {q.data.types.map((type) => (
-                  <tr key={type} className="border-t border-border">
+                  <tr key={type} className="border-t border-line">
                     <th scope="row" className="py-1 pr-2 text-left font-normal">
                       {t(`types.${type.replace('.', '_')}`)}
                       {q.data.mandatory.some((m) => m.type === type) ? (
-                        <span className="block text-xs text-muted">{t('mandatory')}</span>
+                        <span className="block text-caption text-ink-muted">{t('mandatory')}</span>
                       ) : null}
                     </th>
-                    <td className="px-2 text-muted">{t('always')}</td>
+                    <td className="px-2 text-ink-muted">{t('always')}</td>
                     {(['push', 'email'] as const).map((channel) => (
                       <td key={channel} className="px-2">
                         <Switch
@@ -186,7 +170,7 @@ function NotificationSettings() {
           </div>
           <fieldset className="flex flex-col gap-2">
             <legend className="font-medium">{t('quiet')}</legend>
-            <p className="text-sm text-muted">{t('quietHelp')}</p>
+            <p className="text-body-sm text-ink-muted">{t('quietHelp')}</p>
             <Switch
               checked={quiet !== null}
               label={t('quietOn')}
@@ -217,7 +201,7 @@ function NotificationSettings() {
               </div>
             ) : null}
           </fieldset>
-          <p role="status" className="text-sm text-success">
+          <p role="status" className="text-body-sm text-brand-text">
             {saved ? t('saved') : ''}
           </p>
         </>
@@ -231,7 +215,7 @@ function MyData() {
   const t = useTranslations('profile');
   return (
     <Section title={t('myData')}>
-      <p className="text-sm">{t('myDataText')}</p>
+      <p className="text-body-sm">{t('myDataText')}</p>
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" asChild>
           <a href="/api/v1/me/export?format=pdf" download>
@@ -246,7 +230,7 @@ function MyData() {
           </a>
         </Button>
       </div>
-      <p className="text-sm text-muted">{t('myDataHelp')}</p>
+      <p className="text-body-sm text-ink-muted">{t('myDataHelp')}</p>
     </Section>
   );
 }
@@ -293,7 +277,7 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
   const all = useApiMutation<undefined>('POST', () => '/auth/logout-all');
   return (
     <Section title={t('security')}>
-      <p className="text-sm">
+      <p className="text-body-sm">
         {t('twoFactor')}: <strong>{twoFactor ? t('twoFactorOn') : t('twoFactorOff')}</strong>
       </p>
       <div className="flex flex-col gap-2">
@@ -305,14 +289,14 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
             {q.data.data.map((s) => (
               <li
                 key={s.id}
-                className="flex min-h-12 items-center justify-between gap-3 border-b border-border py-1 last:border-b-0"
+                className="flex min-h-12 items-center justify-between gap-3 border-b border-line py-1 last:border-b-0"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-label">
                     {deviceName(s.userAgent, t('unknownDevice'))}
                     {s.current ? ` (${t('thisDevice')})` : ''}
                   </p>
-                  <p className="text-xs text-muted">
+                  <p className="text-caption text-ink-muted">
                     {t('lastSeen', { time: dateTimeOf(s.lastSeenAt) })}
                   </p>
                 </div>
@@ -340,7 +324,7 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
         >
           {t('signOutAll')}
         </Button>
-        <p className="text-sm text-muted">{t('signOutAllHelp')}</p>
+        <p className="text-body-sm text-ink-muted">{t('signOutAllHelp')}</p>
       </div>
     </Section>
   );

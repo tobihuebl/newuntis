@@ -4,14 +4,14 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../cn';
 
 export const buttonVariants = cva(
-  'inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-4 text-sm font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-4 text-label transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-on-primary hover:opacity-90',
-        secondary: 'border border-border bg-surface text-text hover:bg-surface-2',
-        ghost: 'text-text hover:bg-surface-2',
-        destructive: 'bg-danger text-on-primary hover:opacity-90',
+        primary: 'bg-brand text-on-brand hover:opacity-90',
+        secondary: 'border border-line bg-bg-raised text-ink hover:bg-bg-sunken',
+        ghost: 'text-ink hover:bg-bg-sunken',
+        destructive: 'bg-danger text-on-brand hover:opacity-90',
       },
     },
     defaultVariants: { variant: 'primary' },

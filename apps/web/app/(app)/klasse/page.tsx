@@ -19,7 +19,7 @@ export default async function KlassePage() {
   const classes = manager ? directory.classes : directory.classes.filter((c) => own.includes(c.id));
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('choose')}</h1>
+      <h1 className="text-h1">{t('choose')}</h1>
       {classes.length === 0 ? (
         <Card>
           <EmptyState title={t('noClass')} />
@@ -28,10 +28,10 @@ export default async function KlassePage() {
         <Card className="p-0">
           <ul>
             {classes.map((c) => (
-              <li key={c.id} className="border-b border-border last:border-b-0">
+              <li key={c.id} className="border-b border-line last:border-b-0">
                 <Link
                   href={`/klasse/${c.id}/entschuldigungen`}
-                  className="flex min-h-12 items-center px-4 hover:bg-surface-2"
+                  className="flex min-h-12 items-center px-4 hover:bg-bg-sunken"
                 >
                   {c.name}
                 </Link>

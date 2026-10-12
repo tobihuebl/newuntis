@@ -1,26 +1,27 @@
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer';
-import type { PersonExport } from '@sp/shared';
+import { BRAND, DESIGN_COLORS, type PersonExport } from '@sp/shared';
 import { DateTime } from 'luxon';
 
 /**
  * Datenauskunft als PDF (Spec Abschnitt 13), gleiche Gliederung wie der JSON-Export.
  * Standardschrift Helvetica (im PDF-Betrachter vorhanden, keine externen Schriften).
  */
+const c = DESIGN_COLORS.light;
 const s = StyleSheet.create({
-  page: { padding: 36, fontSize: 9, fontFamily: 'Helvetica', color: '#111827' },
+  page: { padding: 36, fontSize: 9, fontFamily: 'Helvetica', color: c.ink },
   h1: { fontSize: 16, fontFamily: 'Helvetica-Bold', marginBottom: 4 },
-  meta: { color: '#4B5563', marginBottom: 12 },
+  meta: { color: c['ink-muted'], marginBottom: 12 },
   h2: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginTop: 12, marginBottom: 4 },
   row: {
     flexDirection: 'row',
     borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: c.line,
     paddingVertical: 2,
   },
   cell: { flex: 1, paddingRight: 4 },
-  label: { width: 120, color: '#4B5563' },
-  empty: { color: '#6B7280' },
-  footer: { position: 'absolute', bottom: 20, left: 36, right: 36, color: '#6B7280', fontSize: 8 },
+  label: { width: 120, color: c['ink-muted'] },
+  empty: { color: c['ink-subtle'] },
+  footer: { position: 'absolute', bottom: 20, left: 36, right: 36, color: c['ink-subtle'], fontSize: 8 },
 });
 
 const when = (iso: string | null, tz: string) =>
@@ -179,7 +180,9 @@ function ExportDocument({ d, tz }: { d: PersonExport; tz: string }) {
 
         <Text
           style={s.footer}
-          render={({ pageNumber, totalPages }) => `Seite ${pageNumber} von ${totalPages}`}
+          render={({ pageNumber, totalPages }) =>
+            `${BRAND.name} · Seite ${pageNumber} von ${totalPages}`
+          }
           fixed
         />
       </Page>

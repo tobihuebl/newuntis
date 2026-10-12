@@ -60,20 +60,20 @@ export function LessonRow({
   const cancelled = entry.status === 'CANCELLED';
   const body = (
     <>
-      <div className="w-16 shrink-0 text-sm tabular-nums">
+      <div className="w-16 shrink-0 text-body-sm tabular-nums">
         <p className="font-medium">{timeOf(entry.startsAt)}</p>
-        <p className="text-xs text-muted">{periodLabel(t, entry)}</p>
+        <p className="text-caption text-ink-muted">{periodLabel(t, entry)}</p>
       </div>
       <div
         aria-hidden="true"
         className="h-10 w-1 shrink-0 rounded-full"
-        style={{ background: entry.subject.color ?? 'var(--primary)' }}
+        style={{ background: entry.subject.color ?? 'var(--brand)' }}
       />
       <div className="min-w-0 flex-1">
         <p className={cn('truncate font-medium', cancelled && 'line-through')}>
           {entry.subject.name}
         </p>
-        <p className="truncate text-sm text-muted">{lessonDetail(entry, perspective)}</p>
+        <p className="truncate text-body-sm text-ink-muted">{lessonDetail(entry, perspective)}</p>
         {entry.status !== 'SCHEDULED' || trailing ? (
           <div className="mt-1 flex flex-wrap items-center gap-1">
             <PlanStatusBadge entry={entry} />
@@ -85,11 +85,11 @@ export function LessonRow({
   );
   const cls = cn(
     'flex min-h-16 items-center gap-3 px-4 py-2',
-    past && 'bg-surface-2/40',
-    highlight && 'bg-surface-2',
+    past && 'bg-bg-sunken/40',
+    highlight && 'bg-bg-sunken',
   );
   return (
-    <li className="relative border-b border-border last:border-b-0">
+    <li className="relative border-b border-line last:border-b-0">
       {timeline ? (
         <NowLineSlot
           startsAt={entry.startsAt}
@@ -98,7 +98,7 @@ export function LessonRow({
         />
       ) : null}
       {href ? (
-        <Link href={href} className={cn(cls, 'hover:bg-surface-2')}>
+        <Link href={href} className={cn(cls, 'hover:bg-bg-sunken')}>
           {body}
         </Link>
       ) : (

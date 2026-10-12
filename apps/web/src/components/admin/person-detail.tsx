@@ -140,7 +140,7 @@ export function PersonDetail({
   if (person.anonymized) {
     return (
       <div className="mx-auto max-w-3xl p-4">
-        <Link href="/admin/personen" className="text-sm text-primary underline">
+        <Link href="/admin/personen" className="text-body-sm text-brand-text underline">
           {t('title')}
         </Link>
         <Card className="mt-2">{p('anonymized')}</Card>
@@ -152,11 +152,11 @@ export function PersonDetail({
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div>
-        <Link href="/admin/personen" className="text-sm text-primary underline">
+        <Link href="/admin/personen" className="text-body-sm text-brand-text underline">
           {t('title')}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-semibold">{name}</h1>
+          <h1 className="text-h1">{name}</h1>
           {readOnly ? null : (
             <Button
               variant="secondary"
@@ -169,7 +169,7 @@ export function PersonDetail({
             </Button>
           )}
         </div>
-        <p className="text-muted">{t(`kinds.${person.kind}`)}</p>
+        <p className="text-ink-muted">{t(`kinds.${person.kind}`)}</p>
       </div>
 
       <Card className="flex flex-col gap-1">
@@ -182,7 +182,7 @@ export function PersonDetail({
       </Card>
 
       <Card className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">{p('account')}</h2>
+        <h2 className="text-h3">{p('account')}</h2>
         {person.account ? (
           <>
             <Row label={t('email')} value={person.account.email} />
@@ -215,7 +215,7 @@ export function PersonDetail({
         )}
         {notice ? <p role="status">{notice}</p> : null}
         {error && !sheet ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}
@@ -223,11 +223,11 @@ export function PersonDetail({
 
       {person.kind === 'STUDENT' ? (
         <Card className="p-0">
-          <h2 className="border-b border-border px-4 py-3 text-lg font-semibold">
+          <h2 className="border-b border-line px-4 py-3 text-h3">
             {p('enrollments')}
           </h2>
           {person.enrollments.length === 0 ? (
-            <p className="p-4 text-muted">{t('noClass')}</p>
+            <p className="p-4 text-ink-muted">{t('noClass')}</p>
           ) : null}
           {person.enrollments.map((e) => (
             <ListRow
@@ -241,8 +241,8 @@ export function PersonDetail({
 
       {person.kind === 'STUDENT' || person.kind === 'GUARDIAN' ? (
         <Card className="p-0">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <h2 className="text-lg font-semibold">
+          <div className="flex items-center justify-between border-b border-line px-4 py-3">
+            <h2 className="text-h3">
               {person.kind === 'GUARDIAN' ? p('children') : p('guardians')}
             </h2>
             {readOnly ? null : (
@@ -258,7 +258,7 @@ export function PersonDetail({
             )}
           </div>
           {links.filter(active).length === 0 ? (
-            <p className="p-4 text-muted">{p('linkNone')}</p>
+            <p className="p-4 text-ink-muted">{p('linkNone')}</p>
           ) : null}
           {links.filter(active).map((l) => {
             const other = l.student ?? l.guardian!;
@@ -267,7 +267,7 @@ export function PersonDetail({
                 key={l.id}
                 title={
                   <Link
-                    className="text-primary underline"
+                    className="text-brand-text underline"
                     href={`/admin/personen/${other.id}`}
                   >{`${other.lastName} ${other.firstName}`}</Link>
                 }
@@ -310,8 +310,8 @@ export function PersonDetail({
 
       {readOnly || person.id === currentPersonId ? null : (
         <Card className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold text-danger">{p('anonymize')}</h2>
-          <p className="text-sm text-muted">{p('anonymizeHelp')}</p>
+          <h2 className="text-h3 text-danger-ink">{p('anonymize')}</h2>
+          <p className="text-body-sm text-ink-muted">{p('anonymizeHelp')}</p>
           <div>
             <Button
               variant="destructive"
@@ -360,7 +360,7 @@ export function PersonDetail({
           ) : null}
           {person.kind === 'TEACHER' || person.kind === 'STAFF' ? (
             <fieldset className="flex flex-col">
-              <legend className="text-sm font-medium">{t('roles')}</legend>
+              <legend className="text-label">{t('roles')}</legend>
               <Checkbox
                 name="role-PRINCIPAL"
                 label={t('extra.PRINCIPAL')}
@@ -374,7 +374,7 @@ export function PersonDetail({
             </fieldset>
           ) : null}
           {error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {error}
             </p>
           ) : null}
@@ -414,7 +414,7 @@ export function PersonDetail({
           }
         />
         {error ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}
@@ -428,7 +428,7 @@ export function PersonDetail({
         closeLabel={c('close')}
       >
         {error ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}
@@ -456,8 +456,8 @@ export function PersonDetail({
 
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div className="flex flex-wrap justify-between gap-2 border-b border-border py-2 last:border-b-0">
-      <span className="text-muted">{label}</span>
+    <div className="flex flex-wrap justify-between gap-2 border-b border-line py-2 last:border-b-0">
+      <span className="text-ink-muted">{label}</span>
       <span>{value || '–'}</span>
     </div>
   );

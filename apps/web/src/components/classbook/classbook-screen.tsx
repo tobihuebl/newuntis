@@ -90,7 +90,7 @@ function Shell({ backHref, children }: { backHref: string; children: React.React
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <Link
         href={backHref}
-        className="inline-flex min-h-11 items-center gap-2 self-start rounded-sm pr-3 text-sm text-muted hover:text-text"
+        className="inline-flex min-h-11 items-center gap-2 self-start rounded-sm pr-3 text-body-sm text-ink-muted hover:text-ink"
       >
         <ArrowLeft aria-hidden="true" size={18} />
         {t('back')}
@@ -132,10 +132,10 @@ function Loaded({
   return (
     <>
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-h1">
           {detail.subject.name} · {detail.class?.name ?? detail.group?.name}
         </h1>
-        <p className="text-muted">
+        <p className="text-ink-muted">
           {longDate(detail.date)} · {periodLabel(tt, detail)} ·{' '}
           {tt('time', { from: timeOf(detail.startsAt), to: timeOf(detail.endsAt) })}
           {detail.room ? ` · ${detail.room.name}` : ''}
@@ -151,7 +151,7 @@ function Loaded({
             </Badge>
           ) : null}
         </div>
-        {detail.substitution ? <p className="text-sm text-muted">{t('substitution')}</p> : null}
+        {detail.substitution ? <p className="text-body-sm text-ink-muted">{t('substitution')}</p> : null}
       </header>
 
       {writable ? <SyncStatus /> : null}
@@ -161,14 +161,14 @@ function Loaded({
         </Card>
       ) : !writable ? (
         <Card>
-          <p className="text-muted">{t('readOnly')}</p>
+          <p className="text-ink-muted">{t('readOnly')}</p>
         </Card>
       ) : null}
 
       {conflicts.length > 0 ? <ConflictPanel detail={detail} conflicts={conflicts} /> : null}
       {failed.map((f) => (
         <Card key={f.seq} className="flex flex-col gap-2 border-danger" role="alert">
-          <p className="text-danger">{t('failed', { error: f.error ?? '' })}</p>
+          <p className="text-danger-ink">{t('failed', { error: f.error ?? '' })}</p>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => void sync.retry(f.seq!)}>
               {t('retry')}
@@ -182,17 +182,17 @@ function Loaded({
 
       <section aria-labelledby="students" className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="students" className="text-lg font-semibold">
+          <h2 id="students" className="text-h3">
             {t('students')}
           </h2>
-          <p className="text-sm text-muted" aria-live="polite">
+          <p className="text-body-sm text-ink-muted" aria-live="polite">
             {t('summary', { present: counts.PRESENT, absent: counts.ABSENT, late: counts.LATE })}
           </p>
         </div>
-        {writable ? <p className="text-sm text-muted">{t('toggleHint')}</p> : null}
+        {writable ? <p className="text-body-sm text-ink-muted">{t('toggleHint')}</p> : null}
         {detail.students.length === 0 ? (
           <Card>
-            <p className="text-muted">{t('noStudents')}</p>
+            <p className="text-ink-muted">{t('noStudents')}</p>
           </Card>
         ) : (
           <Card className="p-0">
@@ -263,11 +263,11 @@ function StudentRow({
   return (
     <li
       className={cn(
-        'flex items-center border-b border-l-4 border-b-border last:border-b-0',
+        'flex items-center border-b border-l-4 border-b-line last:border-b-0',
         status === 'ABSENT'
           ? 'border-l-danger'
           : status === 'LATE'
-            ? 'border-l-warning'
+            ? 'border-l-signal'
             : 'border-l-transparent',
       )}
       data-student={student.id}
@@ -277,7 +277,7 @@ function StudentRow({
         type="button"
         disabled={disabled}
         aria-label={t('toggleLabel', { name, status: label })}
-        className="flex min-h-14 flex-1 select-none items-center justify-between gap-3 px-4 py-2 text-left hover:bg-surface-2 disabled:cursor-default disabled:hover:bg-transparent"
+        className="flex min-h-14 flex-1 select-none items-center justify-between gap-3 px-4 py-2 text-left hover:bg-bg-sunken disabled:cursor-default disabled:hover:bg-transparent"
         onPointerDown={() => {
           longPressed.current = false;
           cancel();
@@ -306,7 +306,7 @@ function StudentRow({
           type="button"
           onClick={onLate}
           aria-label={`${t('markLate')}: ${name}`}
-          className="inline-flex min-h-14 min-w-14 items-center justify-center border-l border-border text-muted hover:bg-surface-2 hover:text-text"
+          className="inline-flex min-h-14 min-w-14 items-center justify-center border-l border-line text-ink-muted hover:bg-bg-sunken hover:text-ink"
         >
           <Clock aria-hidden="true" size={20} />
         </button>
@@ -448,14 +448,14 @@ function EntryBar({
   }, []);
 
   return (
-    <div className="sticky bottom-16 z-30 -mx-4 flex flex-col gap-3 border-t border-border bg-surface p-4 md:bottom-0 md:mx-0 md:rounded-md md:border">
+    <div className="sticky bottom-16 z-30 -mx-4 flex flex-col gap-3 border-t border-line bg-bg-raised p-4 md:bottom-0 md:mx-0 md:rounded-md md:border">
       {/* Mobil eingeklappt, damit die Schülerliste sichtbar bleibt; ab Tablet immer offen */}
       <button
         type="button"
         aria-expanded={expanded}
         aria-controls={`entry-${detail.id}`}
         onClick={() => setExpanded((v) => !v)}
-        className="flex min-h-11 items-center gap-2 rounded-sm text-left text-sm md:hidden"
+        className="flex min-h-11 items-center gap-2 rounded-sm text-left text-body-sm md:hidden"
       >
         <ChevronUp
           aria-hidden="true"
@@ -463,7 +463,7 @@ function EntryBar({
           className={cn('shrink-0 transition-transform', expanded && 'rotate-180')}
         />
         <span className="font-medium">{t('entryToggle')}</span>
-        <span className="min-w-0 flex-1 truncate text-muted">
+        <span className="min-w-0 flex-1 truncate text-ink-muted">
           {fields.topic.trim() || t('entryEmpty')}
         </span>
       </button>
@@ -471,7 +471,7 @@ function EntryBar({
         id={`entry-${detail.id}`}
         className={cn('gap-3 md:grid md:grid-cols-2', expanded ? 'grid' : 'hidden')}
       >
-        <label className="flex flex-col gap-1 text-sm font-medium">
+        <label className="flex flex-col gap-1 text-label">
           {t('topic')}
           <textarea
             rows={2}
@@ -480,11 +480,11 @@ function EntryBar({
             placeholder={t('topicPlaceholder')}
             onChange={(e) => change({ topic: e.target.value })}
             onBlur={() => flush(fields)}
-            className="min-h-11 rounded-sm border border-border bg-surface-2 px-3 py-2 text-base font-normal text-text disabled:opacity-60"
+            className="min-h-11 rounded-sm border border-line bg-bg-sunken px-3 py-2 text-body font-normal text-ink disabled:opacity-60"
           />
         </label>
         <div className="flex flex-col gap-1">
-          <label className="flex flex-col gap-1 text-sm font-medium">
+          <label className="flex flex-col gap-1 text-label">
             {t('homework')}
             <textarea
               rows={2}
@@ -493,7 +493,7 @@ function EntryBar({
               placeholder={t('homeworkPlaceholder')}
               onChange={(e) => change({ homework: e.target.value })}
               onBlur={() => flush(fields)}
-              className="min-h-11 rounded-sm border border-border bg-surface-2 px-3 py-2 text-base font-normal text-text disabled:opacity-60"
+              className="min-h-11 rounded-sm border border-line bg-bg-sunken px-3 py-2 text-body font-normal text-ink disabled:opacity-60"
             />
           </label>
           {fields.homework.trim() ? (
@@ -522,7 +522,7 @@ function EntryBar({
             <Check aria-hidden="true" size={18} />
             {closed ? t('closed') : t('close')}
           </Button>
-          <p className={cn('text-sm text-muted md:block', !expanded && 'hidden')}>
+          <p className={cn('text-body-sm text-ink-muted md:block', !expanded && 'hidden')}>
             {!detail.canClose ? t('futureHint') : closed ? null : t('closeHint')}
           </p>
         </div>
@@ -546,26 +546,26 @@ function ConflictPanel({
     homeworkDueOn: detail.entry?.homeworkDueOn ?? null,
   };
   const show = (v: { topic: string | null; homework: string | null }) => (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-      <dt className="text-muted">{t('topic')}</dt>
+    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body-sm">
+      <dt className="text-ink-muted">{t('topic')}</dt>
       <dd className="whitespace-pre-line">{v.topic || t('empty')}</dd>
-      <dt className="text-muted">{t('homework')}</dt>
+      <dt className="text-ink-muted">{t('homework')}</dt>
       <dd className="whitespace-pre-line">{v.homework || t('empty')}</dd>
     </dl>
   );
   return (
-    <Card className="flex flex-col gap-3 border-warning" role="alert">
+    <Card className="flex flex-col gap-3 border-signal" role="alert">
       <div>
-        <p className="font-semibold text-warning">{t('conflictTitle')}</p>
-        <p className="text-sm text-muted">{t('conflictText')}</p>
+        <p className="font-semibold text-signal-ink">{t('conflictTitle')}</p>
+        <p className="text-body-sm text-ink-muted">{t('conflictText')}</p>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="flex flex-col gap-1 rounded-sm border border-border p-3">
-          <p className="text-sm font-medium">{t('conflictTheirs')}</p>
+        <div className="flex flex-col gap-1 rounded-sm border border-line p-3">
+          <p className="text-label">{t('conflictTheirs')}</p>
           {show(theirs ?? { topic: null, homework: null })}
         </div>
-        <div className="flex flex-col gap-1 rounded-sm border border-border p-3">
-          <p className="text-sm font-medium">{t('conflictMine')}</p>
+        <div className="flex flex-col gap-1 rounded-sm border border-line p-3">
+          <p className="text-label">{t('conflictMine')}</p>
           {show(mine)}
         </div>
       </div>

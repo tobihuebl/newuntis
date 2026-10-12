@@ -73,18 +73,18 @@ export function OnboardingFlow({
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-sm text-muted" aria-live="polite">
+      <p className="text-body-sm text-ink-muted" aria-live="polite">
         {t('step', { n: index + 1, total: steps.length })}
       </p>
 
       {step === 'privacy' ? (
         <section aria-labelledby="ob-h" className="flex flex-col gap-4">
-          <ShieldCheck aria-hidden="true" size={32} className="text-primary" />
-          <h1 id="ob-h" className="text-2xl font-semibold">
+          <ShieldCheck aria-hidden="true" size={32} className="text-brand-text" />
+          <h1 id="ob-h" className="text-h1">
             {t('welcome', { name: firstName })}
           </h1>
           <p>{t('intro', { school })}</p>
-          <div className="flex flex-col gap-2 rounded-sm border border-border bg-surface p-4 text-sm">
+          <div className="flex flex-col gap-2 rounded-sm border border-line bg-bg-raised p-4 text-body-sm">
             <h2 className="font-semibold">{t('privacyTitle')}</h2>
             <p>{t('privacyWho', { school })}</p>
             <ul className="list-disc pl-5">
@@ -98,12 +98,12 @@ export function OnboardingFlow({
                 href={noticeUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-primary underline"
+                className="text-brand-text underline"
               >
                 {t('privacyFull')}
               </a>
             ) : null}
-            <p className="text-xs text-muted">
+            <p className="text-caption text-ink-muted">
               {t('version', { version: PRIVACY_NOTICE_VERSION })}
             </p>
           </div>
@@ -124,8 +124,8 @@ export function OnboardingFlow({
 
       {step === 'notifications' ? (
         <section aria-labelledby="ob-h" className="flex flex-col gap-4">
-          <BellRing aria-hidden="true" size={32} className="text-primary" />
-          <h1 id="ob-h" className="text-2xl font-semibold">
+          <BellRing aria-hidden="true" size={32} className="text-brand-text" />
+          <h1 id="ob-h" className="text-h1">
             {t('notifyTitle')}
           </h1>
           <p>{t(`notify_${kind}`)}</p>
@@ -134,15 +134,15 @@ export function OnboardingFlow({
           ) : (
             <Skeleton className="h-12 w-full" />
           )}
-          <div className="flex gap-3 rounded-sm border border-border p-4 text-sm">
-            <Smartphone aria-hidden="true" size={20} className="shrink-0 text-muted" />
+          <div className="flex gap-3 rounded-sm border border-line p-4 text-body-sm">
+            <Smartphone aria-hidden="true" size={20} className="shrink-0 text-ink-muted" />
             <div className="flex flex-col gap-1">
               <p className="font-medium">{t('iosTitle')}</p>
               <ol className="list-decimal pl-5">
                 <li>{t('ios1')}</li>
                 <li>{t('ios2')}</li>
               </ol>
-              <p className="text-muted">{t('emailFallback')}</p>
+              <p className="text-ink-muted">{t('emailFallback')}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -157,11 +157,11 @@ export function OnboardingFlow({
       {step === 'role' ? (
         <section aria-labelledby="ob-h" className="flex flex-col gap-4">
           {kind === 'teacher' ? (
-            <BookOpenCheck aria-hidden="true" size={32} className="text-primary" />
+            <BookOpenCheck aria-hidden="true" size={32} className="text-brand-text" />
           ) : (
-            <CheckCircle2 aria-hidden="true" size={32} className="text-primary" />
+            <CheckCircle2 aria-hidden="true" size={32} className="text-brand-text" />
           )}
-          <h1 id="ob-h" className="text-2xl font-semibold">
+          <h1 id="ob-h" className="text-h1">
             {t(`roleTitle_${kind}`)}
           </h1>
           <ul className="flex flex-col gap-2">
@@ -170,14 +170,14 @@ export function OnboardingFlow({
                 <CheckCircle2
                   aria-hidden="true"
                   size={18}
-                  className="mt-0.5 shrink-0 text-success"
+                  className="mt-0.5 shrink-0 text-brand-text"
                 />
                 <span>{t(`tip_${kind}_${n}`)}</span>
               </li>
             ))}
           </ul>
           {error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {error}
             </p>
           ) : null}

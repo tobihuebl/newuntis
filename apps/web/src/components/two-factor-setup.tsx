@@ -61,9 +61,9 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
   if (step.name === 'codes') {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">{t('recoveryTitle')}</h1>
-        <p className="text-muted">{t('recoveryHelp')}</p>
-        <ul className="grid grid-cols-2 gap-2 rounded-sm bg-surface-2 p-3 font-mono text-sm">
+        <h1 className="text-h1">{t('recoveryTitle')}</h1>
+        <p className="text-ink-muted">{t('recoveryHelp')}</p>
+        <ul className="grid grid-cols-2 gap-2 rounded-sm bg-bg-sunken p-3 font-mono text-body-sm">
           {step.codes.map((c) => (
             <li key={c}>{c}</li>
           ))}
@@ -83,17 +83,17 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
   if (step.name === 'confirm') {
     return (
       <form method="post" onSubmit={confirm} className="flex flex-col gap-4" noValidate>
-        <h1 className="text-2xl font-semibold">{t('setupTitle')}</h1>
-        <p className="text-muted">{t('setupHelp')}</p>
+        <h1 className="text-h1">{t('setupTitle')}</h1>
+        <p className="text-ink-muted">{t('setupHelp')}</p>
         <img
           src={step.qr}
           alt=""
           width={192}
           height={192}
-          className="self-center rounded-sm bg-white"
+          className="self-center rounded-sm bg-creme"
         />
-        <p className="text-sm text-muted">{t('setupManual')}</p>
-        <code className="break-all rounded-sm bg-surface-2 p-2 text-sm">{step.secret}</code>
+        <p className="text-body-sm text-ink-muted">{t('setupManual')}</p>
+        <code className="break-all rounded-sm bg-bg-sunken p-2 text-body-sm">{step.secret}</code>
         <Input
           label={t('code')}
           name="code"
@@ -111,8 +111,8 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{t('setupTitle')}</h1>
-      <p className="text-muted">{t('setupHelp')}</p>
+      <h1 className="text-h1">{t('setupTitle')}</h1>
+      <p className="text-ink-muted">{t('setupHelp')}</p>
       <FormError message={error} />
       <Button onClick={start} disabled={busy}>
         {t('setupStart')}

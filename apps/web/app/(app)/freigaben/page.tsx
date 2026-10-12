@@ -24,8 +24,8 @@ export default async function FreigabenPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div>
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <p className="text-sm text-muted">{t('intro')}</p>
+        <h1 className="text-h1">{t('title')}</h1>
+        <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </div>
       {drafts.length === 0 ? (
         <Card>
@@ -35,14 +35,14 @@ export default async function FreigabenPage() {
         <Card className="p-0">
           <ul>
             {drafts.map((v) => (
-              <li key={v.id} className="border-b border-border last:border-b-0">
+              <li key={v.id} className="border-b border-line last:border-b-0">
                 <Link
                   href={`/admin/stundenplan/${v.id}`}
-                  className="flex min-h-16 flex-wrap items-center justify-between gap-2 px-4 py-3 hover:bg-surface-2"
+                  className="flex min-h-16 flex-wrap items-center justify-between gap-2 px-4 py-3 hover:bg-bg-sunken"
                 >
                   <span>
                     <span className="block font-medium">{v.name ?? t('unnamed')}</span>
-                    <span className="block text-sm text-muted">
+                    <span className="block text-body-sm text-ink-muted">
                       {v.schoolYear.name} · {t('validFrom', { date: shortDate(v.validFrom) })} ·{' '}
                       {t('lessons', { count: v.lessonCount })}
                     </span>
@@ -55,7 +55,7 @@ export default async function FreigabenPage() {
         </Card>
       )}
       {current ? (
-        <p className="text-sm text-muted">
+        <p className="text-body-sm text-ink-muted">
           {t('current', { name: current.name ?? t('unnamed'), date: shortDate(current.validFrom) })}
         </p>
       ) : null}

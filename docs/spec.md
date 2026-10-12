@@ -1,4 +1,4 @@
-# Spezifikation: Schulplattform (für Claude Code)
+# Spezifikation: PROfessor, Schulplattform (für Claude Code)
 
 Oct 11, 2026 · @Tobi
 
@@ -34,6 +34,8 @@ Diese Spezifikation beschreibt Produkt, Design, Datenmodell, API und Umsetzungsp
 - Rechtliche Vorgaben zu Klassenbuch, Entschuldigungsfristen und Datenschutz werden vor dem Pilotstart juristisch geprüft und sind pro Schule konfigurierbar
 
 ## 2. Namensideen
+
+**Entschieden (Okt. 2026): PROfessor** (Domain `pro.fessor.app`, siehe Design System). Die folgende Liste bleibt als Verlauf.
 
 Verfügbarkeit von Domain und Marke ist nicht geprüft. Vor der Entscheidung Domain (.at und .com), Markenregister (Österreichisches Patentamt, EUIPO) und App-Stores durchsuchen. Empfehlung: **Stundo** oder **Klassl**, weil beide kurz, merkbar und gut aussprechbar sind.
 
@@ -204,52 +206,16 @@ Ergänzungen aus M6 (ADR 0009): Lehrkräfte `/klassen` und `/klassen/[id]` (Sch�
 
 ## 6. Design-System
 
-**Leitidee:** ruhig, klar, freundlich. Viel Weißraum, eine Akzentfarbe, große Tap-Flächen, keine Menüs in Menüs. Farben, Abstände und Schriften sind Tokens, damit Dark Mode und späteres Branding pro Schule nur Variablen ändern.
+Verbindlich ist das **PROfessor Design System** in `docs/design-system/` (README mit CI-Handbuch, UI-Grundlagen, Web und Mobile, Screens und Umsetzung; `tokens.json` als einzige Quelle aller Farben, Abstände, Radien, Schatten und Schriftstile; `bundle.css` als Referenz der Komponenten). Umsetzung als Meilenstein M6.5 (Phasen D0 bis D6, ADR 0010, Bestand und Fortschritt in `docs/design-audit.md`).
 
-| Token | Hell | Dunkel | Verwendung |
-| --- | --- | --- | --- |
-| `--bg` | #FAFAF9 | #0B0D10 | Seitenhintergrund |
-| `--surface` | #FFFFFF | #14171C | Karten, Listen |
-| `--surface-2` | #F3F4F6 | #1C2027 | Eingabefelder, Hover |
-| `--border` | #E5E7EB | #2A2F38 | Linien, Rahmen |
-| `--text` | #111827 | #F3F4F6 | Fließtext |
-| `--text-muted` | #6B7280 | #9CA3AF | Nebentext |
-| `--primary` | #4F46E5 | #818CF8 | Hauptaktionen, aktive Tabs |
-| `--on-primary` | #FFFFFF | #0B0D10 | Text auf Primärfarbe |
-| `--success` | #15803D | #4ADE80 | anwesend, erledigt |
-| `--warning` | #B45309 | #FBBF24 | verspätet, Supplierung |
-| `--danger` | #DC2626 | #F87171 | abwesend, Entfall, Konflikt |
-| `--info` | #0369A1 | #38BDF8 | entschuldigt, Raumwechsel, Hinweise |
-
-Alle Werte sind Vorschläge. Vor dem Merge Kontraste mit einem Tool prüfen (mindestens 4,5:1 für Text, 3:1 für Bedienelemente). Geprüft in M4 mit axe: Erfolg, Warnung und Info im hellen Modus auf die 700er-Töne abgedunkelt, weil sie als Textfarbe sonst unter 4,5:1 liegen.
-
-```css
-:root {
-  --bg: #FAFAF9; --surface: #FFFFFF; --surface-2: #F3F4F6; --border: #E5E7EB;
-  --text: #111827; --text-muted: #6B7280;
-  --primary: #4F46E5; --on-primary: #FFFFFF;
-  --success: #15803D; --warning: #B45309; --danger: #DC2626; --info: #0369A1;
-  --radius-sm: 8px; --radius-md: 12px; --radius-pill: 999px;
-}
-:root[data-theme="dark"] {
-  --bg: #0B0D10; --surface: #14171C; --surface-2: #1C2027; --border: #2A2F38;
-  --text: #F3F4F6; --text-muted: #9CA3AF;
-  --primary: #818CF8; --on-primary: #0B0D10;
-  --success: #4ADE80; --warning: #FBBF24; --danger: #F87171; --info: #38BDF8;
-}
-```
-
-**Typografie:** Inter (variable Schrift), selbst gehostet, kein Google-Fonts-CDN wegen Datenschutz. Größen 12, 14, 16, 18, 20, 24, 32 px; Fließtext mobil 16 px; Gewichte 400, 500, 600; Zeiten und Zahlen mit tabellarischen Ziffern.
-
-**Raster und Form:** Abstände in 4-px-Schritten (4, 8, 12, 16, 24, 32, 48). Ecken 8 px bei Eingaben und Buttons, 12 px bei Karten. Statt Schatten dünne Rahmen. Icons aus Lucide.
-
-**Status-Sprache (nie nur Farbe, immer Icon und Text):** anwesend grün, verspätet gelb, abwesend rot, entschuldigt blau, Entfall rot durchgestrichen, Supplierung gelb, Raumwechsel blau.
-
-**Komponenten** (auf Basis von Tailwind, Radix und shadcn/ui, in `packages/ui`): Button (primär, sekundär, ghost, destruktiv), Input, Select, Checkbox, Switch, SegmentedControl, Card, ListRow, Badge, Tabs, BottomTabBar, Sidebar, Sheet (mobil Bottom-Sheet, Desktop Dialog), Toast, Skeleton, EmptyState, Avatar, DatePicker, CommandPalette sowie die Fachkomponenten `TimetableGrid`, `AttendanceToggle`, `OccurrenceCard`, `StatusBadge`.
-
-**Zustände:** Jede Liste hat Laden (Skeleton), Leer (EmptyState mit nächster Aktion), Fehler (Text und "Erneut versuchen") und Offline (Banner oben). Gespeichert-Status am Klassenbuch ist immer sichtbar.
-
-**Barrierefreiheit:** WCAG 2.2 AA. Tap-Flächen mindestens 44 mal 44 px, sichtbarer Fokusring (2 px), vollständige Tastaturbedienung, Beschriftungen für alle Felder, `aria-live` für Speicherstatus, Layout bis 200 % Schriftvergrößerung, Bewegung nur 150 ms und abgeschaltet bei `prefers-reduced-motion`.
+- **Marke:** PROfessor (PRO groß, fessor klein). Claim „Schulsoftware darf einfach sein.“ Logo Raster-P mit einer Amber-Kachel.
+- **Farbe:** Fläche Creme (`bg`) oder Nacht (`bg-night`), Handlung Kobalt (`brand`), Aufmerksamkeit Amber (`signal`, sparsam), Rot (`danger`) nur für Fehler und Zerstörendes. Hell, Dunkel und System gleichwertig.
+- **Schrift:** Bricolage Grotesque (Überschriften, Zahlen), DM Sans (Text, Bedienung), JetBrains Mono (Uhrzeiten, Räume, Codes), selbst gehostet über `next/font`.
+- **Status:** Anwesend, erledigt, Vertretung `ok` (Kobalt weich); verspätet, Frist, Hinweis, Entfall, Raumwechsel `late` (Amber weich); abwesend, Entwurf `absent` (neutral); Fehler `danger`; ein Konflikt je Ansicht `solid` (Amber). Immer Wort und Icon.
+- **Fächerfarben:** acht feste Farben (`fach-*`), Zuordnung je Fach durch die Schule; Amber ist Konflikten vorbehalten.
+- **Anrede:** du für Schüler:innen, Lehrkräfte und Klassenvorstände; Sie für Eltern, Direktion und Administration.
+- **Technik:** `scripts/gen-theme.mjs` erzeugt `packages/ui/src/styles/tokens.css`, `theme.css` (Tailwind-Anbindung, Schriftstile als `text-h1`, `text-body-sm` …) und `packages/shared/src/design-tokens.ts` (Farben für Manifest, E-Mail, PDF). Komponenten im UI-Paket setzen die `pf-*`-Klassen aus `bundle.css`. Tailwinds Standardfarben und -schriftgrößen sind abgeschaltet; Hex-Werte und px-Rohwerte gehören nicht in den App-Code.
+- **Barrierefreiheit:** WCAG 2.2 AA, Tippflächen ab 44 px, Fokusring 3 px (`--focus`, auf Nachtflächen Amber), Bewegung 120 bis 320 ms und abgeschaltet bei `prefers-reduced-motion`.
 
 ## 7. Tech-Stack und Projektstruktur
 

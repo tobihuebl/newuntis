@@ -18,7 +18,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ');
     return (
       <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="text-sm font-medium text-text">
+        <label htmlFor={inputId} className="text-label text-ink">
           {label}
         </label>
         <input
@@ -27,19 +27,19 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           className={cn(
-            'min-h-11 rounded-sm border border-border bg-surface-2 px-3 text-text placeholder:text-muted',
+            'min-h-11 rounded-sm border border-line bg-bg-sunken px-3 text-ink placeholder:text-ink-muted',
             error && 'border-danger',
             className,
           )}
           {...props}
         />
         {hint ? (
-          <p id={hintId} className="text-sm text-muted">
+          <p id={hintId} className="text-body-sm text-ink-muted">
             {hint}
           </p>
         ) : null}
         {error ? (
-          <p id={errorId} className="text-sm text-danger">
+          <p id={errorId} className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}

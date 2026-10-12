@@ -13,7 +13,7 @@ export function ClassesScreen() {
   const q = useApi<{ data: MyClass[] }>(['my-classes'], '/my-classes');
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
       {q.isPending ? (
         <Skeleton className="h-40 w-full" />
       ) : !q.data ? (
@@ -30,15 +30,15 @@ export function ClassesScreen() {
             <li key={c.id}>
               <Link
                 href={`/klassen/${c.id}`}
-                className="flex min-h-24 flex-col gap-1 rounded-md border border-border bg-surface p-4 hover:bg-surface-2"
+                className="flex min-h-24 flex-col gap-1 rounded-md border border-line bg-bg-raised p-4 hover:bg-bg-sunken"
               >
                 <span className="flex items-center justify-between gap-2">
-                  <span className="text-xl font-semibold">{c.name}</span>
+                  <span className="text-h3">{c.name}</span>
                   {c.homeroom ? <Badge tone="info">{t('homeroom')}</Badge> : null}
                 </span>
-                <span className="text-sm text-muted">{t('students', { count: c.students })}</span>
+                <span className="text-body-sm text-ink-muted">{t('students', { count: c.students })}</span>
                 {c.subjects.length ? (
-                  <span className="text-sm">{c.subjects.join(', ')}</span>
+                  <span className="text-body-sm">{c.subjects.join(', ')}</span>
                 ) : null}
               </Link>
             </li>
@@ -73,8 +73,8 @@ export function ClassDetailScreen({ id }: { id: string }) {
       ) : (
         <>
           <div>
-            <h1 className="text-2xl font-semibold">{t('class', { name: c.name })}</h1>
-            <p className="text-sm text-muted">
+            <h1 className="text-h1">{t('class', { name: c.name })}</h1>
+            <p className="text-body-sm text-ink-muted">
               {c.homeroomTeacher
                 ? t('homeroomTeacher', { name: c.homeroomTeacher })
                 : t('noHomeroom')}
@@ -109,7 +109,7 @@ export function ClassDetailScreen({ id }: { id: string }) {
             ) : null}
           </nav>
           <section aria-labelledby="students-h" className="flex flex-col gap-2">
-            <h2 id="students-h" className="text-lg font-semibold">
+            <h2 id="students-h" className="text-h3">
               {t('studentList', { count: c.students.length })}
             </h2>
             <Card className="p-0">
@@ -117,9 +117,9 @@ export function ClassDetailScreen({ id }: { id: string }) {
                 {c.students.map((s, i) => (
                   <li
                     key={s.id}
-                    className="flex min-h-11 items-center gap-3 border-b border-border px-4 py-2 last:border-b-0"
+                    className="flex min-h-11 items-center gap-3 border-b border-line px-4 py-2 last:border-b-0"
                   >
-                    <span className="w-6 text-right text-sm text-muted tabular-nums">{i + 1}</span>
+                    <span className="w-6 text-right text-body-sm text-ink-muted tabular-nums">{i + 1}</span>
                     <span className="flex-1">{s.name}</span>
                     {!s.hasAccount ? <Badge>{t('noAccount')}</Badge> : null}
                     {s.guardians === 0 ? <Badge tone="warning">{t('noGuardian')}</Badge> : null}
@@ -129,7 +129,7 @@ export function ClassDetailScreen({ id }: { id: string }) {
             </Card>
           </section>
           <section aria-labelledby="subjects-h" className="flex flex-col gap-2">
-            <h2 id="subjects-h" className="text-lg font-semibold">
+            <h2 id="subjects-h" className="text-h3">
               {t('subjects')}
             </h2>
             <Card className="p-0">
@@ -137,10 +137,10 @@ export function ClassDetailScreen({ id }: { id: string }) {
                 {c.subjects.map((s) => (
                   <li
                     key={s.name}
-                    className="flex min-h-11 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 last:border-b-0"
+                    className="flex min-h-11 flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2 last:border-b-0"
                   >
                     <span className="font-medium">{s.name}</span>
-                    <span className="text-sm text-muted">{s.teachers.join(', ')}</span>
+                    <span className="text-body-sm text-ink-muted">{s.teachers.join(', ')}</span>
                   </li>
                 ))}
               </ul>

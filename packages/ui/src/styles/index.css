@@ -1,43 +1,6 @@
+/* PROfessor Design System (docs/design-system). Reihenfolge: Tailwind, Tokens, Tailwind-Anbindung, Grundstil, Komponenten. */
 @import 'tailwindcss';
 @import './tokens.css';
-
-/* Tailwind-Preset: Tokens als Utilities (bg-surface, text-muted, border-border, ...) */
-@theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-border: var(--border);
-  --color-text: var(--text);
-  --color-muted: var(--text-muted);
-  --color-primary: var(--primary);
-  --color-on-primary: var(--on-primary);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
-  --color-info: var(--info);
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --font-sans: var(--font-sans);
-}
-
-@layer base {
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 16px;
-    font-variant-numeric: tabular-nums;
-  }
-  :focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-}
+@import './theme.css';
+@import './base.css';
+@import './bundle.css' layer(components);

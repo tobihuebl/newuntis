@@ -1,3 +1,4 @@
+import { BRAND } from '@sp/shared';
 /** Minimaler iCalendar-Export (RFC 5545) für Abo-Feeds: nur UTC-Zeiten, Textfelder maskiert, Zeilen gefaltet. */
 export interface IcsEvent {
   uid: string;
@@ -40,7 +41,7 @@ export function buildIcs(name: string, events: IcsEvent[], now = new Date()): st
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Schulplattform//Stundenplan//DE',
+    `PRODID:-//${BRAND.name}//Stundenplan//DE`,
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${text(name)}`,

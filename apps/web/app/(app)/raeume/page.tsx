@@ -17,8 +17,8 @@ export default async function RaeumePage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div>
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <p className="text-sm text-muted">{t('intro')}</p>
+        <h1 className="text-h1">{t('title')}</h1>
+        <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </div>
       {rooms.length === 0 ? (
         <Card>
@@ -30,9 +30,9 @@ export default async function RaeumePage() {
             <li key={r.id}>
               <Link
                 href={`/plan?room=${r.id}`}
-                className="flex min-h-16 items-center gap-3 rounded-md border border-border bg-surface px-4 hover:bg-surface-2"
+                className="flex min-h-16 items-center gap-3 rounded-md border border-line bg-bg-raised px-4 hover:bg-bg-sunken"
               >
-                <DoorOpen aria-hidden="true" size={20} className="text-muted" />
+                <DoorOpen aria-hidden="true" size={20} className="text-ink-muted" />
                 <span className="font-medium">{r.name}</span>
                 <span className="sr-only">{t('openPlan')}</span>
               </Link>

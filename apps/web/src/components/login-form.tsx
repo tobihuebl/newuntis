@@ -32,7 +32,7 @@ export function LoginForm() {
   // POST: auch wenn vor dem Laden von JavaScript abgeschickt, landen Zugangsdaten nie in der URL
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-      <h1 className="text-2xl font-semibold">{t('loginTitle')}</h1>
+      <h1 className="text-h1">{t('loginTitle')}</h1>
       <Input label={t('email')} name="email" type="email" autoComplete="username" required />
       <Input
         label={t('password')}
@@ -45,10 +45,10 @@ export function LoginForm() {
       <Button type="submit" disabled={busy}>
         {t('login')}
       </Button>
-      <Link href="/passwort-vergessen" className="text-center text-sm text-primary underline">
+      <Link href="/passwort-vergessen" className="text-center text-body-sm text-brand-text underline">
         {t('forgot')}
       </Link>
-      <Link href="/eltern-code" className="text-center text-sm text-primary underline">
+      <Link href="/eltern-code" className="text-center text-body-sm text-brand-text underline">
         {t('guardianCode')}
       </Link>
     </form>

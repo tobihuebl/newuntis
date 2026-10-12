@@ -26,13 +26,13 @@ export function ChildAbsences({ studentId }: { studentId: string }) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('list')}</h1>
+        <h1 className="text-h1">{t('list')}</h1>
         <Button asChild>
           <Link href={`/abwesenheit/neu?kind=${studentId}`}>{t('title')}</Link>
         </Button>
       </div>
       {error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-body-sm text-danger-ink">
           {error}
         </p>
       ) : null}

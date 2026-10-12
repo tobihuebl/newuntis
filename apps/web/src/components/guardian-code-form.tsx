@@ -42,7 +42,7 @@ export function GuardianCodeForm() {
     return (
       <div className="flex flex-col gap-4">
         <p role="status">{t('done')}</p>
-        <Link href="/login" className="text-primary underline">
+        <Link href="/login" className="text-brand-text underline">
           Anmelden
         </Link>
       </div>
@@ -50,8 +50,8 @@ export function GuardianCodeForm() {
   }
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
-      <p className="text-muted">{t('help')}</p>
+      <h1 className="text-h1">{t('title')}</h1>
+      <p className="text-ink-muted">{t('help')}</p>
       <Input label={t('code')} name="code" autoComplete="off" required placeholder="XXXX-XXXX-XX" />
       <Input label={t('firstName')} name="firstName" autoComplete="given-name" required />
       <Input label={t('lastName')} name="lastName" autoComplete="family-name" required />

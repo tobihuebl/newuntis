@@ -133,8 +133,11 @@ Weitere Unterschiede:
 - **E5 Navigation bleibt eine Datei:** `packages/shared/src/navigation.ts` ist schon die einzige Quelle (inkl. erlaubter Routen); sie bekommt `primary`, Zähler-Quelle und Sidebar-Abschnitte. Kein neues Rechtemodell.
 - **E6 Showcase-Route statt Storybook:** `/komponenten` (öffentlich, `noindex`, nur Demo-Inhalte), alle Bausteine in allen Zuständen, hell und dunkel nebeneinander. Spart eine zweite Build-Kette.
 - **E7 E-Mails, PDF, Push:** Marke und Farben aus `tokens.json` (importiert, keine Hex-Werte im Code).
+- **E8 shadcn-Zuordnung entfällt:** Das System ordnet shadcn-Variablen zu (`--primary`, `--border` …). Die App nutzt keine shadcn-Komponenten, nur Radix und eigene `cva`-Bausteine; die Variablen würden nur alte Namen am Leben halten.
+- **E9 Splash unter iOS:** Android erzeugt den Splash aus Manifest (Nacht) und Icon. iOS braucht je Gerätegröße ein eigenes Startbild; das folgt bei Bedarf, bis dahin zeigt iOS die Nachtfläche aus `background_color` nicht, sondern Weiß.
+- **E10 Wortmarke als Pfade:** bis zur Umwandlung (fonttools) ist die Wortmarke Live-Text in Bricolage Grotesque in der Komponente `Logo`; E-Mails und PDF nennen den Namen als Text.
 
-### Entscheidungen, die ich von dir brauche
+### Entscheidungen der Produktverantwortung (am 12. Okt. 2026 bestätigt)
 
 - **F1 Name:** PROfessor überall in Oberfläche, E-Mails, Manifest, 2FA-Aussteller, iCal und Spec; Repo und Pakete bleiben `schulplattform`/`@sp`.
 - **F2 Navigation nach Design System** (Tabelle 5) statt Spec Abschnitt 5. Schul-IT entfällt vorerst (wäre eine neue Rolle mit Rechte-Matrix); ihre Punkte bleiben bei der Administration. Neu: Admin-„Übersicht“ mit Checkliste „Schule einrichten“ aus vorhandenen Daten.
@@ -164,7 +167,7 @@ apps/web/public/icons/         erzeugte PWA-Icons
 
 ### Phasen (ein Commit je Phase, nach jeder Phase lint, typecheck, Tests grün)
 
-- [ ] **D1 Fundament:** Design-System-Dateien ins Repo, `gen-theme.mjs`, Tokens/Theme/Base, Schriften, Theme-Cookie, `theme-color`, Logo-Assets, PWA-Icons, Manifest, Name (F1), Spec Abschnitt 6 → Verweis auf `docs/design-system/`.
+- [x] **D1 Fundament:** Design-System-Dateien ins Repo, `gen-theme.mjs`, Tokens/Theme/Base, Schriften, Theme-Cookie, `theme-color`, Logo-Assets, PWA-Icons, Manifest, Name (F1), Spec Abschnitt 6 → Verweis auf `docs/design-system/`.
 - [ ] **D2 Bausteine:** Komponenten aus Abschnitt 2 inkl. Toast-Provider, Showcase `/komponenten`, Tests.
 - [ ] **D3 Shell:** Sidebar ab 1024px, Topbar mit Befehlspalette (nur Seiten der Rolle; Personensuche bleibt V1), Tab-Leiste mit erhobener Hauptaktion, Mehr-Sheet (Profil, Rolle wechseln, Theme, Abmelden), Navigation nach F2, Admin-Übersicht.
 - [ ] **D4 Fachkomponenten:** `TimetableGrid`, `AttendanceRow`, Heute-Nachtkarte; Fächerfarben (F3); Playwright-Zeitmessung „Stunde abschließen“ (≤ 4 Taps, < 10 s).

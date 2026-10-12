@@ -5,7 +5,7 @@ import { ApiError } from '../lib/api-client';
 export function FormError({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <p role="alert" className="text-sm text-danger">
+    <p role="alert" className="text-body-sm text-danger-ink">
       {message}
     </p>
   );

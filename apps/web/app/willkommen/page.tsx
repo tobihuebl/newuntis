@@ -25,7 +25,7 @@ export default async function WillkommenPage() {
       clearAfterIdleDays={me.tenant.offlineClearAfterIdleDays}
     >
       <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 p-4">
-        <p className="text-center text-lg font-semibold text-primary">{t('name')}</p>
+        <p className="text-center text-h3 text-brand-text">{t('name')}</p>
         <Card className="p-6">
           <OnboardingFlow
             firstName={me.user.firstName}

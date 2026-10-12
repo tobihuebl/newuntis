@@ -114,12 +114,12 @@ export function AbsenceForm({
   if (result)
     return (
       <Card className="flex flex-col gap-3" role="status">
-        <p className="font-medium text-success">{t('sent')}</p>
+        <p className="font-medium text-brand-text">{t('sent')}</p>
         {result.uploadError ? (
-          <p className="text-sm text-danger">{t('uploadFailed', { error: result.uploadError })}</p>
+          <p className="text-body-sm text-danger-ink">{t('uploadFailed', { error: result.uploadError })}</p>
         ) : null}
         {result.item.attachmentRequired && !result.item.hasAttachment ? (
-          <p className="text-sm text-warning">{t('photoMissing')}</p>
+          <p className="text-body-sm text-signal-ink">{t('photoMissing')}</p>
         ) : null}
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" asChild>
@@ -135,7 +135,7 @@ export function AbsenceForm({
   if (mode === 'guardian' && children.data && kids.length === 0)
     return (
       <Card>
-        <p className="text-muted">{t('noChildren')}</p>
+        <p className="text-ink-muted">{t('noChildren')}</p>
       </Card>
     );
 
@@ -232,7 +232,7 @@ export function AbsenceForm({
         onChange={(e) => setReason(e.target.value)}
       />
       <div className="flex flex-col gap-1">
-        <label htmlFor="absence-file" className="text-sm font-medium">
+        <label htmlFor="absence-file" className="text-label">
           {t('photo')}
         </label>
         <input
@@ -241,12 +241,12 @@ export function AbsenceForm({
           accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
           capture="environment"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="min-h-11 text-sm file:mr-3 file:min-h-11 file:rounded-sm file:border file:border-border file:bg-surface file:px-4 file:text-text"
+          className="min-h-11 text-body-sm file:mr-3 file:min-h-11 file:rounded-sm file:border file:border-line file:bg-bg-raised file:px-4 file:text-ink"
         />
-        <p className="text-sm text-muted">{t('photoHelp')}</p>
+        <p className="text-body-sm text-ink-muted">{t('photoHelp')}</p>
       </div>
       {error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-body-sm text-danger-ink">
           {error}
         </p>
       ) : null}

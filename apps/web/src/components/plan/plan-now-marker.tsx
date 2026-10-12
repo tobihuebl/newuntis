@@ -57,18 +57,18 @@ export function PlanNowMarker({
           gridTemplateColumns: '4.5rem repeat(5, minmax(0, 1fr))',
         }}
       >
-        <span className="justify-self-end rounded-full bg-primary px-1.5 text-[11px] font-semibold leading-4 text-on-primary tabular-nums">
+        <span className="justify-self-end rounded-full bg-brand px-1.5 text-[11px] font-semibold leading-4 text-on-brand tabular-nums">
           {timeFmt.format(new Date(now))}
         </span>
         {days.map((d, i) => (
           <span key={d} className="flex items-center">
             {i === col ? (
-              <span className="-ml-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+              <span className="-ml-1 h-2.5 w-2.5 shrink-0 rounded-full bg-brand" />
             ) : null}
             <span
               className={cn(
                 'flex-1',
-                i === col ? 'h-0.5 bg-primary' : 'h-px bg-primary opacity-30',
+                i === col ? 'h-0.5 bg-brand' : 'h-px bg-brand opacity-30',
               )}
             />
           </span>

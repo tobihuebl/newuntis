@@ -59,12 +59,12 @@ export function ExamsScreen() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
       <Card>
         {!options.data ? (
           <Skeleton className="h-40 w-full" />
         ) : options.data.classes.length === 0 ? (
-          <p className="text-muted">{t('noPairs')}</p>
+          <p className="text-ink-muted">{t('noPairs')}</p>
         ) : (
           <form
             className="flex flex-col gap-4"
@@ -74,7 +74,7 @@ export function ExamsScreen() {
               void submit(false);
             }}
           >
-            <h2 className="text-lg font-semibold">{t('add')}</h2>
+            <h2 className="text-h3">{t('add')}</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <Select
                 label={t('class')}
@@ -117,7 +117,7 @@ export function ExamsScreen() {
             {warnings ? (
               <div
                 role="alert"
-                className="flex flex-col gap-2 rounded-sm border border-warning p-3 text-sm"
+                className="flex flex-col gap-2 rounded-sm border border-signal p-3 text-body-sm"
               >
                 <p>{t('warning', { messages: warningText(warnings) })}</p>
                 <Button
@@ -130,7 +130,7 @@ export function ExamsScreen() {
               </div>
             ) : create.error &&
               !(create.error instanceof ApiError && create.error.problem.status === 409) ? (
-              <p role="alert" className="text-sm text-danger">
+              <p role="alert" className="text-body-sm text-danger-ink">
                 {problem(create.error)}
               </p>
             ) : null}
@@ -145,7 +145,7 @@ export function ExamsScreen() {
         )}
       </Card>
       <section aria-labelledby="upcoming" className="flex flex-col gap-2">
-        <h2 id="upcoming" className="text-lg font-semibold">
+        <h2 id="upcoming" className="text-h3">
           {t('upcoming')}
         </h2>
         {!list.data ? (
@@ -177,17 +177,17 @@ export function ExamRows({
       {items.map((x) => (
         <li
           key={x.id}
-          className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3 last:border-b-0"
+          className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 last:border-b-0"
         >
           <div className="min-w-0">
             <p className="font-medium">{x.title}</p>
-            <p className="text-sm text-muted">
+            <p className="text-body-sm text-ink-muted">
               {x.subject.name}
               {x.class ? ` · ${x.class.name}` : ''} · {t(`kinds.${x.kind}`)}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm tabular-nums">{weekdayDate(x.date)}</span>
+            <span className="text-body-sm tabular-nums">{weekdayDate(x.date)}</span>
             {onDelete && x.canEdit ? (
               <Button variant="ghost" onClick={() => onDelete(x.id)}>
                 {t('delete')}

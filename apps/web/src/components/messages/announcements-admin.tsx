@@ -33,11 +33,11 @@ function Progress({ read, total, label }: { read: number; total: number; label: 
         aria-valuemin={0}
         aria-valuemax={total}
         aria-valuenow={read}
-        className="h-2 w-full overflow-hidden rounded-full bg-surface-2"
+        className="h-2 w-full overflow-hidden rounded-full bg-bg-sunken"
       >
-        <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+        <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-muted tabular-nums">{label}</span>
+      <span className="text-caption text-ink-muted tabular-nums">{label}</span>
     </div>
   );
 }
@@ -60,7 +60,7 @@ export function AnnouncementsAdmin() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
+        <h1 className="text-h1">{t('title')}</h1>
         <Button asChild>
           <Link href="/rundschreiben/neu">
             <Plus aria-hidden="true" size={18} />
@@ -78,15 +78,15 @@ export function AnnouncementsAdmin() {
         <Card className="p-0">
           <ul>
             {items.map((a) => (
-              <li key={a.id} className="border-b border-border last:border-b-0">
+              <li key={a.id} className="border-b border-line last:border-b-0">
                 <Link
                   href={`/rundschreiben/${a.id}`}
-                  className="flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-surface-2"
+                  className="flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-bg-sunken"
                 >
-                  <Megaphone aria-hidden="true" size={18} className="mt-1 shrink-0 text-muted" />
+                  <Megaphone aria-hidden="true" size={18} className="mt-1 shrink-0 text-ink-muted" />
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="truncate font-medium">{a.title}</span>
-                    <span className="text-sm text-muted">
+                    <span className="text-body-sm text-ink-muted">
                       {a.author} · {dateTimeOf(a.publishedAt)}
                     </span>
                     {a.stats ? (
@@ -186,7 +186,7 @@ export function AnnouncementForm() {
   ) =>
     options.length ? (
       <fieldset className="flex flex-col">
-        <legend className="mb-1 text-sm font-medium">{label}</legend>
+        <legend className="mb-1 text-label">{label}</legend>
         <div className="grid grid-cols-2 gap-x-4 sm:grid-cols-4">
           {options.map((o) => (
             <Checkbox
@@ -208,7 +208,7 @@ export function AnnouncementForm() {
           {t('back')}
         </Link>
       </Button>
-      <h1 className="text-2xl font-semibold">{t('new')}</h1>
+      <h1 className="text-h1">{t('new')}</h1>
       <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
         <Input
           label={t('fieldTitle')}
@@ -224,7 +224,7 @@ export function AnnouncementForm() {
           onChange={(e) => setBody(e.target.value)}
         />
         <fieldset className="flex flex-col">
-          <legend className="mb-1 text-sm font-medium">{t('roles')}</legend>
+          <legend className="mb-1 text-label">{t('roles')}</legend>
           {(['GUARDIAN', 'STUDENT', 'TEACHER'] as const).map((r) => (
             <Checkbox
               key={r}
@@ -259,13 +259,13 @@ export function AnnouncementForm() {
             onCheckedChange={setRequiresRead}
             label={t('requiresReadLabel')}
           />
-          <p className="text-sm text-muted">{t('requiresReadHelp')}</p>
+          <p className="text-body-sm text-ink-muted">{t('requiresReadHelp')}</p>
         </div>
-        <p role="status" className="text-sm">
+        <p role="status" className="text-body-sm">
           {count === null ? '' : t('recipients', { count })}
         </p>
         {error ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}
@@ -326,8 +326,8 @@ export function AnnouncementStats({ id }: { id: string }) {
       ) : (
         <>
           <header>
-            <h1 className="text-2xl font-semibold break-words">{a.title}</h1>
-            <p className="text-sm text-muted">
+            <h1 className="text-h1 break-words">{a.title}</h1>
+            <p className="text-body-sm text-ink-muted">
               {a.author} · {dateTimeOf(a.publishedAt)}
             </p>
           </header>
@@ -344,7 +344,7 @@ export function AnnouncementStats({ id }: { id: string }) {
                   {t('remind')}
                 </Button>
               ) : null}
-              <p role="status" className="text-sm">
+              <p role="status" className="text-body-sm">
                 {msg ?? ''}
               </p>
             </Card>
@@ -354,7 +354,7 @@ export function AnnouncementStats({ id }: { id: string }) {
           </Card>
           {a.unread && a.unread.length > 0 ? (
             <section aria-labelledby="unread-h" className="flex flex-col gap-2">
-              <h2 id="unread-h" className="text-lg font-semibold">
+              <h2 id="unread-h" className="text-h3">
                 {t('unreadList', { count: a.unread.length })}
               </h2>
               <Card className="p-0">
@@ -362,7 +362,7 @@ export function AnnouncementStats({ id }: { id: string }) {
                   {a.unread.map((p) => (
                     <li
                       key={p.id}
-                      className="flex min-h-11 items-center justify-between gap-2 border-b border-border px-4 last:border-b-0"
+                      className="flex min-h-11 items-center justify-between gap-2 border-b border-line px-4 last:border-b-0"
                     >
                       <span>{p.name}</span>
                       <Badge>{t(`kind${p.kind}`)}</Badge>

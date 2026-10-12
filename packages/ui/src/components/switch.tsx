@@ -28,7 +28,7 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        'inline-flex min-h-11 items-center gap-3 text-left text-text disabled:opacity-50',
+        'inline-flex min-h-11 items-center gap-3 text-left text-ink disabled:opacity-50',
         className,
       )}
     >
@@ -36,13 +36,13 @@ export function Switch({
         aria-hidden="true"
         className={cn(
           'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 transition-colors duration-150',
-          checked ? 'border-primary bg-primary' : 'border-border bg-surface-2',
+          checked ? 'border-brand bg-brand' : 'border-line bg-bg-sunken',
         )}
       >
         <span
           className={cn(
             'absolute top-0.5 h-4 w-4 rounded-full transition-transform duration-150',
-            checked ? 'translate-x-5 bg-on-primary' : 'translate-x-0.5 bg-muted',
+            checked ? 'translate-x-5 bg-on-brand' : 'translate-x-0.5 bg-line-strong',
           )}
         />
       </span>

@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { createTransport, type Transporter } from 'nodemailer';
+import { BRAND } from '@sp/shared';
 import { ENV, type Env } from '../../config/env';
 import { MetricsService } from '../metrics/metrics.service';
 
@@ -27,7 +28,7 @@ export class MailService {
   async send(mail: Mail, { throwOnError = false } = {}): Promise<void> {
     try {
       await this.transport.sendMail({
-        from: 'Schulplattform <noreply@schulplattform.invalid>',
+        from: `${BRAND.name} <noreply@schulplattform.invalid>`,
         ...mail,
       });
       this.metrics.inc('sp_mail_total', 'E-Mail-Versand', { result: 'sent' });

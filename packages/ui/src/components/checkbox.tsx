@@ -13,13 +13,13 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
     return (
       <label
         htmlFor={inputId}
-        className={cn('flex min-h-11 items-center gap-3 text-text', className)}
+        className={cn('flex min-h-11 items-center gap-3 text-ink', className)}
       >
         <input
           ref={ref}
           id={inputId}
           type="checkbox"
-          className="size-5 accent-[var(--primary)]"
+          className="size-5 accent-brand"
           {...props}
         />
         <span>{label}</span>

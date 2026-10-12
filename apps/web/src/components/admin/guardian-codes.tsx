@@ -73,9 +73,9 @@ export function GuardianCodes({
   if (!rows) {
     return (
       <div className="flex flex-col gap-2">
-        <p className="text-sm text-muted">{t('codesHelp')}</p>
+        <p className="text-body-sm text-ink-muted">{t('codesHelp')}</p>
         {error ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}
@@ -90,7 +90,7 @@ export function GuardianCodes({
   return (
     <div className="flex flex-col gap-3" id="codes">
       <div className="flex flex-wrap items-center gap-2 print:hidden">
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-h3">
           {t('codesFor')} {scope}
         </h2>
         <Button variant="secondary" onClick={() => window.print()}>
@@ -102,13 +102,13 @@ export function GuardianCodes({
       </div>
       <ul className="grid gap-2 sm:grid-cols-2">
         {rows.map((r) => (
-          <li key={r.studentId} className="rounded-sm border border-border p-3">
+          <li key={r.studentId} className="rounded-sm border border-line p-3">
             <p className="font-medium">
               {r.lastName} {r.firstName}
               {r.className ? ` (${r.className})` : ''}
             </p>
-            <p className="font-mono text-lg tracking-wider">{r.code}</p>
-            <p className="text-xs text-muted">
+            <p className="font-mono text-body-lg tracking-wider">{r.code}</p>
+            <p className="text-caption text-ink-muted">
               {t('codesValid')} {r.expiresAt.slice(0, 10)}
             </p>
           </li>

@@ -73,7 +73,7 @@ function CachedHint({ result }: { result: Cached<unknown> }) {
   const t = useTranslations('today');
   if (!result.fromCache) return null;
   return (
-    <p className="text-sm text-warning">{t('cachedAt', { time: dateTimeOf(result.savedAt) })}</p>
+    <p className="text-body-sm text-signal-ink">{t('cachedAt', { time: dateTimeOf(result.savedAt) })}</p>
   );
 }
 
@@ -94,8 +94,8 @@ export function TodayScreen() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
       <div>
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        {q.data ? <p className="text-muted">{longDate(q.data.data.date)}</p> : null}
+        <h1 className="text-h1">{t('title')}</h1>
+        {q.data ? <p className="text-ink-muted">{longDate(q.data.data.date)}</p> : null}
       </div>
       {q.isPending ? (
         <TodaySkeleton />
@@ -134,11 +134,11 @@ function InboxHint({ data }: { data: TodayResponse }) {
           : '/nachrichten'
       }
       className={cn(
-        'flex min-h-12 items-center gap-3 rounded-md border bg-surface px-4 py-2 hover:bg-surface-2',
-        inbox.required > 0 ? 'border-warning' : 'border-border',
+        'flex min-h-12 items-center gap-3 rounded-md border bg-bg-raised px-4 py-2 hover:bg-bg-sunken',
+        inbox.required > 0 ? 'border-signal' : 'border-line',
       )}
     >
-      <MessageSquare aria-hidden="true" size={20} className="shrink-0 text-primary" />
+      <MessageSquare aria-hidden="true" size={20} className="shrink-0 text-brand-text" />
       <span className="flex flex-col">
         <span className="font-medium">
           {[
@@ -151,7 +151,7 @@ function InboxHint({ data }: { data: TodayResponse }) {
             .join(' · ')}
         </span>
         {inbox.required > 0 ? (
-          <span className="text-sm text-warning">
+          <span className="text-body-sm text-signal-ink">
             {t('confirmRequired', { count: inbox.required })}
           </span>
         ) : null}
@@ -201,7 +201,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
           {(data.teacher?.openEntries ?? 0) > 0 ? (
             <Link
               href="/klassenbuch"
-              className="flex min-h-11 items-center gap-3 rounded-md border border-warning bg-surface px-4 py-3 text-warning hover:bg-surface-2"
+              className="flex min-h-11 items-center gap-3 rounded-md border border-signal bg-bg-raised px-4 py-3 text-signal-ink hover:bg-bg-sunken"
             >
               <ClipboardList aria-hidden="true" size={20} />
               <span className="font-medium">
@@ -212,13 +212,13 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
           {subs.length > 0 ? (
             <Link
               href={`/klassenbuch/${subs[0]!.id}`}
-              className="flex min-h-11 items-center gap-3 rounded-md border border-warning bg-surface px-4 py-3 text-warning hover:bg-surface-2"
+              className="flex min-h-11 items-center gap-3 rounded-md border border-signal bg-bg-raised px-4 py-3 text-signal-ink hover:bg-bg-sunken"
             >
               <UserRoundCog aria-hidden="true" size={20} />
               <span className="font-medium">
                 {t('substitutionsForYou', { count: subs.length })}
               </span>
-              <span className="ml-auto text-sm text-muted">
+              <span className="ml-auto text-body-sm text-ink-muted">
                 {weekdayDate(subs[0]!.date)}, {periodLabel(t, subs[0]!)} ·{' '}
                 {subs[0]!.class?.name ?? subs[0]!.group?.name}
               </span>
@@ -228,13 +228,13 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
       ) : null}
 
       {current ? (
-        <Card className="flex flex-col gap-3 border-primary">
-          <p className="text-sm font-medium text-primary">{t('now')}</p>
+        <Card className="flex flex-col gap-3 border-brand">
+          <p className="text-label text-brand-text">{t('now')}</p>
           <div>
-            <p className="text-xl font-semibold">
+            <p className="text-h3">
               {current.subject.name} · {current.class?.name ?? current.group?.name}
             </p>
-            <p className="text-muted">
+            <p className="text-ink-muted">
               {t('time', { from: timeOf(current.startsAt), to: timeOf(current.endsAt) })} ·{' '}
               {periodLabel(t, current)}
               {current.room ? ` · ${current.room.name}` : ''}
@@ -250,7 +250,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
       ) : null}
 
       <section aria-labelledby="my-lessons" className="flex flex-col gap-2">
-        <h2 id="my-lessons" className="text-lg font-semibold">
+        <h2 id="my-lessons" className="text-h3">
           {t('myLessons')}
         </h2>
         {data.lessons.length === 0 ? (
@@ -286,7 +286,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
       </section>
       {subs.length > 1 ? (
         <section aria-labelledby="subs" className="flex flex-col gap-2">
-          <h2 id="subs" className="text-lg font-semibold">
+          <h2 id="subs" className="text-h3">
             {t('upcomingSubstitutions')}
           </h2>
           <Card className="p-0">
@@ -297,7 +297,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
                   entry={s}
                   perspective="teacher"
                   href={`/klassenbuch/${s.id}`}
-                  trailing={<span className="text-xs text-muted">{weekdayDate(s.date)}</span>}
+                  trailing={<span className="text-caption text-ink-muted">{weekdayDate(s.date)}</span>}
                 />
               ))}
             </ul>
@@ -393,29 +393,29 @@ function StudentToday({ data }: { data: TodayResponse }) {
       ) : next ? (
         <Card
           className="flex flex-col gap-2"
-          style={{ borderLeft: `6px solid ${next.subject.color ?? 'var(--primary)'}` }}
+          style={{ borderLeft: `6px solid ${next.subject.color ?? 'var(--brand)'}` }}
         >
-          <p className="text-sm font-medium text-primary">{running ? t('now') : t('next')}</p>
-          <p className="text-2xl font-semibold">{next.subject.name}</p>
-          <p className="text-lg tabular-nums">
+          <p className="text-label text-brand-text">{running ? t('now') : t('next')}</p>
+          <p className="text-h1">{next.subject.name}</p>
+          <p className="text-body-lg tabular-nums">
             {t('time', { from: timeOf(next.startsAt), to: timeOf(next.endsAt) })} ·{' '}
             {periodLabel(t, next)}
           </p>
-          <p className="text-muted">{lessonDetail(next, 'student')}</p>
+          <p className="text-ink-muted">{lessonDetail(next, 'student')}</p>
           <PlanStatusBadge entry={next} />
         </Card>
       ) : (
         <Card>
-          <p className="text-muted">{t('doneForToday')}</p>
+          <p className="text-ink-muted">{t('doneForToday')}</p>
         </Card>
       )}
 
       {changes.length > 0 ? (
         <section aria-labelledby="changes" className="flex flex-col gap-2">
-          <h2 id="changes" className="text-lg font-semibold text-warning">
+          <h2 id="changes" className="text-h3 text-signal-ink">
             {t('changes')}
           </h2>
-          <Card className="border-warning p-0">
+          <Card className="border-signal p-0">
             <ul>
               {changes.map((l) => (
                 <LessonRow key={l.id} entry={l} perspective="student" />
@@ -427,7 +427,7 @@ function StudentToday({ data }: { data: TodayResponse }) {
 
       {rest.length > 0 ? (
         <section aria-labelledby="rest" className="flex flex-col gap-2">
-          <h2 id="rest" className="text-lg font-semibold">
+          <h2 id="rest" className="text-h3">
             {t('rest')}
           </h2>
           <Card className="p-0">
@@ -448,22 +448,22 @@ function StudentToday({ data }: { data: TodayResponse }) {
       ) : null}
 
       <section aria-labelledby="homework" className="flex flex-col gap-2">
-        <h2 id="homework" className="text-lg font-semibold">
+        <h2 id="homework" className="text-h3">
           {t('homework', { date: shortDate(nextWeekday(data.date)) })}
         </h2>
         <Card className={cn(data.homework.length > 0 && 'p-0')}>
           {data.homework.length === 0 ? (
-            <p className="text-muted">{t('homeworkEmpty')}</p>
+            <p className="text-ink-muted">{t('homeworkEmpty')}</p>
           ) : (
             <ul>
               {data.homework.map((h) => (
                 <li
                   key={h.occurrenceId}
-                  className="flex flex-col gap-0.5 border-b border-border px-4 py-3 last:border-b-0"
+                  className="flex flex-col gap-0.5 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <p
-                    className="border-l-4 pl-2 text-sm font-medium"
-                    style={{ borderColor: h.subject.color ?? 'var(--primary)' }}
+                    className="border-l-4 pl-2 text-label"
+                    style={{ borderColor: h.subject.color ?? 'var(--brand)' }}
                   >
                     {h.subject.name} · {weekdayDate(h.dueOn)}
                   </p>
@@ -476,26 +476,26 @@ function StudentToday({ data }: { data: TodayResponse }) {
       </section>
 
       <section aria-labelledby="exams" className="flex flex-col gap-2">
-        <h2 id="exams" className="text-lg font-semibold">
+        <h2 id="exams" className="text-h3">
           {t('exams')}
         </h2>
         <Card className={cn(data.exams.length > 0 && 'p-0')}>
           {data.exams.length === 0 ? (
-            <p className="text-muted">{t('examsEmpty')}</p>
+            <p className="text-ink-muted">{t('examsEmpty')}</p>
           ) : (
             <ul>
               {data.exams.map((x) => (
                 <li
                   key={x.id}
-                  className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 last:border-b-0"
+                  className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <div className="min-w-0">
                     <p className="font-medium">{x.title}</p>
-                    <p className="text-sm text-muted">
+                    <p className="text-body-sm text-ink-muted">
                       {x.subject.name} · {x.kind}
                     </p>
                   </div>
-                  <span className="shrink-0 text-sm tabular-nums">{weekdayDate(x.date)}</span>
+                  <span className="shrink-0 text-body-sm tabular-nums">{weekdayDate(x.date)}</span>
                 </li>
               ))}
             </ul>

@@ -54,11 +54,11 @@ export function SyncStatus({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex min-h-11 flex-wrap items-center gap-2 text-sm',
-        tone === 'ok' && 'text-success',
-        tone === 'busy' && 'text-muted',
-        tone === 'warn' && 'text-warning',
-        tone === 'error' && 'text-danger',
+        'flex min-h-11 flex-wrap items-center gap-2 text-body-sm',
+        tone === 'ok' && 'text-brand-text',
+        tone === 'busy' && 'text-ink-muted',
+        tone === 'warn' && 'text-signal-ink',
+        tone === 'error' && 'text-danger-ink',
         className,
       )}
       data-sync-state={tone}
@@ -94,7 +94,7 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className="flex items-center gap-2 border-b border-warning bg-surface px-4 py-2 text-sm text-warning"
+      className="flex items-center gap-2 border-b border-signal bg-bg-raised px-4 py-2 text-body-sm text-signal-ink"
     >
       <WifiOff aria-hidden="true" size={16} />
       <span>{t('banner')}</span>

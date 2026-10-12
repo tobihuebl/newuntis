@@ -42,8 +42,8 @@ export function CalendarSubscription({
 
   return (
     <Card className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">{t('calendar')}</h2>
-      <p className="text-sm text-muted">{t('calendarHelp')}</p>
+      <h2 className="text-h3">{t('calendar')}</h2>
+      <p className="text-body-sm text-ink-muted">{t('calendarHelp')}</p>
       {url ? (
         <>
           <Input
@@ -68,7 +68,7 @@ export function CalendarSubscription({
           </div>
         </>
       ) : active ? (
-        <p className="text-sm">{t('calendarActive')}</p>
+        <p className="text-body-sm">{t('calendarActive')}</p>
       ) : null}
       <div className="flex flex-wrap gap-2">
         <Button variant={active ? 'secondary' : 'primary'} onClick={create}>
@@ -81,7 +81,7 @@ export function CalendarSubscription({
         ) : null}
       </div>
       {error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-body-sm text-danger-ink">
           {error}
         </p>
       ) : null}

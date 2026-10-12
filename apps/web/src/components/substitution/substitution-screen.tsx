@@ -64,8 +64,8 @@ export function SubstitutionScreen() {
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4 pb-28">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">{t('title')}</h1>
-          <p className="text-muted">{longDate(date)}</p>
+          <h1 className="text-h1">{t('title')}</h1>
+          <p className="text-ink-muted">{longDate(date)}</p>
         </div>
         <nav aria-label={t('title')} className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => go(addDays(date, -1))}>
@@ -108,7 +108,7 @@ export function SubstitutionScreen() {
 
       <ChangeLesson date={date} directory={directory.data} onPick={setCreating} />
 
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-surface p-3 md:bottom-0 md:left-64">
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-line bg-bg-raised p-3 md:bottom-0 md:left-64">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-3">
           <Button
             disabled={pending.length === 0 || publish.isPending}
@@ -119,7 +119,7 @@ export function SubstitutionScreen() {
           >
             {t('publish', { count: pending.length })}
           </Button>
-          <p role="status" className="text-sm text-success">
+          <p role="status" className="text-body-sm text-brand-text">
             {published !== null ? t('publishedOk', { count: published }) : ''}
           </p>
         </div>
@@ -168,7 +168,7 @@ function ItemSection({
   if (items.length === 0) return null;
   return (
     <section aria-label={title} className="flex flex-col gap-2">
-      <h2 className="flex items-center gap-2 text-lg font-semibold">
+      <h2 className="flex items-center gap-2 text-h3">
         {title} <Badge tone={tone}>{items.length}</Badge>
       </h2>
       <Card className="p-0">
@@ -176,19 +176,19 @@ function ItemSection({
           {items.map((i) => (
             <li
               key={i.id}
-              className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+              className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-b-0"
               data-substitution={i.status}
             >
-              <div className="w-20 shrink-0 text-sm tabular-nums">
+              <div className="w-20 shrink-0 text-body-sm tabular-nums">
                 <p className="font-medium">{timeOf(i.occurrence.startsAt)}</p>
-                <p className="text-xs text-muted">{periodLabel(tt, i.occurrence)}</p>
+                <p className="text-caption text-ink-muted">{periodLabel(tt, i.occurrence)}</p>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium">
                   {i.occurrence.class?.name ?? i.occurrence.group?.name} ·{' '}
                   {i.occurrence.subject.name}
                 </p>
-                <p className="text-sm text-muted">
+                <p className="text-body-sm text-ink-muted">
                   {t('planned')}:{' '}
                   {i.plannedTeachers
                     .map((p) =>
@@ -197,7 +197,7 @@ function ItemSection({
                     .join(', ') || '–'}
                   {i.occurrence.room ? ` · ${i.occurrence.room.name}` : ''}
                 </p>
-                {summary(t, i) ? <p className="text-sm font-medium">{summary(t, i)}</p> : null}
+                {summary(t, i) ? <p className="text-label">{summary(t, i)}</p> : null}
                 {i.changedAfterPublish ? <Badge tone="warning">{t('changed')}</Badge> : null}
               </div>
               <Button variant="secondary" onClick={() => onEdit(i)}>
@@ -277,19 +277,19 @@ function ActionSheet({
       {needsTeacher ? (
         item ? (
           <fieldset className="flex flex-col gap-1">
-            <legend className="mb-1 text-sm font-medium">{t('suggestions')}</legend>
+            <legend className="mb-1 text-label">{t('suggestions')}</legend>
             {!sug.data ? (
               <Skeleton className="h-24 w-full" />
             ) : sug.data.teachers.length === 0 ? (
-              <p className="text-sm text-muted">{t('noSuggestions')}</p>
+              <p className="text-body-sm text-ink-muted">{t('noSuggestions')}</p>
             ) : (
-              <ul className="max-h-64 overflow-y-auto rounded-sm border border-border">
+              <ul className="max-h-64 overflow-y-auto rounded-sm border border-line">
                 {sug.data.teachers.map((s) => (
-                  <li key={s.teacher.id} className="border-b border-border last:border-b-0">
+                  <li key={s.teacher.id} className="border-b border-line last:border-b-0">
                     <label
                       className={cn(
                         'flex min-h-12 cursor-pointer items-center gap-3 px-3',
-                        teacher === s.teacher.id && 'bg-surface-2',
+                        teacher === s.teacher.id && 'bg-bg-sunken',
                       )}
                     >
                       <input
@@ -298,11 +298,11 @@ function ActionSheet({
                         value={s.teacher.id}
                         checked={teacher === s.teacher.id}
                         onChange={() => setTeacher(s.teacher.id)}
-                        className="size-4 accent-[var(--primary)]"
+                        className="size-4 accent-brand"
                       />
                       <span className="min-w-0 flex-1">
                         <span className="block font-medium">{s.teacher.name}</span>
-                        <span className="block text-xs text-muted">
+                        <span className="block text-caption text-ink-muted">
                           {t('fairness', { n: s.count })}
                         </span>
                       </span>
@@ -334,7 +334,7 @@ function ActionSheet({
         onChange={(e) => setNote(e.target.value)}
       />
       {error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-body-sm text-danger-ink">
           {problem(error)}
         </p>
       ) : null}
@@ -373,7 +373,7 @@ function AbsentTeachers({ day, onAdd }: { day: SubstitutionDay | undefined; onAd
   return (
     <section aria-labelledby="absent" className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="absent" className="text-lg font-semibold">
+        <h2 id="absent" className="text-h3">
           {t('absentTeachers')}
         </h2>
         <Button variant="secondary" onClick={onAdd}>
@@ -381,18 +381,18 @@ function AbsentTeachers({ day, onAdd }: { day: SubstitutionDay | undefined; onAd
         </Button>
       </div>
       {!day ? null : day.absences.length === 0 ? (
-        <p className="text-muted">{t('noAbsent')}</p>
+        <p className="text-ink-muted">{t('noAbsent')}</p>
       ) : (
         <Card className="p-0">
           <ul>
             {day.absences.map((a) => (
               <li
                 key={a.id}
-                className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 last:border-b-0"
+                className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2 last:border-b-0"
               >
                 <div>
                   <p className="font-medium">{a.teacher.name}</p>
-                  <p className="text-sm text-muted">
+                  <p className="text-body-sm text-ink-muted">
                     {t(`kinds.${a.kind}`)} · {dateTimeOf(a.fromAt)} – {dateTimeOf(a.toAt)}
                   </p>
                 </div>
@@ -499,7 +499,7 @@ function AbsenceSheet({
         options={TEACHER_ABSENCE_KINDS.map((k) => ({ value: k, label: t(`kinds.${k}`) }))}
       />
       {create.error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-body-sm text-danger-ink">
           {problem(create.error)}
         </p>
       ) : null}
@@ -543,10 +543,10 @@ function ChangeLesson({
   );
   return (
     <section aria-labelledby="change" className="flex flex-col gap-2">
-      <h2 id="change" className="text-lg font-semibold">
+      <h2 id="change" className="text-h3">
         {t('changeLesson')}
       </h2>
-      <p className="text-sm text-muted">{t('changeLessonHelp')}</p>
+      <p className="text-body-sm text-ink-muted">{t('changeLessonHelp')}</p>
       <Select
         label={t('class')}
         value={classId}
@@ -556,26 +556,26 @@ function ChangeLesson({
       />
       {classId && plan.data ? (
         plan.data.entries.length === 0 ? (
-          <p className="text-muted">{t('noLessons')}</p>
+          <p className="text-ink-muted">{t('noLessons')}</p>
         ) : (
           <Card className="p-0">
             <ul>
               {plan.data.entries.map((e) => (
-                <li key={e.id} className="border-b border-border last:border-b-0">
+                <li key={e.id} className="border-b border-line last:border-b-0">
                   <button
                     type="button"
                     disabled={e.planned || e.status !== 'SCHEDULED'}
                     onClick={() => onPick(e)}
-                    className="flex min-h-12 w-full items-center gap-3 px-4 text-left hover:bg-surface-2 disabled:opacity-60"
+                    className="flex min-h-12 w-full items-center gap-3 px-4 text-left hover:bg-bg-sunken disabled:opacity-60"
                   >
-                    <span className="w-24 shrink-0 text-sm tabular-nums">
+                    <span className="w-24 shrink-0 text-body-sm tabular-nums">
                       {timeOf(e.startsAt)} · {periodLabel(tt, e)}
                     </span>
                     <span className="flex-1">
                       {e.subject.name} · {e.teachers.map((x) => x.name).join(', ')}
                     </span>
                     {e.status !== 'SCHEDULED' ? (
-                      <span className="text-sm text-muted">{t('alreadyChanged')}</span>
+                      <span className="text-body-sm text-ink-muted">{t('alreadyChanged')}</span>
                     ) : null}
                   </button>
                 </li>

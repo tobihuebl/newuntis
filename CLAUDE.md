@@ -79,6 +79,15 @@ die Spezifikation anpassen, dann bauen.
 - E2E-Login führt beim ersten Mal durch /willkommen (helpers.ts: completeOnboarding).
 - Betrieb: infra/Dockerfile (Ziele api, web, migrate), infra/docker-compose.prod.yml, Runbooks in docs/runbooks/, Lasttest in loadtest/.
 
+## Design System PROfessor (M6.5, siehe ADR 0010)
+
+- Quelle: docs/design-system/ (README, tokens.json, bundle.css). Nach Änderungen pnpm design:gen; CI prüft mit pnpm design:check.
+- Nur Token-Utilities: Farben bg-bg-raised, text-ink-muted, bg-brand …; Schrift text-h1, text-body-sm, text-label, text-mono …; keine Hex-Werte, keine Tailwind-Standardfarben oder -größen, keine px-Rohwerte in Klassen.
+- Komponenten aus @sp/ui setzen die pf-Klassen aus bundle.css; im App-Code keine eigenen Varianten nachbauen.
+- Theme über Cookie pf-theme (src/lib/theme.ts), kein Inline-Skript (CSP).
+- Produktname über BRAND aus @sp/shared, Schreibweise immer PROfessor. Anrede: du für Schüler:innen und Lehrkräfte, Sie für Eltern, Direktion, Administration.
+- PWA-Icons: pnpm design:icons (aus packages/ui/assets/logo).
+
 ## Hinweise zur Umgebung
 
 - pnpm liegt ggf. in ~/.local/bin (corepack); PATH entsprechend setzen.

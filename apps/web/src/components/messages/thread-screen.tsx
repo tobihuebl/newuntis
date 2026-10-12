@@ -82,8 +82,8 @@ export function ThreadScreen({ id }: { id: string }) {
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
       {back}
       <div>
-        <h1 className="text-2xl font-semibold break-words">{th.subject}</h1>
-        <p className="text-sm text-muted">
+        <h1 className="text-h1 break-words">{th.subject}</h1>
+        <p className="text-body-sm text-ink-muted">
           {th.aboutStudent ? `${t('about', { name: th.aboutStudent.name })} · ` : ''}
           {th.className ? `${th.className} · ` : ''}
           {t('participants', { names: others.map((p) => p.name).join(', ') })}
@@ -95,11 +95,11 @@ export function ThreadScreen({ id }: { id: string }) {
             <article
               className={cn(
                 'max-w-[85%] rounded-md border px-4 py-2',
-                m.own ? 'border-primary bg-surface' : 'border-border bg-surface-2',
+                m.own ? 'border-brand bg-bg-raised' : 'border-line bg-bg-sunken',
               )}
             >
-              <header className="mb-1 flex flex-wrap items-baseline gap-x-2 text-xs text-muted">
-                <span className="font-medium text-text">{m.own ? t('you') : m.senderName}</span>
+              <header className="mb-1 flex flex-wrap items-baseline gap-x-2 text-caption text-ink-muted">
+                <span className="font-medium text-ink">{m.own ? t('you') : m.senderName}</span>
                 <time dateTime={m.at} className="tabular-nums">
                   {dateTimeOf(m.at)}
                 </time>
@@ -122,7 +122,7 @@ export function ThreadScreen({ id }: { id: string }) {
             }}
           />
           {error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {error}
             </p>
           ) : null}
@@ -132,7 +132,7 @@ export function ThreadScreen({ id }: { id: string }) {
           </Button>
         </form>
       ) : (
-        <p className="text-sm text-muted">{t('noReply')}</p>
+        <p className="text-body-sm text-ink-muted">{t('noReply')}</p>
       )}
     </div>
   );

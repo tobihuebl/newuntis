@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Sheet, cn } from '@sp/ui';
-import type { NavItem } from '@sp/shared';
+import { BRAND, type NavItem } from '@sp/shared';
 import { apiPost } from '../lib/api-client';
 import { useApi } from '../lib/use-api';
 import { clearOfflineData, db } from '../offline/db';
@@ -59,10 +59,10 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
         href={item.href}
         aria-current={active ? 'page' : undefined}
         className={cn(
-          'flex min-h-11 items-center gap-3 rounded-sm px-3 text-sm font-medium',
-          layout === 'tab' && 'flex-1 flex-col justify-center gap-0.5 px-1 text-xs',
-          active ? 'text-primary' : 'text-muted hover:text-text',
-          layout === 'side' && active && 'bg-surface-2',
+          'flex min-h-11 items-center gap-3 rounded-sm px-3 text-label',
+          layout === 'tab' && 'flex-1 flex-col justify-center gap-0.5 px-1 text-caption',
+          active ? 'text-brand-text' : 'text-ink-muted hover:text-ink',
+          layout === 'side' && active && 'bg-bg-sunken',
         )}
       >
         <span className="relative">
@@ -88,28 +88,28 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
     <div className="min-h-dvh md:grid md:grid-cols-[16rem_1fr]">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-surface focus:p-3"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-bg-raised focus:p-3"
       >
         {t('skip')}
       </a>
-      <aside className="hidden border-r border-border bg-surface p-4 md:flex md:flex-col md:gap-4">
-        <p className="px-3 text-lg font-semibold text-primary">Schulplattform</p>
+      <aside className="hidden border-r border-line bg-bg-raised p-4 md:flex md:flex-col md:gap-4">
+        <p className="px-3 text-h3 text-brand-text">{BRAND.name}</p>
         <nav aria-label={t('main')} className="flex flex-col gap-1">
           {tabs.map((i) => link(i, 'side'))}
         </nav>
       </aside>
       <div className="flex min-w-0 flex-col pb-16 md:pb-0">
-        <header className="flex min-h-14 items-center justify-between gap-3 border-b border-border bg-surface px-4">
+        <header className="flex min-h-14 items-center justify-between gap-3 border-b border-line bg-bg-raised px-4">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{userName}</p>
-            <p className="truncate text-xs text-muted">{roleLabels.join(', ')}</p>
+            <p className="truncate text-label">{userName}</p>
+            <p className="truncate text-caption text-ink-muted">{roleLabels.join(', ')}</p>
           </div>
           <div className="flex items-center gap-1">
             <NotificationBell />
             <button
               type="button"
               onClick={() => void logout()}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 text-sm text-muted hover:bg-surface-2 hover:text-text"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 text-body-sm text-ink-muted hover:bg-bg-sunken hover:text-ink"
             >
               <LogOut aria-hidden="true" size={18} />
               <span className="hidden sm:inline">{t('logout')}</span>
@@ -140,7 +140,7 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
       </Sheet>
       <nav
         aria-label={t('main')}
-        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-bg-raised md:hidden"
       >
         {tabs.map((i) => link(i, 'tab'))}
       </nav>

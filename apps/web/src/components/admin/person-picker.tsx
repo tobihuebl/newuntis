@@ -51,12 +51,12 @@ export function PersonPicker({
         onChange={(e) => setQ(e.target.value)}
         placeholder={c('search')}
       />
-      <ul className="rounded-sm border border-border">
+      <ul className="rounded-sm border border-line">
         {hits.map((h) => (
           <li key={h.id}>
             <button
               type="button"
-              className="block w-full text-left hover:bg-surface-2"
+              className="block w-full text-left hover:bg-bg-sunken"
               onClick={() => onPick(h.id, `${h.lastName} ${h.firstName}`)}
             >
               <ListRow

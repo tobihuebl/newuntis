@@ -14,7 +14,7 @@ export default async function AbwesenheitNeuPage() {
       : 'student';
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
       <Suspense>
         <AbsenceForm mode={mode} selfId={me.user.personId} />
       </Suspense>

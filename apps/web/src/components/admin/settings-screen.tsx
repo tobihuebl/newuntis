@@ -150,8 +150,8 @@ export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
       <div>
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <p className="text-sm text-muted">{readOnly ? t('readOnly') : t('intro')}</p>
+        <h1 className="text-h1">{t('title')}</h1>
+        <p className="text-body-sm text-ink-muted">{readOnly ? t('readOnly') : t('intro')}</p>
       </div>
       {!draft ? (
         <Skeleton className="h-96 w-full" />
@@ -163,7 +163,7 @@ export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
             aria-labelledby={`${sec.id}-h`}
             className="flex scroll-mt-4 flex-col gap-2"
           >
-            <h2 id={`${sec.id}-h`} className="text-lg font-semibold">
+            <h2 id={`${sec.id}-h`} className="text-h3">
               {t(`section_${sec.key}`)}
             </h2>
             <Card>
@@ -205,8 +205,8 @@ export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
                       role={status[sec.key]?.ok === false ? 'alert' : 'status'}
                       className={
                         status[sec.key]?.ok === false
-                          ? 'text-sm text-danger'
-                          : 'text-sm text-success'
+                          ? 'text-body-sm text-danger-ink'
+                          : 'text-body-sm text-brand-text'
                       }
                     >
                       {status[sec.key]?.text ?? ''}

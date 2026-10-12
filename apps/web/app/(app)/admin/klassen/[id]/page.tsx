@@ -20,11 +20,11 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
       <div>
-        <Link href="/admin/klassen" className="text-sm text-primary underline">
+        <Link href="/admin/klassen" className="text-body-sm text-brand-text underline">
           {t('title')}
         </Link>
-        <h1 className="text-2xl font-semibold">{c.name}</h1>
-        <p className="text-muted">
+        <h1 className="text-h1">{c.name}</h1>
+        <p className="text-ink-muted">
           {t('homeroom')}:{' '}
           {c.homeroomTeacher
             ? `${c.homeroomTeacher.firstName} ${c.homeroomTeacher.lastName}`
@@ -32,7 +32,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
         </p>
       </div>
       <Card className="p-0">
-        <h2 className="border-b border-border px-4 py-3 text-lg font-semibold">
+        <h2 className="border-b border-line px-4 py-3 text-h3">
           {t('studentList')} ({c.students.length})
         </h2>
         {c.students.map((s) => (
@@ -40,7 +40,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
             key={s.id}
             title={
               <Link
-                className="text-primary underline"
+                className="text-brand-text underline"
                 href={`/admin/personen/${s.id}`}
               >{`${s.lastName} ${s.firstName}`}</Link>
             }

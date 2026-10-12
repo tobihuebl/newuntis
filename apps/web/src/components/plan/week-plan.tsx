@@ -34,14 +34,14 @@ async function EntryCard({
   return (
     <div
       className={cn(
-        'flex h-full flex-col gap-0.5 rounded-sm border border-border bg-surface p-2 text-sm',
+        'flex h-full flex-col gap-0.5 rounded-sm border border-line bg-bg-raised p-2 text-body-sm',
       )}
-      style={{ borderLeft: `4px solid ${e.subject.color ?? 'var(--primary)'}` }}
+      style={{ borderLeft: `4px solid ${e.subject.color ?? 'var(--brand)'}` }}
     >
       <p className={cn('font-medium', cancelled && 'line-through')}>
         {compact ? e.subject.code : e.subject.name}
       </p>
-      <p className="text-xs text-muted">{detail(e, perspective)}</p>
+      <p className="text-caption text-ink-muted">{detail(e, perspective)}</p>
       {e.status !== 'SCHEDULED' ? (
         <StatusBadge
           status={
@@ -85,7 +85,7 @@ export async function WeekPlan({
 
   if (plan.entries.length === 0) {
     return (
-      <p className="rounded-md border border-border bg-surface p-6 text-center text-muted">
+      <p className="rounded-md border border-line bg-bg-raised p-6 text-center text-ink-muted">
         {t('plan.empty')}
       </p>
     );
@@ -102,11 +102,11 @@ export async function WeekPlan({
               <h2
                 id={`day-${d}`}
                 aria-current={d === today ? 'date' : undefined}
-                className={cn('mb-2 font-semibold', d === today && 'text-primary')}
+                className={cn('mb-2 font-semibold', d === today && 'text-brand-text')}
               >
                 {t(`days.${i + 1}`)} {shortDate(d)}
               </h2>
-              {entries.length === 0 ? <p className="text-sm text-muted">–</p> : null}
+              {entries.length === 0 ? <p className="text-body-sm text-ink-muted">–</p> : null}
               <ul className="flex flex-col gap-2">
                 {entries.map((e, ei) => (
                   <li key={e.id} className="relative flex gap-3">
@@ -115,7 +115,7 @@ export async function WeekPlan({
                       endsAt={e.endsAt}
                       previousEndsAt={ei > 0 ? entries[ei - 1]!.endsAt : null}
                     />
-                    <span className="w-14 shrink-0 pt-2 text-xs text-muted tabular-nums">
+                    <span className="w-14 shrink-0 pt-2 text-caption text-ink-muted tabular-nums">
                       {periods.find((p) => p.number === e.periodStart)?.startTime}
                       <br />
                       {t('plan.period', { n: e.periodStart })}
@@ -146,7 +146,7 @@ export async function WeekPlan({
           <div
             key={d}
             aria-current={d === today ? 'date' : undefined}
-            className={cn('px-1 pb-1 text-sm font-semibold', d === today && 'text-primary')}
+            className={cn('px-1 pb-1 text-label', d === today && 'text-brand-text')}
             style={{ gridColumn: i + 2, gridRow: 1 }}
           >
             {t(`days.short${i + 1}`)} {shortDate(d)}
@@ -156,10 +156,10 @@ export async function WeekPlan({
           <div
             key={p.number}
             aria-hidden="true"
-            className="pr-1 text-right text-xs text-muted tabular-nums"
+            className="pr-1 text-right text-caption text-ink-muted tabular-nums"
             style={{ gridColumn: 1, gridRow: i + 2 }}
           >
-            <span className="font-medium text-text">{p.number}.</span>
+            <span className="font-medium text-ink">{p.number}.</span>
             <br />
             {p.startTime}
             <br />

@@ -30,8 +30,8 @@ export function ResetRequestForm() {
 
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-      <h1 className="text-2xl font-semibold">{t('resetRequestTitle')}</h1>
-      <p className="text-muted">{t('resetRequestHelp')}</p>
+      <h1 className="text-h1">{t('resetRequestTitle')}</h1>
+      <p className="text-ink-muted">{t('resetRequestHelp')}</p>
       {done ? (
         <p role="status">{t('resetRequestDone')}</p>
       ) : (
@@ -43,7 +43,7 @@ export function ResetRequestForm() {
           </Button>
         </>
       )}
-      <Link href="/login" className="text-center text-sm text-primary underline">
+      <Link href="/login" className="text-center text-body-sm text-brand-text underline">
         {t('back')}
       </Link>
     </form>

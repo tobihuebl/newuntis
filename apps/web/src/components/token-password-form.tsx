@@ -49,7 +49,7 @@ export function TokenPasswordForm({ token, kind }: { token: string; kind: 'invit
     return (
       <div className="flex flex-col gap-4">
         <p role="status">{texts.done}</p>
-        <Link href="/login" className="text-primary underline">
+        <Link href="/login" className="text-brand-text underline">
           {t('back')}
         </Link>
       </div>
@@ -57,7 +57,7 @@ export function TokenPasswordForm({ token, kind }: { token: string; kind: 'invit
   }
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-      <h1 className="text-2xl font-semibold">{texts.title}</h1>
+      <h1 className="text-h1">{texts.title}</h1>
       <Input
         label={t('newPassword')}
         name="password"

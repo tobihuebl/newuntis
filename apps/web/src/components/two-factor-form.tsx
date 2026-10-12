@@ -30,8 +30,8 @@ export function TwoFactorForm({ csrfToken }: { csrfToken: string }) {
 
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-      <h1 className="text-2xl font-semibold">{t('twoFactorTitle')}</h1>
-      <p className="text-muted">{t('twoFactorHelp')}</p>
+      <h1 className="text-h1">{t('twoFactorTitle')}</h1>
+      <p className="text-ink-muted">{t('twoFactorHelp')}</p>
       <Input label={t('code')} name="code" inputMode="text" autoComplete="one-time-code" required />
       <FormError message={error} />
       <Button type="submit" disabled={busy}>

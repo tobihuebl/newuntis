@@ -20,11 +20,11 @@ function Table({
   rows: (string | number)[][];
 }) {
   return (
-    <div className="overflow-x-auto rounded-md border border-border bg-surface">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
+      <table className="w-full text-body-sm">
         <caption className="sr-only">{caption}</caption>
         <thead>
-          <tr className="border-b border-border text-left text-muted">
+          <tr className="border-b border-line text-left text-ink-muted">
             {head.map((h, i) => (
               <th
                 key={h}
@@ -38,7 +38,7 @@ function Table({
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} className="border-b border-border last:border-b-0">
+            <tr key={i} className="border-b border-line last:border-b-0">
               {r.map((c, j) =>
                 j === 0 ? (
                   <th key={j} scope="row" className="px-4 py-2 text-left font-normal">
@@ -121,7 +121,7 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
       {schoolWide ? (
         <SegmentedControl
           label={t('view')}
@@ -184,7 +184,7 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
           </Button>
         </div>
         {!valid ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {t('invalidRange')}
           </p>
         ) : null}
@@ -230,7 +230,7 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
             />
             {attendance.data.students ? (
               <section aria-labelledby="students-h" className="flex flex-col gap-2">
-                <h2 id="students-h" className="text-lg font-semibold">
+                <h2 id="students-h" className="text-h3">
                   {t('byStudent')}
                 </h2>
                 <Table
@@ -250,7 +250,7 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
                 />
               </section>
             ) : null}
-            <p className="text-sm text-muted">{t('attendanceNote')}</p>
+            <p className="text-body-sm text-ink-muted">{t('attendanceNote')}</p>
           </>
         )
       ) : subs.isPending ? (
@@ -263,9 +263,9 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
         <>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {(['substitutions', 'supervisions', 'cancelled', 'roomChanges'] as const).map((k) => (
-              <li key={k} className="rounded-md border border-border bg-surface p-4">
-                <p className="text-sm text-muted">{t(`total_${k}`)}</p>
-                <p className="text-2xl font-semibold tabular-nums">{subs.data!.totals[k]}</p>
+              <li key={k} className="rounded-md border border-line bg-bg-raised p-4">
+                <p className="text-body-sm text-ink-muted">{t(`total_${k}`)}</p>
+                <p className="text-h1 tabular-nums">{subs.data!.totals[k]}</p>
               </li>
             ))}
           </ul>
@@ -280,7 +280,7 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
               rows={subs.data.teachers.map((r) => [r.name, r.substituted, r.supervised, r.missed])}
             />
           )}
-          <p className="text-sm text-muted">{t('substitutionNote')}</p>
+          <p className="text-body-sm text-ink-muted">{t('substitutionNote')}</p>
         </>
       )}
     </div>

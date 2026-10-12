@@ -54,7 +54,7 @@ export function AuditList() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
       <Input
         label={t('filter')}
         value={filter}
@@ -62,12 +62,12 @@ export function AuditList() {
         type="search"
       />
       <div
-        className="overflow-x-auto rounded-md border border-border bg-surface"
+        className="overflow-x-auto rounded-md border border-line bg-bg-raised"
         aria-live="polite"
         aria-busy={loading}
       >
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-border text-muted">
+        <table className="w-full text-left text-body-sm">
+          <thead className="border-b border-line text-ink-muted">
             <tr>
               <th scope="col" className="px-4 py-2">
                 {t('time')}
@@ -85,7 +85,7 @@ export function AuditList() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-b border-border last:border-b-0">
+              <tr key={r.id} className="border-b border-line last:border-b-0">
                 <td className="whitespace-nowrap px-4 py-2 tabular-nums">
                   {new Date(r.createdAt).toLocaleString('de-AT')}
                 </td>

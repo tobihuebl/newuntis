@@ -27,12 +27,12 @@ export function RolesScreen() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-4">
       <div>
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <p className="text-sm text-muted">{t('intro')}</p>
+        <h1 className="text-h1">{t('title')}</h1>
+        <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </div>
 
       <section aria-labelledby="holders-h" className="flex flex-col gap-2">
-        <h2 id="holders-h" className="text-lg font-semibold">
+        <h2 id="holders-h" className="text-h3">
           {t('holders')}
         </h2>
         {q.isPending ? (
@@ -49,16 +49,16 @@ export function RolesScreen() {
                 <Card key={role} className="flex flex-col gap-2">
                   <h3 className="font-medium">
                     {tr(role)}{' '}
-                    <span className="text-sm text-muted tabular-nums">({list.length})</span>
+                    <span className="text-body-sm text-ink-muted tabular-nums">({list.length})</span>
                   </h3>
                   {list.length === 0 ? (
-                    <p className="text-sm text-muted">{t('nobody')}</p>
+                    <p className="text-body-sm text-ink-muted">{t('nobody')}</p>
                   ) : (
                     <ul className="flex flex-col">
                       {list.map((h) => (
                         <li
                           key={`${h.person.id}-${h.class?.id ?? ''}`}
-                          className="min-h-9 py-1 text-sm"
+                          className="min-h-9 py-1 text-body-sm"
                         >
                           <Link
                             href={`/admin/personen/${h.person.id}`}
@@ -66,7 +66,7 @@ export function RolesScreen() {
                           >
                             {h.person.name}
                           </Link>
-                          {h.class ? <span className="text-muted"> · {h.class.name}</span> : null}
+                          {h.class ? <span className="text-ink-muted"> · {h.class.name}</span> : null}
                         </li>
                       ))}
                     </ul>
@@ -76,9 +76,9 @@ export function RolesScreen() {
             })}
           </div>
         )}
-        <p className="text-sm text-muted">{t('howTo')}</p>
+        <p className="text-body-sm text-ink-muted">{t('howTo')}</p>
         {q.data ? (
-          <p className="text-sm text-muted">
+          <p className="text-body-sm text-ink-muted">
             {(['STUDENT', 'GUARDIAN', 'TEACHER'] as const)
               .map((r) => `${tr(r)}: ${q.data!.counts[r] ?? 0}`)
               .join(' · ')}
@@ -87,14 +87,14 @@ export function RolesScreen() {
       </section>
 
       <section aria-labelledby="matrix-h" className="flex flex-col gap-2">
-        <h2 id="matrix-h" className="text-lg font-semibold">
+        <h2 id="matrix-h" className="text-h3">
           {t('matrix')}
         </h2>
-        <div className="overflow-x-auto rounded-md border border-border bg-surface">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
+          <table className="w-full text-body-sm">
             <caption className="sr-only">{t('matrix')}</caption>
             <thead>
-              <tr className="border-b border-border text-left text-muted">
+              <tr className="border-b border-line text-left text-ink-muted">
                 <th scope="col" className="px-3 py-2 font-medium">
                   {t('action')}
                 </th>
@@ -107,14 +107,14 @@ export function RolesScreen() {
             </thead>
             <tbody>
               {ACTIONS.map((a) => (
-                <tr key={a} className="border-b border-border last:border-b-0">
+                <tr key={a} className="border-b border-line last:border-b-0">
                   <th scope="row" className="px-3 py-2 text-left font-normal">
                     {t(`a_${a.replaceAll('.', '_')}`)}
                   </th>
                   {ROLES.map((r) => {
                     const scope = PERMISSION_MATRIX[a][r];
                     return (
-                      <td key={r} className={scope ? 'px-3 py-2' : 'px-3 py-2 text-muted'}>
+                      <td key={r} className={scope ? 'px-3 py-2' : 'px-3 py-2 text-ink-muted'}>
                         {scope ? t(`scope_${scope}`) : t('no')}
                       </td>
                     );

@@ -51,10 +51,10 @@ export function ClassAbsences({
       href={`/klasse/${classId}/${target}`}
       aria-current={tab === target ? 'page' : undefined}
       className={cn(
-        'inline-flex min-h-11 items-center rounded-sm px-4 text-sm font-medium',
+        'inline-flex min-h-11 items-center rounded-sm px-4 text-label',
         tab === target
-          ? 'bg-primary text-on-primary'
-          : 'border border-border bg-surface hover:bg-surface-2',
+          ? 'bg-brand text-on-brand'
+          : 'border border-line bg-bg-raised hover:bg-bg-sunken',
       )}
     >
       {label}
@@ -63,13 +63,13 @@ export function ClassAbsences({
 
   const section = (title: string, items: AbsenceItem[], empty?: string) => (
     <section className="flex flex-col gap-2" aria-label={title}>
-      <h2 className="text-lg font-semibold">
-        {title} <span className="text-muted">({items.length})</span>
+      <h2 className="text-h3">
+        {title} <span className="text-ink-muted">({items.length})</span>
       </h2>
       {items.length === 0 ? (
         empty ? (
           <Card>
-            <p className="text-muted">{empty}</p>
+            <p className="text-ink-muted">{empty}</p>
           </Card>
         ) : null
       ) : (
@@ -101,7 +101,7 @@ export function ClassAbsences({
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{className}</h1>
+      <h1 className="text-h1">{className}</h1>
       <nav aria-label={t('title')} className="flex flex-wrap gap-2">
         {tabLink('entschuldigungen', t('excuses'))}
         {tabLink('fehlzeiten', t('absences'))}
@@ -120,16 +120,16 @@ export function ClassAbsences({
         </>
       ) : (
         <section aria-label={t('perStudent')} className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">{t('perStudent')}</h2>
+          <h2 className="text-h3">{t('perStudent')}</h2>
           {perStudent.size === 0 ? (
             <Card>
-              <p className="text-muted">{ta('listEmpty')}</p>
+              <p className="text-ink-muted">{ta('listEmpty')}</p>
             </Card>
           ) : (
             <Card className="overflow-x-auto p-0">
-              <table className="w-full text-sm">
+              <table className="w-full text-body-sm">
                 <thead>
-                  <tr className="text-left text-muted">
+                  <tr className="text-left text-ink-muted">
                     <th scope="col" className="px-4 py-2 font-medium">
                       {t('students')}
                     </th>
@@ -148,7 +148,7 @@ export function ClassAbsences({
                   {[...perStudent.values()]
                     .sort((a, b) => a.name.localeCompare(b.name, 'de'))
                     .map((r) => (
-                      <tr key={r.name} className="border-t border-border">
+                      <tr key={r.name} className="border-t border-line">
                         <th scope="row" className="px-4 py-2 text-left font-normal">
                           {r.name}
                         </th>
@@ -156,7 +156,7 @@ export function ClassAbsences({
                         <td
                           className={cn(
                             'px-4 py-2 text-right tabular-nums',
-                            r.unexcused > 0 && 'font-semibold text-danger',
+                            r.unexcused > 0 && 'font-semibold text-danger-ink',
                           )}
                         >
                           {r.unexcused}
@@ -181,14 +181,14 @@ export function ClassAbsences({
         }
         closeLabel={tc('close')}
       >
-        {current?.reason ? <p className="text-sm">{current.reason}</p> : null}
+        {current?.reason ? <p className="text-body-sm">{current.reason}</p> : null}
         <Textarea
           label={t('commentOptional')}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
         {review.error ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {problem(review.error)}
           </p>
         ) : null}

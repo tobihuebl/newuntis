@@ -59,7 +59,7 @@ export function VersionsList({
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('versions')}</h1>
+        <h1 className="text-h1">{t('versions')}</h1>
         {canEdit && schoolYearId ? (
           <Button onClick={() => setOpen(true)}>
             <Plus aria-hidden="true" size={18} />
@@ -67,15 +67,15 @@ export function VersionsList({
           </Button>
         ) : null}
       </div>
-      {!schoolYearId ? <p className="text-muted">{t('noYear')}</p> : null}
+      {!schoolYearId ? <p className="text-ink-muted">{t('noYear')}</p> : null}
       {rows.length === 0 ? (
-        <div className="rounded-md border border-border bg-surface">
+        <div className="rounded-md border border-line bg-bg-raised">
           <EmptyState title={t('noVersions')} description={t('noVersionsHelp')} />
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-border bg-surface">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border text-muted">
+        <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
+          <table className="w-full text-left text-body-sm">
+            <thead className="border-b border-line text-ink-muted">
               <tr>
                 <th scope="col" className="px-4 py-3">
                   {t('name')}
@@ -93,9 +93,9 @@ export function VersionsList({
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="border-b border-border last:border-b-0">
+                <tr key={r.id} className="border-b border-line last:border-b-0">
                   <td className="px-4 py-3">
-                    <Link className="text-primary underline" href={`/admin/stundenplan/${r.id}`}>
+                    <Link className="text-brand-text underline" href={`/admin/stundenplan/${r.id}`}>
                       {r.name ?? `${t('statuses.' + r.status)} ${r.schoolYear.name}`}
                     </Link>
                   </td>
@@ -134,7 +134,7 @@ export function VersionsList({
             }))}
           />
           {error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {error}
             </p>
           ) : null}

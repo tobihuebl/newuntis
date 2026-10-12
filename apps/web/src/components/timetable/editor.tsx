@@ -500,13 +500,13 @@ export function TimetableEditor({
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link href="/admin/stundenplan" className="text-sm text-primary underline">
+          <Link href="/admin/stundenplan" className="text-body-sm text-brand-text underline">
             {t('back')}
           </Link>
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-h1">
             {initial.version.name ?? initial.version.schoolYear.name}
           </h1>
-          <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
+          <p className="flex flex-wrap items-center gap-2 text-body-sm text-ink-muted">
             <Badge
               tone={
                 initial.version.status === 'PUBLISHED'
@@ -546,7 +546,7 @@ export function TimetableEditor({
           ) : null}
           <span
             aria-live="polite"
-            className={cn('text-sm', status.state === 'error' ? 'text-danger' : 'text-muted')}
+            className={cn('text-body-sm', status.state === 'error' ? 'text-danger-ink' : 'text-ink-muted')}
           >
             {status.state === 'saving'
               ? t('saving')
@@ -583,7 +583,7 @@ export function TimetableEditor({
         </div>
       </div>
       {!editable && initial.version.status !== 'DRAFT' ? (
-        <p className="rounded-sm border border-border bg-surface-2 p-3 text-sm">{t('readOnly')}</p>
+        <p className="rounded-sm border border-line bg-bg-sunken p-3 text-body-sm">{t('readOnly')}</p>
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
@@ -616,7 +616,7 @@ export function TimetableEditor({
       {selection ? (
         <p
           role="status"
-          className="flex items-center justify-between gap-2 rounded-sm border border-primary bg-surface p-2 text-sm"
+          className="flex items-center justify-between gap-2 rounded-sm border border-brand bg-bg-raised p-2 text-body-sm"
         >
           {t('selected', { name: selectedName })}
           <Button variant="ghost" onClick={() => setSelection(null)} aria-label={c('cancel')}>
@@ -640,8 +640,8 @@ export function TimetableEditor({
               </Button>
             ) : null}
           </div>
-          {editable ? <p className="text-xs text-muted">{t('poolHelp')}</p> : null}
-          {pool.length === 0 ? <p className="text-sm text-muted">{t('poolEmpty')}</p> : null}
+          {editable ? <p className="text-caption text-ink-muted">{t('poolHelp')}</p> : null}
+          {pool.length === 0 ? <p className="text-body-sm text-ink-muted">{t('poolEmpty')}</p> : null}
           <ul className="flex flex-col gap-2">
             {pool.map((r) => {
               const done = planned(r);
@@ -662,18 +662,18 @@ export function TimetableEditor({
                     onClick={() => setSelection(active ? null : { type: 'pool', id: r.id })}
                     aria-pressed={active}
                     className={cn(
-                      'flex min-h-11 flex-1 flex-col rounded-sm border px-2 py-1 text-left text-sm',
-                      active ? 'border-primary bg-surface-2' : 'border-border',
+                      'flex min-h-11 flex-1 flex-col rounded-sm border px-2 py-1 text-left text-body-sm',
+                      active ? 'border-brand bg-bg-sunken' : 'border-line',
                       complete && 'opacity-60',
                     )}
                     style={{
-                      borderLeft: `4px solid ${S.get(r.subjectId)?.color ?? 'var(--primary)'}`,
+                      borderLeft: `4px solid ${S.get(r.subjectId)?.color ?? 'var(--brand)'}`,
                     }}
                   >
                     <span className="font-medium">
                       {S.get(r.subjectId)?.name} · {targetName(r)}
                     </span>
-                    <span className="text-xs text-muted">
+                    <span className="text-caption text-ink-muted">
                       {teacherShort(r.teacherId)} · {t('progress', { done, total: r.hoursPerWeek })}
                     </span>
                   </button>
@@ -705,7 +705,7 @@ export function TimetableEditor({
             {DAYS.map((wd) => (
               <div
                 key={wd}
-                className="pb-1 text-center text-sm font-semibold"
+                className="pb-1 text-center text-label"
                 style={{ gridColumn: wd + 1, gridRow: 1 }}
               >
                 {d(`short${wd}`)}
@@ -715,12 +715,12 @@ export function TimetableEditor({
               <div
                 key={p.number}
                 className={cn(
-                  'pr-1 text-right text-xs text-muted tabular-nums',
-                  p.blocksDouble && 'border-b-2 border-dashed border-border',
+                  'pr-1 text-right text-caption text-ink-muted tabular-nums',
+                  p.blocksDouble && 'border-b-2 border-dashed border-line',
                 )}
                 style={{ gridColumn: 1, gridRow: i + 2 }}
               >
-                <span className="font-medium text-text">{p.number}.</span>
+                <span className="font-medium text-ink">{p.number}.</span>
                 <br />
                 {p.startTime}
               </div>
@@ -736,8 +736,8 @@ export function TimetableEditor({
                   onDrop={onDrop(wd, p.number)}
                   aria-label={`${d(String(wd))}, ${p.number}. ${t('period')}${selection ? ` – ${selection.type === 'pool' ? t('placeHere') : t('moveHere')}` : ''}`}
                   className={cn(
-                    'rounded-sm border border-dashed border-border',
-                    selection ? 'bg-surface-2 hover:border-primary' : 'hover:bg-surface-2',
+                    'rounded-sm border border-dashed border-line',
+                    selection ? 'bg-bg-sunken hover:border-brand' : 'hover:bg-bg-sunken',
                     !editable && 'cursor-default',
                   )}
                   style={{ gridColumn: wd + 1, gridRow: i + 2 }}
@@ -783,31 +783,31 @@ export function TimetableEditor({
                           }
                           aria-label={`${S.get(l.subjectId)?.name}, ${targetName(l)}, ${other}${sev === 'hard' ? `, ${t('conflicts')}` : ''}`}
                           className={cn(
-                            'flex min-h-11 flex-1 flex-col overflow-hidden rounded-sm border bg-surface p-1.5 text-left text-xs',
+                            'flex min-h-11 flex-1 flex-col overflow-hidden rounded-sm border bg-bg-raised p-1.5 text-left text-caption',
                             sev === 'hard'
                               ? 'border-2 border-danger'
                               : sev === 'soft'
-                                ? 'border-2 border-warning'
-                                : 'border-border',
-                            selected && 'ring-2 ring-primary',
+                                ? 'border-2 border-signal'
+                                : 'border-line',
+                            selected && 'ring-2 ring-brand',
                           )}
                           style={{
                             borderLeftWidth: 4,
-                            borderLeftColor: S.get(l.subjectId)?.color ?? 'var(--primary)',
+                            borderLeftColor: S.get(l.subjectId)?.color ?? 'var(--brand)',
                           }}
                         >
-                          <span className="text-sm font-semibold">
+                          <span className="text-label">
                             {S.get(l.subjectId)?.code}
                             {l.weekPattern !== 'EVERY' ? ` (${l.weekPattern})` : ''}
                           </span>
-                          <span className="truncate text-muted">{other}</span>
+                          <span className="truncate text-ink-muted">{other}</span>
                           {view.kind !== 'room' ? (
-                            <span className="truncate text-muted">
+                            <span className="truncate text-ink-muted">
                               {l.roomId ? R.get(l.roomId)?.name : t('noRoom')}
                             </span>
                           ) : null}
                           {sev === 'hard' ? (
-                            <span className="font-medium text-danger">⚠ {t('hard')}</span>
+                            <span className="font-medium text-danger-ink">⚠ {t('hard')}</span>
                           ) : null}
                         </button>
                       );
@@ -826,10 +826,10 @@ export function TimetableEditor({
         >
           <h2 className="font-semibold">{t('conflicts')}</h2>
           {conflicts.length === 0 ? (
-            <p className="text-sm text-success">✓ {t('noConflicts')}</p>
+            <p className="text-body-sm text-brand-text">✓ {t('noConflicts')}</p>
           ) : (
-            <p className="text-sm">
-              <span className="text-danger">{t('hardCount', { n: hardCount })}</span> ·{' '}
+            <p className="text-body-sm">
+              <span className="text-danger-ink">{t('hardCount', { n: hardCount })}</span> ·{' '}
               {t('softCount', { n: conflicts.length - hardCount })}
             </p>
           )}
@@ -840,8 +840,8 @@ export function TimetableEditor({
                 <li
                   key={i}
                   className={cn(
-                    'rounded-sm border p-2 text-sm',
-                    cf.severity === 'hard' ? 'border-danger' : 'border-warning',
+                    'rounded-sm border p-2 text-body-sm',
+                    cf.severity === 'hard' ? 'border-danger' : 'border-signal',
                   )}
                 >
                   <p>
@@ -851,7 +851,7 @@ export function TimetableEditor({
                     {cf.message}
                   </p>
                   {resourceName(cf) ? (
-                    <p className="text-xs text-muted">{resourceName(cf)}</p>
+                    <p className="text-caption text-ink-muted">{resourceName(cf)}</p>
                   ) : null}
                   <div className="mt-1 flex flex-wrap gap-1">
                     {cf.lessonIds.map((id) => {
@@ -861,7 +861,7 @@ export function TimetableEditor({
                         <button
                           key={id}
                           type="button"
-                          className="min-h-8 rounded-sm border border-border px-2 text-xs hover:bg-surface-2"
+                          className="min-h-8 rounded-sm border border-line px-2 text-caption hover:bg-bg-sunken"
                           onClick={() => {
                             if (l.classId) setView({ kind: 'class', id: l.classId });
                             else if (l.teacherIds[0])
@@ -913,7 +913,7 @@ export function TimetableEditor({
               options={targetOptions}
             />
             <div className="flex flex-col gap-1">
-              <label htmlFor="teacherIds" className="text-sm font-medium">
+              <label htmlFor="teacherIds" className="text-label">
                 {t('teachers')}
               </label>
               <select
@@ -922,7 +922,7 @@ export function TimetableEditor({
                 multiple
                 size={5}
                 defaultValue={formFields.teacherIds}
-                className="rounded-sm border border-border bg-surface-2 p-1 text-text"
+                className="rounded-sm border border-line bg-bg-sunken p-1 text-ink"
               >
                 {teachers.map((x) => (
                   <option key={x.id} value={x.id}>
@@ -1079,12 +1079,12 @@ export function TimetableEditor({
               required
             />
             {hardCount > 0 ? (
-              <p className="text-sm text-danger">
+              <p className="text-body-sm text-danger-ink">
                 {t('publishBlocked')} ({t('hardCount', { n: hardCount })})
               </p>
             ) : null}
             {publishResult?.error ? (
-              <div role="alert" className="text-sm text-danger">
+              <div role="alert" className="text-body-sm text-danger-ink">
                 <p>{publishResult.error}</p>
                 <ul className="list-disc pl-5">
                   {publishResult.conflicts?.map((cf, i) => (

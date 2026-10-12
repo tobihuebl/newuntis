@@ -28,7 +28,7 @@ export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
   );
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{mode === 'student' ? t('title') : t('termine')}</h1>
+      <h1 className="text-h1">{mode === 'student' ? t('title') : t('termine')}</h1>
       {kids.length > 1 ? (
         <nav className="flex flex-wrap gap-2" aria-label={t('termine')}>
           {kids.map((k) => (
@@ -44,7 +44,7 @@ export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
         </nav>
       ) : null}
       <section aria-labelledby="hw" className="flex flex-col gap-2">
-        <h2 id="hw" className="text-lg font-semibold">
+        <h2 id="hw" className="text-h3">
           {t('homework')}
         </h2>
         {!homework.data ? (
@@ -59,11 +59,11 @@ export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
               {homework.data.data.map((h) => (
                 <li
                   key={h.occurrenceId}
-                  className="flex flex-col gap-0.5 border-b border-border px-4 py-3 last:border-b-0"
+                  className="flex flex-col gap-0.5 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <p
-                    className="border-l-4 pl-2 text-sm font-medium"
-                    style={{ borderColor: h.subject.color ?? 'var(--primary)' }}
+                    className="border-l-4 pl-2 text-label"
+                    style={{ borderColor: h.subject.color ?? 'var(--brand)' }}
                   >
                     {h.subject.name} · {t('due', { date: weekdayDate(h.dueOn) })}
                   </p>
@@ -75,7 +75,7 @@ export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
         )}
       </section>
       <section aria-labelledby="ex" className="flex flex-col gap-2">
-        <h2 id="ex" className="text-lg font-semibold">
+        <h2 id="ex" className="text-h3">
           {t('exams')}
         </h2>
         {!exams.data ? (

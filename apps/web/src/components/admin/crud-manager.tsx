@@ -136,11 +136,11 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{props.title}</h1>
+        <h1 className="text-h1">{props.title}</h1>
         <div className="flex flex-wrap gap-2">
           {props.headerExtra}
           {readOnly ? (
-            <span className="self-center text-sm text-muted">{t('readOnly')}</span>
+            <span className="self-center text-body-sm text-ink-muted">{t('readOnly')}</span>
           ) : (
             <Button
               onClick={() => {
@@ -157,13 +157,13 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-md border border-border bg-surface">
+        <div className="rounded-md border border-line bg-bg-raised">
           <EmptyState title={props.emptyTitle} description={props.emptyDescription} />
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-border bg-surface">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border text-muted">
+        <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
+          <table className="w-full text-left text-body-sm">
+            <thead className="border-b border-line text-ink-muted">
               <tr>
                 {columns.map((c) => (
                   <th key={c.key} scope="col" className="px-4 py-3 font-medium">
@@ -179,11 +179,11 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="border-b border-border last:border-b-0">
+                <tr key={row.id} className="border-b border-line last:border-b-0">
                   {columns.map((c, i) => (
                     <td key={c.key} className="px-4 py-3">
                       {i === 0 && detailHref ? (
-                        <a className="text-primary underline" href={detailHref(row)}>
+                        <a className="text-brand-text underline" href={detailHref(row)}>
                           {c.render(row)}
                         </a>
                       ) : (
@@ -292,7 +292,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
                 );
               })}
             {error ? (
-              <p role="alert" className="text-sm text-danger">
+              <p role="alert" className="text-body-sm text-danger-ink">
                 {error}
               </p>
             ) : null}
@@ -315,7 +315,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
         closeLabel={t('close')}
       >
         {error ? (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}

@@ -14,7 +14,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     const errorId = `${inputId}-error`;
     return (
       <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="text-sm font-medium text-text">
+        <label htmlFor={inputId} className="text-label text-ink">
           {label}
         </label>
         <textarea
@@ -23,14 +23,14 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'min-h-20 rounded-sm border border-border bg-surface-2 px-3 py-2 text-text placeholder:text-muted',
+            'min-h-20 rounded-sm border border-line bg-bg-sunken px-3 py-2 text-ink placeholder:text-ink-muted',
             error && 'border-danger',
             className,
           )}
           {...props}
         />
         {error ? (
-          <p id={errorId} className="text-sm text-danger">
+          <p id={errorId} className="text-body-sm text-danger-ink">
             {error}
           </p>
         ) : null}

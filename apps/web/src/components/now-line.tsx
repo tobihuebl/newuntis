@@ -19,9 +19,9 @@ export function NowLine({ top, now, className }: { top: string; now: number; cla
       style={{ top, transform: 'translateY(-50%)' }}
       data-now-line=""
     >
-      <span aria-hidden="true" className="-ml-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
-      <span aria-hidden="true" className="h-0.5 flex-1 bg-primary" />
-      <span className="ml-1 rounded-full bg-primary px-1.5 text-[11px] font-semibold leading-4 text-on-primary tabular-nums">
+      <span aria-hidden="true" className="-ml-1 h-2.5 w-2.5 shrink-0 rounded-full bg-brand" />
+      <span aria-hidden="true" className="h-0.5 flex-1 bg-brand" />
+      <span className="ml-1 rounded-full bg-brand px-1.5 text-[11px] font-semibold leading-4 text-on-brand tabular-nums">
         <span className="sr-only">{t('nowAt')} </span>
         {time}
       </span>

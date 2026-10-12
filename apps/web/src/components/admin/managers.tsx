@@ -39,7 +39,7 @@ export function SubjectsManager({ rows, csrfToken, readOnly }: Common & { rows: 
               <span className="inline-flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="size-4 rounded-full border border-border"
+                  className="size-4 rounded-full border border-line"
                   style={{ background: r.color }}
                 />
                 {r.color}
@@ -145,7 +145,7 @@ export function PeriodsManager({ rows, csrfToken, readOnly }: Common & { rows: P
           blocksDouble: r.blocksDouble,
         })}
       />
-      <p className="mx-auto max-w-4xl px-4 text-sm text-muted">{t('hint')}</p>
+      <p className="mx-auto max-w-4xl px-4 text-body-sm text-ink-muted">{t('hint')}</p>
     </>
   );
 }
@@ -185,7 +185,7 @@ export function ClassesManager({
           key: 'name',
           label: t('name'),
           render: (r) => (
-            <Link className="text-primary underline" href={`/admin/klassen/${r.id}`}>
+            <Link className="text-brand-text underline" href={`/admin/klassen/${r.id}`}>
               {r.name}
             </Link>
           ),
@@ -284,8 +284,8 @@ export function YearsManager({
             <Link
               className={
                 r.id === selectedId
-                  ? 'font-semibold text-primary underline'
-                  : 'text-primary underline'
+                  ? 'font-semibold text-brand-text underline'
+                  : 'text-brand-text underline'
               }
               href={`/admin/schuljahr?year=${r.id}`}
             >

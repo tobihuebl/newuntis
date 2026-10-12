@@ -41,6 +41,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Lieferkette: bekannte Schwachstellen ab "high" in Produktionsabhängigkeiten brechen den Build ab
       - run: pnpm audit --prod --audit-level high
+      # Design System: erzeugte Token-Dateien müssen zu docs/design-system/tokens.json passen
+      - run: pnpm design:check
       - run: pnpm db:generate
       - run: pnpm --filter @sp/db migrate:deploy
       - run: pnpm db:seed

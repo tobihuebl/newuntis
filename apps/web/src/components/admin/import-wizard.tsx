@@ -143,7 +143,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
   if (done) {
     return (
       <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-        <h1 className="text-2xl font-semibold">{t('done')}</h1>
+        <h1 className="text-h1">{t('done')}</h1>
         <Card className="flex flex-col gap-2" role="status">
           <p>
             {t('result', {
@@ -168,17 +168,17 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
 
       <Card className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t('step1')}</h2>
-        <p className="text-sm text-muted">{t('fileHelp')}</p>
+        <h2 className="text-h3">{t('step1')}</h2>
+        <p className="text-body-sm text-ink-muted">{t('fileHelp')}</p>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex min-h-11 cursor-pointer items-center rounded-sm bg-primary px-4 text-sm font-medium text-on-primary focus-within:outline-2">
+          <label className="inline-flex min-h-11 cursor-pointer items-center rounded-sm bg-brand px-4 text-label text-on-brand focus-within:outline-2">
             {t('chooseFile')}
             <input type="file" accept=".csv,.txt,text/csv" className="sr-only" onChange={onFile} />
           </label>
-          {fileName ? <span className="text-sm">{fileName}</span> : null}
+          {fileName ? <span className="text-body-sm">{fileName}</span> : null}
           <Button variant="ghost" onClick={downloadTemplate}>
             {t('template')}
           </Button>
@@ -186,15 +186,15 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
       </Card>
 
       {error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-body-sm text-danger-ink">
           {error}
         </p>
       ) : null}
 
       {preview && preview.unmappedRequired.length > 0 ? (
         <Card className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">{t('mapping')}</h2>
-          <p className="text-sm text-muted">{t('mappingHelp')}</p>
+          <h2 className="text-h3">{t('mapping')}</h2>
+          <p className="text-body-sm text-ink-muted">{t('mappingHelp')}</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {IMPORT_FIELDS.filter((f) => preview.unmappedRequired.includes(f)).map((f) => (
               <Select
@@ -218,7 +218,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
       {preview && preview.unmappedRequired.length === 0 && s ? (
         <>
           <Card className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">{t('step2')}</h2>
+            <h2 className="text-h3">{t('step2')}</h2>
             <p aria-live="polite">
               {t('summary', {
                 total: s.total,
@@ -229,7 +229,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
               })}
             </p>
             {s.newClasses.length > 0 ? (
-              <p className="text-sm">
+              <p className="text-body-sm">
                 {t('newClasses')}: {s.newClasses.join(', ')}
               </p>
             ) : null}
@@ -241,20 +241,20 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                 if (csv) void check(csv, mapping, e.target.checked);
               }}
             />
-            {s.total === 0 ? <p className="text-muted">{t('empty')}</p> : null}
+            {s.total === 0 ? <p className="text-ink-muted">{t('empty')}</p> : null}
           </Card>
 
           {s.total > 0 ? (
-            <div className="overflow-x-auto rounded-md border border-border bg-surface">
-              <div className="border-b border-border px-4 py-2">
+            <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
+              <div className="border-b border-line px-4 py-2">
                 <Checkbox
                   label="nur Zeilen mit Fehlern oder Hinweisen"
                   checked={onlyProblems}
                   onChange={(e) => setOnlyProblems(e.target.checked)}
                 />
               </div>
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-border text-muted">
+              <table className="w-full text-left text-body-sm">
+                <thead className="border-b border-line text-ink-muted">
                   <tr>
                     <th scope="col" className="px-4 py-2">
                       {t('line')}
@@ -272,7 +272,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                 </thead>
                 <tbody>
                   {rows.slice(0, 500).map((r) => (
-                    <tr key={r.line} className="border-b border-border align-top last:border-b-0">
+                    <tr key={r.line} className="border-b border-line align-top last:border-b-0">
                       <td className="px-4 py-2 tabular-nums">{r.line}</td>
                       <td className="px-4 py-2">
                         <Badge
@@ -296,7 +296,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                         {r.messages.map((m) => (
                           <p
                             key={m}
-                            className={m.startsWith('Hinweis') ? 'text-muted' : 'text-danger'}
+                            className={m.startsWith('Hinweis') ? 'text-ink-muted' : 'text-danger-ink'}
                           >
                             {m}
                           </p>
@@ -311,7 +311,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
 
           {s.total > 0 ? (
             <Card className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">{t('step3')}</h2>
+              <h2 className="text-h3">{t('step3')}</h2>
               {s.errors > 0 ? (
                 <Checkbox
                   label={t('skipErrors')}
@@ -324,7 +324,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                 checked={sendInvitations}
                 onChange={(e) => setSendInvitations(e.target.checked)}
               />
-              {blocked ? <p className="text-sm text-danger">{t('errorsBlock')}</p> : null}
+              {blocked ? <p className="text-body-sm text-danger-ink">{t('errorsBlock')}</p> : null}
               <div>
                 <Button onClick={commit} disabled={busy || blocked || s.create + s.update === 0}>
                   {skipErrors && s.errors > 0 ? t('commitSkip') : t('commit')}

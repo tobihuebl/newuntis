@@ -92,10 +92,10 @@ export function PrivacyScreen() {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4">
-      <h1 className="text-2xl font-semibold">{t('title')}</h1>
+      <h1 className="text-h1">{t('title')}</h1>
 
       <section aria-labelledby="new-h" className="flex flex-col gap-2">
-        <h2 id="new-h" className="text-lg font-semibold">
+        <h2 id="new-h" className="text-h3">
           {t('newRequest')}
         </h2>
         <Card>
@@ -121,7 +121,7 @@ export function PrivacyScreen() {
               onChange={(e) => setKind(e.target.value as PrivacyRequestKind)}
               options={PRIVACY_REQUEST_KINDS.map((k) => ({ value: k, label: t(`kind_${k}`) }))}
             />
-            <p className="text-sm text-muted">{t(`help_${kind}`)}</p>
+            <p className="text-body-sm text-ink-muted">{t(`help_${kind}`)}</p>
             <Textarea
               label={t('note')}
               value={note}
@@ -129,7 +129,7 @@ export function PrivacyScreen() {
               onChange={(e) => setNote(e.target.value)}
             />
             {error && !resolve ? (
-              <p role="alert" className="text-sm text-danger">
+              <p role="alert" className="text-body-sm text-danger-ink">
                 {error}
               </p>
             ) : null}
@@ -144,7 +144,7 @@ export function PrivacyScreen() {
       </section>
 
       <section aria-labelledby="list-h" className="flex flex-col gap-2">
-        <h2 id="list-h" className="text-lg font-semibold">
+        <h2 id="list-h" className="text-h3">
           {t('requests')}
         </h2>
         {q.isPending ? (
@@ -159,7 +159,7 @@ export function PrivacyScreen() {
               {q.data.data.map((r) => (
                 <li
                   key={r.id}
-                  className="flex flex-col gap-2 border-b border-border px-4 py-3 last:border-b-0"
+                  className="flex flex-col gap-2 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium">
@@ -173,7 +173,7 @@ export function PrivacyScreen() {
                           {r.person.name}
                         </Link>
                       )}
-                      <span className="text-sm text-muted"> · {t(`kind_${r.kind}`)}</span>
+                      <span className="text-body-sm text-ink-muted"> · {t(`kind_${r.kind}`)}</span>
                     </span>
                     <span className="flex items-center gap-2">
                       {r.person.restricted ? <Badge tone="warning">{t('restricted')}</Badge> : null}
@@ -190,13 +190,13 @@ export function PrivacyScreen() {
                       </Badge>
                     </span>
                   </div>
-                  <p className="text-xs text-muted">
+                  <p className="text-caption text-ink-muted">
                     {t('createdBy', { name: r.createdBy ?? '–', time: dateTimeOf(r.createdAt) })}
                     {r.resolvedAt
                       ? ` · ${t('resolvedBy', { name: r.resolvedBy ?? '–', time: dateTimeOf(r.resolvedAt) })}`
                       : ''}
                   </p>
-                  {r.note ? <p className="text-sm whitespace-pre-wrap">{r.note}</p> : null}
+                  {r.note ? <p className="text-body-sm whitespace-pre-wrap">{r.note}</p> : null}
                   <div className="flex flex-wrap gap-2">
                     {r.status === 'OPEN' ? (
                       <Button variant="secondary" onClick={() => setResolve(r)}>
@@ -215,13 +215,13 @@ export function PrivacyScreen() {
       </section>
 
       <section aria-labelledby="ret-h" className="flex flex-col gap-2">
-        <h2 id="ret-h" className="text-lg font-semibold">
+        <h2 id="ret-h" className="text-h3">
           {t('retention')}
         </h2>
         <Card className="flex flex-col gap-2">
-          <p className="text-sm text-muted">{t('retentionHelp')}</p>
+          <p className="text-body-sm text-ink-muted">{t('retentionHelp')}</p>
           {settings.data ? (
-            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
+            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-body-sm">
               {(
                 [
                   'messagesDays',
@@ -263,7 +263,7 @@ export function PrivacyScreen() {
             onChange={(e) => setResolveNote(e.target.value)}
           />
           {error && resolve ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-body-sm text-danger-ink">
               {error}
             </p>
           ) : null}

@@ -82,8 +82,8 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
     <div className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">{title}</h1>
-          <p className="text-sm text-muted">
+          <h1 className="text-h1">{title}</h1>
+          <p className="text-body-sm text-ink-muted">
             {t('week', { from: shortDate(week.from), to: shortDate(week.to) })}
           </p>
         </div>

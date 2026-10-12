@@ -62,8 +62,8 @@ export function AnnouncementView({ id }: { id: string }) {
       ) : (
         <article className="flex flex-col gap-4">
           <header>
-            <h1 className="text-2xl font-semibold break-words">{a.title}</h1>
-            <p className="text-sm text-muted">
+            <h1 className="text-h1 break-words">{a.title}</h1>
+            <p className="text-body-sm text-ink-muted">
               {a.author} · <time dateTime={a.publishedAt}>{dateTimeOf(a.publishedAt)}</time>
             </p>
           </header>
@@ -72,13 +72,13 @@ export function AnnouncementView({ id }: { id: string }) {
           </Card>
           {a.isRecipient && a.requiresRead ? (
             a.readAt ? (
-              <p role="status" className="flex items-center gap-2 text-sm text-success">
+              <p role="status" className="flex items-center gap-2 text-body-sm text-brand-text">
                 <CheckCircle2 aria-hidden="true" size={18} />
                 {t('confirmedAt', { time: dateTimeOf(a.readAt) })}
               </p>
             ) : (
-              <Card className="flex flex-col gap-3 border-warning">
-                <p className="text-sm">{t('confirmText')}</p>
+              <Card className="flex flex-col gap-3 border-signal">
+                <p className="text-body-sm">{t('confirmText')}</p>
                 <Button onClick={() => void confirm()} disabled={busy} className="self-start">
                   <CheckCircle2 aria-hidden="true" size={18} />
                   {t('confirm')}
