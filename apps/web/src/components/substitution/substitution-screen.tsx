@@ -14,8 +14,7 @@ import {
   type Suggestion,
 } from '@sp/shared';
 import {
-  Badge,
-  Button,
+  Chip, Button,
   Card,
   Checkbox,
   EmptyState,
@@ -96,12 +95,12 @@ export function SubstitutionScreen() {
             onEdit={setEditing}
             tone="danger"
           />
-          <ItemSection title={t('assigned')} items={pending} onEdit={setEditing} tone="warning" />
+          <ItemSection title={t('assigned')} items={pending} onEdit={setEditing} tone="late" />
           <ItemSection
             title={t('published')}
             items={items.filter((i) => i.status === 'PUBLISHED')}
             onEdit={setEditing}
-            tone="success"
+            tone="ok"
           />
         </>
       )}
@@ -161,7 +160,7 @@ function ItemSection({
   title: string;
   items: SubstitutionItem[];
   onEdit: (i: SubstitutionItem) => void;
-  tone: 'danger' | 'warning' | 'success';
+  tone: 'danger' | 'late' | 'ok';
 }) {
   const t = useTranslations('substitution');
   const tt = useTranslations('today');
@@ -169,7 +168,7 @@ function ItemSection({
   return (
     <section aria-label={title} className="flex flex-col gap-2">
       <h2 className="flex items-center gap-2 text-h3">
-        {title} <Badge tone={tone}>{items.length}</Badge>
+        {title} <Chip tone={tone}>{items.length}</Chip>
       </h2>
       <Card className="p-0">
         <ul>
@@ -198,7 +197,7 @@ function ItemSection({
                   {i.occurrence.room ? ` · ${i.occurrence.room.name}` : ''}
                 </p>
                 {summary(t, i) ? <p className="text-label">{summary(t, i)}</p> : null}
-                {i.changedAfterPublish ? <Badge tone="warning">{t('changed')}</Badge> : null}
+                {i.changedAfterPublish ? <Chip tone="late">{t('changed')}</Chip> : null}
               </div>
               <Button variant="secondary" onClick={() => onEdit(i)}>
                 {t('choose')}
@@ -307,9 +306,9 @@ function ActionSheet({
                         </span>
                       </span>
                       {s.teachesSubject ? (
-                        <Badge tone="success">{t('teachesSubject')}</Badge>
+                        <Chip tone="ok">{t('teachesSubject')}</Chip>
                       ) : null}
-                      {s.knowsClass ? <Badge tone="info">{t('knowsClass')}</Badge> : null}
+                      {s.knowsClass ? <Chip tone="ok">{t('knowsClass')}</Chip> : null}
                     </label>
                   </li>
                 ))}

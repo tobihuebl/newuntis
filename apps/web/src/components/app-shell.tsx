@@ -130,7 +130,7 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
         closeLabel={to('stay')}
       >
         <div className="flex flex-wrap gap-2">
-          <Button variant="destructive" onClick={() => void logout(true)}>
+          <Button variant="danger" onClick={() => void logout(true)}>
             {to('logoutAnyway')}
           </Button>
           <Button variant="secondary" onClick={() => setUnsynced(0)}>

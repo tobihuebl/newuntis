@@ -1,17 +1,34 @@
 import * as React from 'react';
+import { cn } from '../cn';
 
 export interface EmptyStateProps {
   title: string;
+  /** Ein Satz: warum nichts da ist und was als Nächstes geschieht. */
   description?: string;
   /** Nächste Aktion, z. B. eine Schaltfläche. */
   action?: React.ReactNode;
+  /** Überschriftenebene passend zur Seite. */
+  as?: 'h2' | 'h3' | 'h4';
+  className?: string;
 }
 
-export function EmptyState({ title, description, action }: EmptyStateProps) {
+/** Leerzustand (Design System, pf-empty): Kachel-Raster statt Illustration, positive Sprache. */
+export function EmptyState({ title, description, action, as: Tag = 'h2', className }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
-      <h2 className="text-h3 text-ink">{title}</h2>
-      {description ? <p className="max-w-prose text-ink-muted">{description}</p> : null}
+    <div className={cn('pf-empty', className)}>
+      <div className="pf-empty__tiles" aria-hidden="true">
+        <i />
+        <i className="a" />
+        <i />
+        <i className="b" />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i className="a" />
+      </div>
+      <Tag className="pf-card__title">{title}</Tag>
+      {description ? <p className="pf-card__sub max-w-prose">{description}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}
     </div>
   );

@@ -10,7 +10,7 @@ import {
   type PrivacyRequestKind,
   type TenantSettings,
 } from '@sp/shared';
-import { Badge, Button, Card, EmptyState, Select, Sheet, Skeleton, Textarea } from '@sp/ui';
+import { Chip, Button, Card, EmptyState, Select, Sheet, Skeleton, Textarea } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
@@ -176,18 +176,18 @@ export function PrivacyScreen() {
                       <span className="text-body-sm text-ink-muted"> · {t(`kind_${r.kind}`)}</span>
                     </span>
                     <span className="flex items-center gap-2">
-                      {r.person.restricted ? <Badge tone="warning">{t('restricted')}</Badge> : null}
-                      <Badge
+                      {r.person.restricted ? <Chip tone="late">{t('restricted')}</Chip> : null}
+                      <Chip
                         tone={
                           r.status === 'OPEN'
-                            ? 'warning'
+                            ? 'late'
                             : r.status === 'DONE'
-                              ? 'success'
+                              ? 'ok'
                               : 'neutral'
                         }
                       >
                         {t(`status_${r.status}`)}
-                      </Badge>
+                      </Chip>
                     </span>
                   </div>
                   <p className="text-caption text-ink-muted">
@@ -269,7 +269,7 @@ export function PrivacyScreen() {
           ) : null}
           <div className="flex flex-wrap gap-2">
             {resolve?.kind === 'ERASURE' ? (
-              <Button variant="destructive" onClick={() => void finish('DONE')}>
+              <Button variant="danger" onClick={() => void finish('DONE')}>
                 {t('doErase')}
               </Button>
             ) : resolve?.kind === 'RESTRICTION' ? (

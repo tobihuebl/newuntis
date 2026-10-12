@@ -197,7 +197,7 @@ export function ClassAbsences({
             {t('accept')}
           </Button>
           <Button
-            variant="destructive"
+            variant="danger"
             disabled={review.isPending}
             onClick={() => void decide('REJECTED')}
           >

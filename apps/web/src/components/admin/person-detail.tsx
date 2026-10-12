@@ -4,8 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import {
-  Badge,
-  Button,
+  Chip, Button,
   Card,
   Checkbox,
   Input,
@@ -198,12 +197,12 @@ export function PersonDetail({
           </>
         ) : person.pendingInvitation ? (
           <p>
-            <Badge tone="info">{t('account.invited')}</Badge> {p('pending')}{' '}
+            <Chip tone="ok">{t('account.invited')}</Chip> {p('pending')}{' '}
             {person.pendingInvitation.expiresAt.slice(0, 10)}
           </p>
         ) : (
           <p>
-            <Badge>{t('account.none')}</Badge>
+            <Chip>{t('account.none')}</Chip>
           </p>
         )}
         {readOnly || person.kind === 'STUDENT' || person.account?.active ? null : (
@@ -314,7 +313,7 @@ export function PersonDetail({
           <p className="text-body-sm text-ink-muted">{p('anonymizeHelp')}</p>
           <div>
             <Button
-              variant="destructive"
+              variant="danger"
               onClick={() => {
                 setError(null);
                 setSheet('anonymize');
@@ -437,7 +436,7 @@ export function PersonDetail({
             {c('cancel')}
           </Button>
           <Button
-            variant="destructive"
+            variant="danger"
             disabled={busy}
             onClick={() =>
               run(

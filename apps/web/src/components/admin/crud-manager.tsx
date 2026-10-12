@@ -323,7 +323,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
           <Button variant="secondary" onClick={() => setDeleting(null)}>
             {t('cancel')}
           </Button>
-          <Button variant="destructive" onClick={remove} disabled={busy}>
+          <Button variant="danger" onClick={remove} disabled={busy}>
             {t('delete')}
           </Button>
         </div>

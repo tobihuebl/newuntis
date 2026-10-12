@@ -12,7 +12,7 @@ import {
   type ValidationContext,
   type WeekPattern,
 } from '@sp/shared';
-import { Badge, Button, Card, Checkbox, Input, Select, Sheet, cn } from '@sp/ui';
+import { Chip, Button, Card, Checkbox, Input, Select, Sheet, cn } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 
 // ───────────────────────── Typen ─────────────────────────
@@ -507,17 +507,17 @@ export function TimetableEditor({
             {initial.version.name ?? initial.version.schoolYear.name}
           </h1>
           <p className="flex flex-wrap items-center gap-2 text-body-sm text-ink-muted">
-            <Badge
+            <Chip
               tone={
                 initial.version.status === 'PUBLISHED'
-                  ? 'success'
+                  ? 'ok'
                   : initial.version.status === 'DRAFT'
-                    ? 'info'
+                    ? 'ok'
                     : 'neutral'
               }
             >
               {t(`statuses.${initial.version.status}`)}
-            </Badge>
+            </Chip>
             {t('validFrom')} {initial.version.validFrom}
           </p>
         </div>
@@ -845,9 +845,9 @@ export function TimetableEditor({
                   )}
                 >
                   <p>
-                    <Badge tone={cf.severity === 'hard' ? 'danger' : 'warning'}>
+                    <Chip tone={cf.severity === 'hard' ? 'danger' : 'late'}>
                       {t(cf.severity)}
-                    </Badge>{' '}
+                    </Chip>{' '}
                     {cf.message}
                   </p>
                   {resourceName(cf) ? (
@@ -978,7 +978,7 @@ export function TimetableEditor({
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="danger"
                     onClick={() => {
                       setSheet(null);
                       void perform({ kind: 'delete', id: editing.id });

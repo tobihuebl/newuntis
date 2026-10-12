@@ -1,7 +1,7 @@
 'use client';
 import { useTranslations } from 'next-intl';
 import type { OpenEntry, TodayResponse } from '@sp/shared';
-import { Badge, Card, EmptyState } from '@sp/ui';
+import { Chip, Card, EmptyState } from '@sp/ui';
 import { weekdayDate } from '../../lib/dates';
 import { useCached, useOutbox } from '../../offline/hooks';
 import { SyncStatus } from '../sync-status';
@@ -26,11 +26,11 @@ export function ClassbookList() {
   const openList = (open.data?.data.data ?? []).filter((o) => !closing.has(o.id));
   const progress = (p: 'none' | 'started' | 'closed' | null, id: string) =>
     p === null ? null : closing.has(id) && p !== 'closed' ? (
-      <Badge tone="info">{tt('progress_pending')}</Badge>
+      <Chip tone="ok">{tt('progress_pending')}</Chip>
     ) : (
-      <Badge tone={p === 'closed' ? 'success' : p === 'started' ? 'warning' : 'neutral'}>
+      <Chip tone={p === 'closed' ? 'ok' : p === 'started' ? 'late' : 'neutral'}>
         {tt(`progress_${p}`)}
-      </Badge>
+      </Chip>
     );
 
   return (

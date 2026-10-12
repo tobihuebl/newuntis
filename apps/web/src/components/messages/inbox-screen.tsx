@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { AnnouncementItem, ThreadSummary } from '@sp/shared';
-import { Badge, Button, Card, EmptyState, SegmentedControl, Skeleton, cn } from '@sp/ui';
+import { Chip, Button, Card, EmptyState, SegmentedControl, Skeleton, cn } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
@@ -262,9 +262,9 @@ function AnnouncementList() {
                   </span>
                   <span className="block truncate text-body-sm text-ink-muted">{a.author}</span>
                   {a.requiresRead && !a.readAt ? (
-                    <Badge tone="warning" className="mt-1">
+                    <Chip tone="late" className="mt-1">
                       {t('confirmPending')}
-                    </Badge>
+                    </Chip>
                   ) : null}
                 </span>
                 <span className="shrink-0 text-caption text-ink-muted tabular-nums">

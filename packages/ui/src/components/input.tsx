@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '../cn';
+import { FieldShell, describedBy } from './field';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Sichtbare Beschriftung; jedes Feld braucht eine (WCAG 2.2 AA). */
@@ -7,43 +8,37 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string;
   /** Erklärung unter dem Feld, per aria-describedby verknüpft. */
   hint?: string;
+  /** Codes, Räume, Zeiten in JetBrains Mono. */
+  mono?: boolean;
+  /** Beschriftung nur für Screenreader (z. B. in Tabellenzeilen). */
+  hideLabel?: boolean;
+  /** Klassen für den äußeren Rahmen (Beschriftung, Feld, Hinweise). */
+  fieldClassName?: string;
 }
 
+/** Eingabefeld (Design System, pf-input): 52 px hoch, 16 px Schrift (kein iOS-Zoom). */
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, className, id, ...props }, ref) => {
+  ({ label, error, hint, mono, hideLabel, fieldClassName, className, id, ...props }, ref) => {
     const autoId = React.useId();
     const inputId = id ?? autoId;
-    const errorId = `${inputId}-error`;
-    const hintId = `${inputId}-hint`;
-    const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ');
     return (
-      <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="text-label text-ink">
-          {label}
-        </label>
+      <FieldShell
+        id={inputId}
+        label={label}
+        hint={hint}
+        error={error}
+        hideLabel={hideLabel}
+        className={fieldClassName}
+      >
         <input
           ref={ref}
           id={inputId}
           aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy || undefined}
-          className={cn(
-            'min-h-11 rounded-sm border border-line bg-bg-sunken px-3 text-ink placeholder:text-ink-muted',
-            error && 'border-danger',
-            className,
-          )}
+          aria-describedby={describedBy(inputId, hint, error)}
+          className={cn('pf-input', mono && 'pf-num font-data', className)}
           {...props}
         />
-        {hint ? (
-          <p id={hintId} className="text-body-sm text-ink-muted">
-            {hint}
-          </p>
-        ) : null}
-        {error ? (
-          <p id={errorId} className="text-body-sm text-danger-ink">
-            {error}
-          </p>
-        ) : null}
-      </div>
+      </FieldShell>
     );
   },
 );

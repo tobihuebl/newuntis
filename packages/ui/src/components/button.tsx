@@ -1,38 +1,78 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { LoaderCircle, type LucideIcon } from 'lucide-react';
 import { cn } from '../cn';
 
-export const buttonVariants = cva(
-  'inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-4 text-label transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50',
-  {
-    variants: {
-      variant: {
-        primary: 'bg-brand text-on-brand hover:opacity-90',
-        secondary: 'border border-line bg-bg-raised text-ink hover:bg-bg-sunken',
-        ghost: 'text-ink hover:bg-bg-sunken',
-        destructive: 'bg-danger text-on-brand hover:opacity-90',
-      },
+/**
+ * Button (Design System, pf-btn): Primär Kobalt mit Taster-Kante, Amber nur für Aufmerksamkeit, Danger erst im
+ * Bestätigungs-Sheet. Mindesthöhe 48 px (sm 40 px nur in Tabellen am Desktop). Beschriftung: ein Verb, max. drei Wörter.
+ */
+export const buttonVariants = cva('pf-btn', {
+  variants: {
+    variant: {
+      primary: 'pf-btn--primary',
+      signal: 'pf-btn--signal',
+      secondary: 'pf-btn--secondary',
+      ghost: 'pf-btn--ghost',
+      danger: 'pf-btn--danger',
     },
-    defaultVariants: { variant: 'primary' },
+    size: { md: '', sm: 'pf-btn--sm', lg: 'pf-btn--lg' },
+    block: { true: 'pf-btn--block', false: '' },
   },
-);
+  defaultVariants: { variant: 'primary', size: 'md', block: false },
+});
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** Lucide-Icon links neben der Beschriftung. */
+  iconLeft?: LucideIcon;
+  /** Zeigt einen Ladezustand und sperrt den Button (aria-busy). */
+  loading?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, asChild = false, type, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button';
+  (
+    {
+      className,
+      variant,
+      size,
+      block,
+      asChild = false,
+      iconLeft: Icon,
+      loading = false,
+      disabled,
+      type,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    const classes = cn(buttonVariants({ variant, size, block }), className);
+    if (asChild) {
+      return (
+        <Slot ref={ref} className={classes} {...props}>
+          {children}
+        </Slot>
+      );
+    }
     return (
-      <Comp
+      <button
         ref={ref}
-        type={asChild ? undefined : (type ?? 'button')}
-        className={cn(buttonVariants({ variant }), className)}
+        type={type ?? 'button'}
+        className={classes}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
         {...props}
-      />
+      >
+        {loading ? (
+          <LoaderCircle aria-hidden="true" className="animate-spin" />
+        ) : Icon ? (
+          <Icon aria-hidden="true" />
+        ) : null}
+        {children}
+      </button>
     );
   },
 );

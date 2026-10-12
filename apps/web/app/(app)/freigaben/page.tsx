@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Badge, Card, EmptyState } from '@sp/ui';
+import { Chip, Card, EmptyState } from '@sp/ui';
 import { apiGet } from '../../../src/lib/api-server';
 import { shortDate } from '../../../src/lib/dates';
 import { requireRoute } from '../../../src/lib/route-guard';
@@ -47,7 +47,7 @@ export default async function FreigabenPage() {
                       {t('lessons', { count: v.lessonCount })}
                     </span>
                   </span>
-                  <Badge tone="warning">{t('draft')}</Badge>
+                  <Chip tone="late">{t('draft')}</Chip>
                 </Link>
               </li>
             ))}

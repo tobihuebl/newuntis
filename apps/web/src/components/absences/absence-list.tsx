@@ -3,14 +3,14 @@ import { Check, Clock, FileCheck, FileWarning, X } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { AbsenceItem, AbsenceStatusName } from '@sp/shared';
-import { Badge, Button, cn } from '@sp/ui';
+import { Chip, Button, cn } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { longDate, timeOf, weekdayDate } from '../../lib/dates';
 
-const TONE: Record<AbsenceStatusName, 'neutral' | 'warning' | 'success' | 'danger' | 'info'> = {
-  OPEN: 'warning',
-  REPORTED: 'info',
-  EXCUSED: 'success',
+const TONE: Record<AbsenceStatusName, 'neutral' | 'late' | 'ok' | 'danger' | 'ok'> = {
+  OPEN: 'late',
+  REPORTED: 'ok',
+  EXCUSED: 'ok',
   REJECTED: 'danger',
   UNEXCUSED: 'danger',
 };
@@ -35,10 +35,10 @@ export function AbsenceStatusBadge({ status }: { status: AbsenceStatusName }) {
   const t = useTranslations('absence');
   const Icon = ICON[status];
   return (
-    <Badge tone={TONE[status]}>
+    <Chip tone={TONE[status]}>
       <Icon aria-hidden="true" size={14} />
       {t(`status.${status}`)}
-    </Badge>
+    </Chip>
   );
 }
 
@@ -94,10 +94,10 @@ export function AbsenceList({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {a.attachmentRequired && !a.hasAttachment ? (
-              <Badge tone="warning">
+              <Chip tone="late">
                 <FileWarning aria-hidden="true" size={14} />
                 {t('attachmentMissing')}
-              </Badge>
+              </Chip>
             ) : null}
             {a.canExcuse ? (
               <Button variant="secondary" asChild>

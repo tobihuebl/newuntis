@@ -14,16 +14,16 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { addDays, nextWeekday, type PrincipalDashboard, type TimelineKind } from '@sp/shared';
-import { Badge, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
+import { Chip, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
 import { longDate, timeOf, todayVienna, weekdayDate } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
 
-const TONE: Record<TimelineKind, 'danger' | 'warning' | 'info' | 'neutral'> = {
+const TONE: Record<TimelineKind, 'danger' | 'late' | 'ok' | 'neutral'> = {
   cancelled: 'danger',
-  open: 'warning',
-  substituted: 'warning',
-  supervision: 'warning',
-  roomChanged: 'info',
+  open: 'late',
+  substituted: 'late',
+  supervision: 'late',
+  roomChanged: 'ok',
   missingClassbook: 'neutral',
 };
 
@@ -51,24 +51,24 @@ export function DashboardScreen() {
     key: keyof PrincipalDashboard['cards'];
     icon: LucideIcon;
     href: string;
-    tone: 'danger' | 'warning' | 'info' | 'neutral';
+    tone: 'danger' | 'late' | 'ok' | 'neutral';
   }[] = [
     {
       key: 'teachersAbsent',
       icon: UserRoundX,
       href: `/supplierung?datum=${date}`,
-      tone: 'warning',
+      tone: 'late',
     },
     {
       key: 'openSubstitutions',
       icon: ArrowLeftRight,
       href: `/supplierung?datum=${date}`,
-      tone: 'warning',
+      tone: 'late',
     },
     { key: 'cancelled', icon: CalendarX2, href: `/supplierung?datum=${date}`, tone: 'danger' },
     { key: 'missingClassbook', icon: BookX, href: '#fehlend', tone: 'neutral' },
-    { key: 'studentsAbsent', icon: UsersRound, href: '/auswertung', tone: 'info' },
-    { key: 'pendingExcuses', icon: FileClock, href: '/klasse', tone: 'info' },
+    { key: 'studentsAbsent', icon: UsersRound, href: '/auswertung', tone: 'ok' },
+    { key: 'pendingExcuses', icon: FileClock, href: '/klasse', tone: 'ok' },
   ];
 
   return (
@@ -121,8 +121,8 @@ export function DashboardScreen() {
                     className={cn(
                       'flex min-h-24 flex-col justify-between gap-2 rounded-md border bg-bg-raised p-4 hover:bg-bg-sunken',
                       n > 0 && c.tone === 'danger' && 'border-danger',
-                      n > 0 && c.tone === 'warning' && 'border-signal',
-                      (n === 0 || c.tone === 'info' || c.tone === 'neutral') && 'border-line',
+                      n > 0 && c.tone === 'late' && 'border-signal',
+                      (n === 0 || c.tone === 'ok' || c.tone === 'neutral') && 'border-line',
                     )}
                   >
                     <span className="flex items-center gap-2 text-body-sm text-ink-muted">
@@ -155,7 +155,7 @@ export function DashboardScreen() {
                       <span className="flex items-center gap-2 text-body-sm">
                         {t('affected', { count: a.affected })}
                         {a.open > 0 ? (
-                          <Badge tone="warning">{t('open', { count: a.open })}</Badge>
+                          <Chip tone="late">{t('open', { count: a.open })}</Chip>
                         ) : null}
                       </span>
                     </li>
@@ -209,7 +209,7 @@ export function DashboardScreen() {
                           {t('kindmissingClassbook')}
                         </Link>
                       ) : (
-                        <Badge tone={TONE[x.kind]}>{t(`kind${x.kind}`)}</Badge>
+                        <Chip tone={TONE[x.kind]}>{t(`kind${x.kind}`)}</Chip>
                       )}
                     </li>
                   ))}

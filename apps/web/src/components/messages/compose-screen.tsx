@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { ClassAudience, MessageClassOption, Recipient, ThreadCreateInput } from '@sp/shared';
-import { Badge, Button, Card, Input, SegmentedControl, Select, Skeleton, Textarea } from '@sp/ui';
+import { Chip, Button, Card, Input, SegmentedControl, Select, Skeleton, Textarea } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
@@ -155,7 +155,7 @@ export function ComposeScreen() {
                                 </span>
                               ) : null}
                             </span>
-                            <Badge>{kindLabel(r)}</Badge>
+                            <Chip>{kindLabel(r)}</Chip>
                           </label>
                         </li>
                       );

@@ -312,7 +312,7 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
       </div>
       <div className="flex flex-col gap-1">
         <Button
-          variant="destructive"
+          variant="danger"
           className="self-start"
           onClick={async () => {
             await all.mutateAsync(undefined);

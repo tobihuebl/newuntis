@@ -9,7 +9,7 @@ import {
   type ClassbookEntryState,
   type OccurrenceDetail,
 } from '@sp/shared';
-import { Badge, Button, Card, EmptyState, Input, Sheet, Skeleton, StatusBadge, cn } from '@sp/ui';
+import { Chip, Button, Card, EmptyState, Input, Sheet, Skeleton, StatusBadge, cn } from '@sp/ui';
 import { ApiError } from '../../lib/api-client';
 import { dateTimeOf, longDate, timeOf } from '../../lib/dates';
 import { OfflineMissError } from '../../offline/cached';
@@ -145,10 +145,10 @@ function Loaded({
             <StatusBadge status="substituted" label={tp('substituted')} />
           ) : null}
           {closed ? (
-            <Badge tone="success">
+            <Chip tone="ok">
               <Lock aria-hidden="true" size={14} />
               {t('closedAt', { time: dateTimeOf(closed) })}
-            </Badge>
+            </Chip>
           ) : null}
         </div>
         {detail.substitution ? <p className="text-body-sm text-ink-muted">{t('substitution')}</p> : null}

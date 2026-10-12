@@ -32,3 +32,38 @@
     }
   }
 }
+
+/* Bewegungskurve des Design Systems (ui-grundlagen Abschnitt 6) */
+@theme {
+  --ease-pf: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Rand von Bedienelementen wie pf-input (line-strong, mind. 3:1) für abgeleitete Bausteine */
+@utility ring-control {
+  box-shadow: inset 0 0 0 1.5px var(--line-strong);
+}
+
+/* Einblenden von Sheets, Dialogen und Toasts (240 bis 320 ms, entfällt bei prefers-reduced-motion) */
+@theme {
+  --animate-sheet-in: pf-sheet-in 280ms var(--ease-pf);
+  --animate-dialog-in: pf-dialog-in 240ms var(--ease-pf);
+  --animate-fade-in: pf-fade-in 240ms linear;
+  --animate-toast-in: pf-sheet-in 240ms var(--ease-pf);
+  @keyframes pf-sheet-in {
+    from {
+      transform: translateY(var(--space-6));
+      opacity: 0;
+    }
+  }
+  @keyframes pf-dialog-in {
+    from {
+      transform: scale(0.96);
+      opacity: 0;
+    }
+  }
+  @keyframes pf-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+}

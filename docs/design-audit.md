@@ -168,7 +168,7 @@ apps/web/public/icons/         erzeugte PWA-Icons
 ### Phasen (ein Commit je Phase, nach jeder Phase lint, typecheck, Tests grün)
 
 - [x] **D1 Fundament:** Design-System-Dateien ins Repo, `gen-theme.mjs`, Tokens/Theme/Base, Schriften, Theme-Cookie, `theme-color`, Logo-Assets, PWA-Icons, Manifest, Name (F1), Spec Abschnitt 6 → Verweis auf `docs/design-system/`.
-- [ ] **D2 Bausteine:** Komponenten aus Abschnitt 2 inkl. Toast-Provider, Showcase `/komponenten`, Tests.
+- [x] **D2 Bausteine:** Komponenten aus Abschnitt 2 inkl. Toast-Provider, Showcase `/komponenten`, Tests.
 - [ ] **D3 Shell:** Sidebar ab 1024px, Topbar mit Befehlspalette (nur Seiten der Rolle; Personensuche bleibt V1), Tab-Leiste mit erhobener Hauptaktion, Mehr-Sheet (Profil, Rolle wechseln, Theme, Abmelden), Navigation nach F2, Admin-Übersicht.
 - [ ] **D4 Fachkomponenten:** `TimetableGrid`, `AttendanceRow`, Heute-Nachtkarte; Fächerfarben (F3); Playwright-Zeitmessung „Stunde abschließen“ (≤ 4 Taps, < 10 s).
 - [ ] **D5 Seiten:** in der Reihenfolge Anmeldung, Heute, Klassenbuch, Abwesenheit melden, Stundenplan, Lagebild, Supplierung, Editor, Admin, Nachrichten, Prüfungen, danach die übrigen; Anrede (F4), Texte ohne Ausrufezeichen, Leer-/Lade-/Fehler-/Offline-Zustände.

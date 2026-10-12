@@ -8,6 +8,7 @@ export interface ListRowProps extends Omit<React.HTMLAttributes<HTMLDivElement>,
   trailing?: React.ReactNode;
 }
 
+/** Listenzeile (aus Tokens abgeleitet): mindestens 56 px, Trennung durch Haarlinie line, Name body-strong. */
 export function ListRow({ title, subtitle, leading, trailing, className, ...props }: ListRowProps) {
   return (
     <div
@@ -19,7 +20,7 @@ export function ListRow({ title, subtitle, leading, trailing, className, ...prop
     >
       {leading}
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-ink">{title}</div>
+        <div className="truncate text-body-strong text-ink">{title}</div>
         {subtitle ? <div className="truncate text-body-sm text-ink-muted">{subtitle}</div> : null}
       </div>
       {trailing}

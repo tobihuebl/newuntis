@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '../cn';
+import { FieldShell, describedBy } from './field';
 
 export interface SelectOption {
   value: string;
@@ -12,37 +14,50 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
   /** Text der leeren Auswahl; ohne Angabe gibt es keine leere Option. */
   emptyLabel?: string;
   error?: string;
+  hint?: string;
+  hideLabel?: boolean;
+  fieldClassName?: string;
 }
 
+/** Native Auswahl im Stil von pf-input (barrierearm, mobil mit Systemauswahl). */
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, options, emptyLabel, error, className, id, ...props }, ref) => {
+  (
+    { label, options, emptyLabel, error, hint, hideLabel, fieldClassName, className, id, ...props },
+    ref,
+  ) => {
     const autoId = React.useId();
     const selectId = id ?? autoId;
     return (
-      <div className="flex flex-col gap-1">
-        <label htmlFor={selectId} className="text-label text-ink">
-          {label}
-        </label>
-        <select
-          ref={ref}
-          id={selectId}
-          aria-invalid={error ? true : undefined}
-          className={cn(
-            'min-h-11 rounded-sm border border-line bg-bg-sunken px-3 text-ink',
-            error && 'border-danger',
-            className,
-          )}
-          {...props}
-        >
-          {emptyLabel !== undefined ? <option value="">{emptyLabel}</option> : null}
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        {error ? <p className="text-body-sm text-danger-ink">{error}</p> : null}
-      </div>
+      <FieldShell
+        id={selectId}
+        label={label}
+        hint={hint}
+        error={error}
+        hideLabel={hideLabel}
+        className={fieldClassName}
+      >
+        <div className="relative">
+          <select
+            ref={ref}
+            id={selectId}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy(selectId, hint, error)}
+            className={cn('pf-input cursor-pointer pr-12', className)}
+            {...props}
+          >
+            {emptyLabel !== undefined ? <option value="">{emptyLabel}</option> : null}
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-4 size-5 -translate-y-1/2 text-ink-muted"
+          />
+        </div>
+      </FieldShell>
     );
   },
 );

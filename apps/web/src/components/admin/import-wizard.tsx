@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Badge, Button, Card, Checkbox, Select } from '@sp/ui';
+import { Chip, Button, Card, Checkbox, Select } from '@sp/ui';
 import { IMPORT_FIELDS, type ImportField, type ImportPreview } from '@sp/shared';
 import { ApiError, apiRequest } from '../../lib/api-client';
 
@@ -275,19 +275,19 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                     <tr key={r.line} className="border-b border-line align-top last:border-b-0">
                       <td className="px-4 py-2 tabular-nums">{r.line}</td>
                       <td className="px-4 py-2">
-                        <Badge
+                        <Chip
                           tone={
                             r.action === 'error'
                               ? 'danger'
                               : r.action === 'create'
-                                ? 'success'
+                                ? 'ok'
                                 : r.action === 'update'
-                                  ? 'info'
+                                  ? 'ok'
                                   : 'neutral'
                           }
                         >
                           {t(`actions.${r.action}`)}
-                        </Badge>
+                        </Chip>
                       </td>
                       <td className="px-4 py-2">
                         {r.record.lastName} {r.record.firstName}

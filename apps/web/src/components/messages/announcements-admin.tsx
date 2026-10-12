@@ -7,8 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { AnnouncementDetail, AnnouncementItem, Audience, AudienceRole } from '@sp/shared';
 import {
-  Badge,
-  Button,
+  Chip, Button,
   Card,
   Checkbox,
   EmptyState,
@@ -97,7 +96,7 @@ export function AnnouncementsAdmin() {
                       />
                     ) : null}
                   </span>
-                  {a.requiresRead ? <Badge tone="info">{t('requiresRead')}</Badge> : null}
+                  {a.requiresRead ? <Chip tone="ok">{t('requiresRead')}</Chip> : null}
                 </Link>
               </li>
             ))}
@@ -365,7 +364,7 @@ export function AnnouncementStats({ id }: { id: string }) {
                       className="flex min-h-11 items-center justify-between gap-2 border-b border-line px-4 last:border-b-0"
                     >
                       <span>{p.name}</span>
-                      <Badge>{t(`kind${p.kind}`)}</Badge>
+                      <Chip>{t(`kind${p.kind}`)}</Chip>
                     </li>
                   ))}
                 </ul>

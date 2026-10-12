@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { Badge, Button, EmptyState, Input, Select, Sheet } from '@sp/ui';
+import { Chip, Button, EmptyState, Input, Select, Sheet } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 
 export interface VersionRow {
@@ -100,17 +100,17 @@ export function VersionsList({
                     </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge
+                    <Chip
                       tone={
                         r.status === 'PUBLISHED'
-                          ? 'success'
+                          ? 'ok'
                           : r.status === 'DRAFT'
-                            ? 'info'
+                            ? 'ok'
                             : 'neutral'
                       }
                     >
                       {t(`statuses.${r.status}`)}
-                    </Badge>
+                    </Chip>
                   </td>
                   <td className="px-4 py-3 tabular-nums">{r.validFrom}</td>
                   <td className="px-4 py-3 tabular-nums">{r.lessonCount}</td>

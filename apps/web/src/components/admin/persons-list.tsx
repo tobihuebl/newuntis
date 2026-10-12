@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Badge,
-  Button,
+  Chip, Button,
   Checkbox,
   EmptyState,
   Input,
@@ -178,13 +177,13 @@ export function PersonsList({
               .filter(Boolean)
               .join(' · ')}
             trailing={
-              <Badge
+              <Chip
                 tone={
-                  p.account === 'active' ? 'success' : p.account === 'invited' ? 'info' : 'neutral'
+                  p.account === 'active' ? 'ok' : p.account === 'invited' ? 'ok' : 'neutral'
                 }
               >
                 {t(`account.${p.account}`)}
-              </Badge>
+              </Chip>
             }
           />
         ))}

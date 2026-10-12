@@ -11,7 +11,10 @@ export interface SwitchProps {
   className?: string;
 }
 
-/** Schalter (role="switch"): ganze Zeile 44 px, Zustand nie nur über Farbe (Knopfposition). */
+/**
+ * Schalter (role="switch", aus Tokens abgeleitet): Pille, aus mit Rand line-strong, an in brand. Zustand nie nur
+ * über Farbe (Knopfposition). Ganze Zeile mindestens 44 px.
+ */
 export function Switch({
   checked,
   onCheckedChange,
@@ -28,21 +31,21 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        'inline-flex min-h-11 items-center gap-3 text-left text-ink disabled:opacity-50',
+        'inline-flex min-h-(--tap-min) items-center gap-3 rounded-md text-left text-ink disabled:cursor-not-allowed disabled:opacity-45',
         className,
       )}
     >
       <span
         aria-hidden="true"
         className={cn(
-          'relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 transition-colors duration-150',
-          checked ? 'border-brand bg-brand' : 'border-line bg-bg-sunken',
+          'relative inline-flex h-8 w-13 shrink-0 rounded-pill transition-colors duration-150',
+          checked ? 'bg-brand' : 'bg-bg-sunken ring-control',
         )}
       >
         <span
           className={cn(
-            'absolute top-0.5 h-4 w-4 rounded-full transition-transform duration-150',
-            checked ? 'translate-x-5 bg-on-brand' : 'translate-x-0.5 bg-line-strong',
+            'absolute top-1 size-6 rounded-pill shadow-card transition-transform duration-150 ease-pf',
+            checked ? 'translate-x-6 bg-on-brand' : 'translate-x-1 bg-ink-muted',
           )}
         />
       </span>

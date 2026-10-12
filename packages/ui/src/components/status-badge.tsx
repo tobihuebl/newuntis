@@ -1,21 +1,30 @@
 import * as React from 'react';
-import { Check, Clock, X, FileCheck, Ban, UserRoundCog, DoorOpen } from 'lucide-react';
-import { Badge } from './badge';
+import { Ban, Check, Clock, DoorOpen, FileCheck, UserRoundCog, X } from 'lucide-react';
+import { Chip, type ChipTone } from './chip';
 import { cn } from '../cn';
 
-/** Status-Sprache (Spec Abschnitt 6): nie nur Farbe, immer Icon und Text. */
+/**
+ * Fachliche Zustände als Chip (Design System "Status auf einen Blick", Abbildung in docs/design-audit.md 2a):
+ * Rot gibt es nur für Fehler, deshalb sind abwesend neutral und Entfall ein Hinweis.
+ */
 export type Status =
-  'present' | 'late' | 'absent' | 'excused' | 'cancelled' | 'substituted' | 'roomChanged';
+  | 'present'
+  | 'late'
+  | 'absent'
+  | 'excused'
+  | 'cancelled'
+  | 'substituted'
+  | 'roomChanged';
 
-const CONFIG = {
-  present: { tone: 'success', Icon: Check, strike: false },
-  late: { tone: 'warning', Icon: Clock, strike: false },
-  absent: { tone: 'danger', Icon: X, strike: false },
-  excused: { tone: 'info', Icon: FileCheck, strike: false },
-  cancelled: { tone: 'danger', Icon: Ban, strike: true },
-  substituted: { tone: 'warning', Icon: UserRoundCog, strike: false },
-  roomChanged: { tone: 'info', Icon: DoorOpen, strike: false },
-} as const;
+const CONFIG: Record<Status, { tone: ChipTone; Icon: typeof Check; strike: boolean }> = {
+  present: { tone: 'ok', Icon: Check, strike: false },
+  late: { tone: 'late', Icon: Clock, strike: false },
+  absent: { tone: 'absent', Icon: X, strike: false },
+  excused: { tone: 'ok', Icon: FileCheck, strike: false },
+  cancelled: { tone: 'late', Icon: Ban, strike: true },
+  substituted: { tone: 'ok', Icon: UserRoundCog, strike: false },
+  roomChanged: { tone: 'late', Icon: DoorOpen, strike: false },
+};
 
 export interface StatusBadgeProps {
   status: Status;
@@ -27,9 +36,8 @@ export interface StatusBadgeProps {
 export function StatusBadge({ status, label, className }: StatusBadgeProps) {
   const { tone, Icon, strike } = CONFIG[status];
   return (
-    <Badge tone={tone} className={className} data-status={status}>
-      <Icon aria-hidden="true" size={14} />
+    <Chip tone={tone} icon={Icon} className={className} data-status={status}>
       <span className={cn(strike && 'line-through')}>{label}</span>
-    </Badge>
+    </Chip>
   );
 }

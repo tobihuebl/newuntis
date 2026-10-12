@@ -3,7 +3,7 @@ import { ArrowLeft, CalendarDays, MessageSquare, NotebookPen, UserCheck } from '
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { MyClass, MyClassDetail } from '@sp/shared';
-import { Badge, Button, Card, EmptyState, Skeleton } from '@sp/ui';
+import { Chip, Button, Card, EmptyState, Skeleton } from '@sp/ui';
 import { useApi, useProblemText } from '../../lib/use-api';
 
 /** Klassen der Lehrkraft (Spec Abschnitt 5, /klassen). */
@@ -34,7 +34,7 @@ export function ClassesScreen() {
               >
                 <span className="flex items-center justify-between gap-2">
                   <span className="text-h3">{c.name}</span>
-                  {c.homeroom ? <Badge tone="info">{t('homeroom')}</Badge> : null}
+                  {c.homeroom ? <Chip tone="ok">{t('homeroom')}</Chip> : null}
                 </span>
                 <span className="text-body-sm text-ink-muted">{t('students', { count: c.students })}</span>
                 {c.subjects.length ? (
@@ -121,8 +121,8 @@ export function ClassDetailScreen({ id }: { id: string }) {
                   >
                     <span className="w-6 text-right text-body-sm text-ink-muted tabular-nums">{i + 1}</span>
                     <span className="flex-1">{s.name}</span>
-                    {!s.hasAccount ? <Badge>{t('noAccount')}</Badge> : null}
-                    {s.guardians === 0 ? <Badge tone="warning">{t('noGuardian')}</Badge> : null}
+                    {!s.hasAccount ? <Chip>{t('noAccount')}</Chip> : null}
+                    {s.guardians === 0 ? <Chip tone="late">{t('noGuardian')}</Chip> : null}
                   </li>
                 ))}
               </ol>

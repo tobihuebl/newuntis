@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { addDays, mondayOf, nextWeekday, type TodayLesson, type TodayResponse } from '@sp/shared';
-import { Badge, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
+import { Chip, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
 import { dateTimeOf, longDate, shortDate, timeOf, weekdayDate } from '../../lib/dates';
 import { OfflineMissError, type Cached } from '../../offline/cached';
 import { useCached, useOutbox } from '../../offline/hooks';
@@ -181,15 +181,15 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
   const progress = (l: TodayLesson) => {
     if (l.classbook === null) return null;
     if (closing.has(l.id) && l.classbook !== 'closed')
-      return <Badge tone="info">{t('progress_pending')}</Badge>;
+      return <Chip tone="ok">{t('progress_pending')}</Chip>;
     return (
-      <Badge
+      <Chip
         tone={
-          l.classbook === 'closed' ? 'success' : l.classbook === 'started' ? 'warning' : 'neutral'
+          l.classbook === 'closed' ? 'ok' : l.classbook === 'started' ? 'late' : 'neutral'
         }
       >
         {t(`progress_${l.classbook}`)}
-      </Badge>
+      </Chip>
     );
   };
 
