@@ -21,6 +21,8 @@ export const serverEnvSchema = z.object({
   VAPID_SUBJECT: z.string().optional(),
   /** Virenscan für Uploads (clamd), z. B. tcp://localhost:3310. */
   CLAMAV_URL: z.string().optional(),
+  /** Bearer-Token für GET /metrics; ohne Wert ist der Endpunkt aus. */
+  METRICS_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(24).optional()),
   /** Uploads ohne Virenscan ablehnen (Standard in Produktion). */
   UPLOADS_REQUIRE_SCAN: z.enum(['true', 'false']).optional(),
   SMTP_URL: z.string().min(1),

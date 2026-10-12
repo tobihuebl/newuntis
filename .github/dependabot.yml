@@ -1,0 +1,20 @@
+# Lieferkette (Spec Abschnitt 13): Abhängigkeiten werden wöchentlich geprüft, Sicherheitsupdates sofort.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /infra
+    schedule:
+      interval: weekly

@@ -1,0 +1,26 @@
+# TLS-Proxy vor der Web-App (Spec Abschnitt 7: Caddy). Die API ist nur intern erreichbar (über /api/v1 der Web-App).
+# SCHOOL_HOSTS: Liste der Schul-Adressen, z. B. "demo.schule.example.at, ms-beispiel.schule.example.at".
+# Ein Wildcard-Zertifikat (*.schule.example.at) bräuchte die DNS-Challenge des DNS-Anbieters (Caddy-Plugin).
+{
+	email {$ACME_EMAIL}
+}
+
+{$SCHOOL_HOSTS} {
+	encode zstd gzip
+	header -Server
+	# Sicherheits-Header (CSP mit Nonce, HSTS, …) setzt die Web-App selbst
+	reverse_proxy web:3000 {
+		# Server-Sent Events (/api/v1/events) nicht puffern
+		flush_interval -1
+	}
+	log {
+		# Zugriffsprotokoll ohne Query-Strings und Cookies (keine Personendaten in Logs)
+		format filter {
+			request>uri query {
+				delete *
+			}
+			request>headers>Cookie delete
+			request>headers>Authorization delete
+		}
+	}
+}

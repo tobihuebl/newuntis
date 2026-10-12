@@ -13,3 +13,4 @@ test-results
 playwright-report
 apps/web/e2e/.state*
 apps/api/dist-e2e
+loadtest/sessions.json

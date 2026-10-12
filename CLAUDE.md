@@ -65,6 +65,20 @@ die Spezifikation anpassen, dann bauen.
 - Übersetzungsschlüssel ohne Punkt (next-intl), ein Test prüft das.
 - VAPID-Schlüssel: pnpm --filter @sp/api vapid (Ausgabe in .env eintragen).
 
+## Kommunikation, Lagebild, Datenschutz, Betrieb (M6, siehe ADR 0009)
+
+- Empfänger:innen von Nachrichten nur über `allowedRecipients` (apps/api/src/modules/messages/recipients.ts); erreichbar = Konto, nicht anonymisiert, nicht eingeschränkt.
+- Nachricht an eine Klasse = je Familie ein Gespräch (nie Eltern untereinander sichtbar machen).
+- Rundschreiben halten ihre Empfänger:innen in AnnouncementRead fest; Pflichtkanäle in MANDATORY_CHANNELS (@sp/shared/notifications.ts).
+- Schulweite Auswertungen nur mit `hasScope(user, 'reports.read', 'ALL')`; Klassenvorstand nur eigene Klasse.
+- "Tenant" hat keine RLS: Tenant immer über die Id aus @TenantId() lesen, nie findFirst.
+- Schuleinstellungen nur über update_tenant_settings() (sp_app hat kein UPDATE auf Tenant); Audit-Log löschen nur über prune_audit_log().
+- Löschen von Personen: anonymizePerson() aus apps/api/src/modules/privacy/anonymize.ts (vorher assertCanAnonymize).
+- CSP mit Nonce in apps/web/proxy.ts: keine Inline-Skripte, keine Fremdquellen; Inline-Styles nur als style-Attribut.
+- Neue Benachrichtigungstypen: in NOTIFICATION_TYPES, DEFAULT_CHANNELS, TYPES_FOR_ROLE, Texte und profile.types (de-AT) ergänzen.
+- E2E-Login führt beim ersten Mal durch /willkommen (helpers.ts: completeOnboarding).
+- Betrieb: infra/Dockerfile (Ziele api, web, migrate), infra/docker-compose.prod.yml, Runbooks in docs/runbooks/, Lasttest in loadtest/.
+
 ## Hinweise zur Umgebung
 
 - pnpm liegt ggf. in ~/.local/bin (corepack); PATH entsprechend setzen.

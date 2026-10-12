@@ -3,6 +3,7 @@ import helmet from '@fastify/helmet';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
+import { MetricsService } from './modules/metrics/metrics.service';
 
 export function createAdapter(): FastifyAdapter {
   return new FastifyAdapter({
@@ -37,7 +38,19 @@ export async function configureApp(app: NestFastifyApplication): Promise<void> {
       { parseAs: 'buffer', bodyLimit: 5 * 1024 * 1024 },
       (_req, body, done) => done(null, body),
     );
-  app.setGlobalPrefix('api/v1', { exclude: ['healthz', 'readyz'] });
+  // Fehlerrate für die Überwachung: nur Methode und Statusklasse, keine Pfade (Ids, Personenbezug)
+  const metrics = app.get(MetricsService);
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addHook('onResponse', (req, reply, done) => {
+      metrics.inc('sp_http_requests_total', 'HTTP-Anfragen je Statusklasse', {
+        method: req.method,
+        status: `${Math.floor(reply.statusCode / 100)}xx`,
+      });
+      done();
+    });
+  app.setGlobalPrefix('api/v1', { exclude: ['healthz', 'readyz', 'metrics'] });
   app.enableShutdownHooks();
 }
 

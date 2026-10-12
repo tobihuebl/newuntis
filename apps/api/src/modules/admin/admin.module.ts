@@ -10,6 +10,7 @@ import { InvitationsService } from './invitations.service';
 import { PersonsController } from './persons.controller';
 import { SchoolController } from './school.controller';
 import { SettingsController } from './settings.controller';
+import { RolesController } from './roles.controller';
 
 @Module({
   imports: [AuthModule],
@@ -22,6 +23,7 @@ import { SettingsController } from './settings.controller';
     ImportController,
     AuditController,
     SettingsController,
+    RolesController,
   ],
   providers: [ImportService, InvitationsService],
 })

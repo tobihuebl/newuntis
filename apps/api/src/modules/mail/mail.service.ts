@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { createTransport, type Transporter } from 'nodemailer';
 import { ENV, type Env } from '../../config/env';
+import { MetricsService } from '../metrics/metrics.service';
 
 export interface Mail {
   to: string;
@@ -15,7 +16,10 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
   private readonly transport: Transporter;
 
-  constructor(@Inject(ENV) env: Env) {
+  constructor(
+    @Inject(ENV) env: Env,
+    private readonly metrics: MetricsService,
+  ) {
     this.transport = createTransport(env.SMTP_URL);
   }
 
@@ -26,7 +30,9 @@ export class MailService {
         from: 'Schulplattform <noreply@schulplattform.invalid>',
         ...mail,
       });
+      this.metrics.inc('sp_mail_total', 'E-Mail-Versand', { result: 'sent' });
     } catch (err) {
+      this.metrics.inc('sp_mail_total', 'E-Mail-Versand', { result: 'failed' });
       // Keine Empfängeradresse im Log (personenbezogen).
       this.logger.error(
         `E-Mail-Versand fehlgeschlagen: ${err instanceof Error ? err.message : 'unbekannt'}`,

@@ -189,7 +189,9 @@ Mobil: Tab-Leiste unten mit höchstens 5 Einträgen. Desktop: Seitenleiste links
 | Direktion | Lagebild, Supplierung, Auswertung, Nachrichten, Mehr | `/lagebild`, `/supplierung`, `/auswertung`, `/freigaben`, `/rundschreiben` |
 | Administration | Personen, Klassen, Stundenplan, Import, Mehr | `/admin/personen`, `/admin/klassen`, `/admin/stundenplan`, `/admin/raster`, `/admin/import`, `/admin/rollen`, `/admin/schuljahr`, `/admin/protokoll`, `/admin/datenschutz` |
 
-Für alle Rollen zusätzlich `/profil` und `/benachrichtigungen` (Glocke in der Kopfzeile).
+Für alle Rollen zusätzlich `/profil` und `/benachrichtigungen` (Glocke in der Kopfzeile), dazu `/nachrichten/neu`, `/nachrichten/[id]` (Gespräch) und `/nachrichten/rundschreiben/[id]` (Rundschreiben lesen und bestätigen). Nach dem ersten Login führt `/willkommen` durch Datenschutzhinweis, Push-Einrichtung und kurze Hinweise je Rolle (M6, ADR 0009).
+
+Ergänzungen aus M6 (ADR 0009): Lehrkräfte `/klassen` und `/klassen/[id]` (Schülerliste, Fächer, Nachricht an Eltern), `/raeume` (Belegung je Raum); Klassenvorstand `/auswertung` (eigene Klasse); Direktion `/rundschreiben/neu`, `/rundschreiben/[id]` (Lesestand), `/admin/einstellungen` (lesen); Administration `/admin/einstellungen` (Fristen, Grenzwerte, Aufbewahrung), `/admin/rollen` (Rollenträger:innen und Rechte-Matrix), dazu Lagebild und Auswertung unter "Mehr".
 
 **Schlüssel-Screens (Layout):**
 
@@ -336,6 +338,7 @@ model Person {
   birthDate DateTime? @db.Date
   externalId String? // z. B. Schülernummer aus CSV
   anonymizedAt DateTime?
+  restrictedAt DateTime? // Einschränkung der Verarbeitung (M6): keine Nachrichten, Rundschreiben, Benachrichtigungen
   user User?
   roles RoleAssignment[]
 }
@@ -349,6 +352,7 @@ model User {
   totpSecret String? // verschlüsselt gespeichert
   totpEnabled Boolean @default(false)
   lastLoginAt DateTime?
+  onboardedAt DateTime? // Einführung nach dem ersten Login abgeschlossen (M6)
   @@unique([tenantId, email])
 }
 
@@ -547,7 +551,7 @@ model Exam {
   createdById String
 }
 
-model Thread { id String @id @default(cuid()) tenantId String subject String createdById String createdAt DateTime @default(now()) }
+model Thread { id String @id @default(cuid()) tenantId String subject String createdById String aboutStudentId String? classId String? lastMessageAt DateTime createdAt DateTime @default(now()) } // M6: Gespräch je Familie bei Nachrichten an eine Klasse
 model Message { id String @id @default(cuid()) tenantId String threadId String senderId String body String createdAt DateTime @default(now()) }
 model ThreadParticipant { threadId String personId String tenantId String lastReadAt DateTime? @@id([threadId, personId]) }
 
@@ -556,17 +560,25 @@ model Announcement { // Rundschreiben
   tenantId String
   title String
   body String
-  audience Json // Rollen, Klassen, Gruppen
+  audience Json // { roles, classIds, groupIds }
   requiresRead Boolean @default(false)
+  createdById String
   publishedAt DateTime?
+  remindedAt DateTime? // letzte Erinnerung an fehlende Lesebestätigungen
 }
-model AnnouncementRead { announcementId String personId String tenantId String readAt DateTime @@id([announcementId, personId]) }
+// Eine Zeile je Empfänger:in, angelegt bei Veröffentlichung; readAt leer = ungelesen (M6, ADR 0009)
+model AnnouncementRead { announcementId String personId String tenantId String readAt DateTime? @@id([announcementId, personId]) }
 
 model Notification { id String @id @default(cuid()) tenantId String personId String type String payload Json readAt DateTime? createdAt DateTime @default(now()) }
 model NotificationPreference { id String @id @default(cuid()) tenantId String personId String type String channel String enabled Boolean quietFrom String? quietTo String? }
 model PushSubscription { id String @id @default(cuid()) tenantId String personId String endpoint String @unique keys Json userAgent String? }
 model CalendarToken { id String @id @default(cuid()) tenantId String personId String tokenHash String @unique }
 model FileAsset { id String @id @default(cuid()) tenantId String key String mime String size Int ownerId String createdAt DateTime @default(now()) }
+
+enum PrivacyRequestKind { ACCESS RECTIFICATION ERASURE RESTRICTION }
+enum PrivacyRequestStatus { OPEN DONE REJECTED }
+model PrivacyRequest { id String @id @default(cuid()) tenantId String personId String kind PrivacyRequestKind status PrivacyRequestStatus @default(OPEN) note String? createdById String resolvedById String? resolvedAt DateTime? } // M6
+model Consent { id String @id @default(cuid()) tenantId String personId String kind String version String acceptedAt DateTime @default(now()) @@unique([personId, kind, version]) } // M6: z. B. Datenschutzhinweis
 
 model AuditLog {
   id String @id @default(cuid())
@@ -612,7 +624,7 @@ Noten (`Grade`, `GradeCategory`) kommen in V1 hinzu und folgen denselben Regeln.
 | Bereich | Endpunkte | Rollen |
 | --- | --- | --- |
 | Konto | `POST /auth/login`, `POST /auth/2fa/verify`, `POST /auth/logout`, `POST /auth/invite/accept`, `POST /auth/password/reset-request`, `POST /auth/password/reset` | alle |
-| Profil | `GET /me`, `GET/PATCH /me/preferences`, `GET /me/sessions`, `DELETE /me/sessions/:id`, `GET /me/homework`, `GET /me/export` | alle |
+| Profil | `GET /me`, `GET/PATCH /me/preferences`, `GET /me/sessions`, `DELETE /me/sessions/:id`, `GET /me/homework`, `GET /me/export?format=json\|pdf`, `POST /me/onboarding` | alle |
 | Heute | `GET /today` (rollenabhängige Zusammenfassung) | alle |
 | Pläne | `GET /me/timetable?from&to`, `GET /classes/:id/timetable`, `GET /teachers/:id/timetable`, `GET /rooms/:id/timetable`, `GET /calendar/:token.ics` | alle, je nach Recht |
 | Klassenbuch | `GET /occurrences/:id`, `PUT /occurrences/:id/classbook`, `PUT /occurrences/:id/attendance`, `POST /occurrences/:id/close`, `GET /classbook/open` | Lehrer, Klassenvorstand, Direktion |
@@ -620,16 +632,19 @@ Noten (`Grade`, `GradeCategory`) kommen in V1 hinzu und folgen denselben Regeln.
 | Lehrerabwesenheit | `POST /teacher-absences`, `GET /teacher-absences`, `PUT/DELETE /teacher-absences/:id` | Lehrer (nur sich selbst), Direktion, Administration |
 | Supplierung | `GET /substitutions?date`, `GET /substitutions/:id/suggestions`, `PATCH /substitutions/:id`, `POST /substitutions/publish`, `POST /substitutions` (Änderung ohne Abwesenheit, z. B. Entfall), `DELETE /substitutions/:id` | Direktion, Administration (lesen: alle Betroffenen) |
 | Prüfungen | `GET /exams`, `GET /exams/options`, `POST /exams`, `PATCH /exams/:id`, `DELETE /exams/:id` | Lehrer, Direktion (lesen: Schüler, Eltern) |
-| Nachrichten | `GET /threads`, `POST /threads`, `POST /threads/:id/messages`, `GET /announcements`, `POST /announcements`, `POST /announcements/:id/read` | je nach Rechte-Matrix |
+| Nachrichten | `GET /threads`, `GET /threads/unread`, `GET /threads/recipients`, `POST /threads`, `GET /threads/:id`, `POST /threads/:id/messages`, `POST /threads/:id/read`, `GET /announcements?view=inbox\|sent`, `POST /announcements`, `POST /announcements/preview`, `GET /announcements/:id`, `POST /announcements/:id/read`, `POST /announcements/:id/remind` | je nach Rechte-Matrix (Lesen und Antworten: Teilnehmer:innen) |
+| Klassen der Lehrkraft | `GET /my-classes`, `GET /my-classes/:id` | Lehrer, Klassenvorstand, Direktion |
 | Benachrichtigungen | `GET /notifications`, `POST /notifications/:id/read`, `POST /notifications/read-all`, `GET/PATCH /me/preferences`, `POST /push/subscribe`, `DELETE /push/subscribe` | alle |
 | Echtzeit | `GET /events` (Server-Sent Events) | alle |
 | Stammdaten | `GET/POST/PATCH/DELETE /admin/{persons,classes,groups,subjects,rooms,school-years,periods}`, `POST /admin/guardian-links`, `POST /admin/invitations` | Administration |
 | Import | `POST /admin/import/persons?dryRun=true`, `POST /admin/import/persons/commit` | Administration |
 | Stundenplan | `GET/POST /admin/timetable-versions`, `GET /admin/timetable-versions/:id`, `POST …/lessons`, `PATCH/DELETE …/lessons/:lessonId`, `POST …/validate`, `POST …/publish` | Administration, Veröffentlichung auch Direktion |
-| Auswertung | `GET /dashboard/principal`, `GET /reports/attendance`, `GET /reports/substitutions` | Direktion, Administration |
-| Audit und Datenschutz | `GET /admin/audit`, `GET/POST /admin/privacy/requests` | Administration, Direktion (Audit lesen) |
+| Auswertung | `GET /dashboard/principal?date`, `GET /reports/attendance?from&to&classId&format=json\|csv`, `GET /reports/substitutions?from&to&format` | Direktion, Administration (Anwesenheit: Klassenvorstand für die eigene Klasse) |
+| Audit und Datenschutz | `GET /admin/audit`, `GET/POST /admin/privacy/requests`, `PATCH /admin/privacy/requests/:id`, `GET /admin/privacy/persons/:id/export` | Administration, Direktion (Audit lesen) |
+| Schule | `GET/PATCH /admin/settings` (Fristen, Grenzwerte, Aufbewahrung), `GET /admin/roles` | Administration (Einstellungen lesen: Direktion) |
+| Betrieb | `GET /healthz`, `GET /readyz`, `GET /metrics` (Bearer `METRICS_TOKEN`) | ohne Mandant |
 
-**Echtzeit:** `GET /events` ist ein Server-Sent-Events-Stream pro angemeldetem Gerät, mit `Last-Event-ID` für die Wiederaufnahme. Ereignisse: `occurrence.updated`, `substitution.published`, `absence.reviewed`, `message.new`, `notification.new`. Der Client macht daraufhin die betroffenen TanStack-Query-Abfragen ungültig, es gibt keine Daten im Ereignis selbst außer Ids. Der Stream ist ein Hinweis, Push-Benachrichtigungen laufen getrennt über Web-Push.
+**Echtzeit:** `GET /events` ist ein Server-Sent-Events-Stream pro angemeldetem Gerät, mit `Last-Event-ID` für die Wiederaufnahme. Ereignisse: `occurrence.updated`, `substitution.published`, `absence.reviewed`, `message.new`, `announcement.published`, `notification.new`. Der Client macht daraufhin die betroffenen TanStack-Query-Abfragen ungültig, es gibt keine Daten im Ereignis selbst außer Ids. Der Stream ist ein Hinweis, Push-Benachrichtigungen laufen getrennt über Web-Push.
 
 ## 10. Stundenplan-Editor
 
@@ -728,7 +743,8 @@ Beide Abläufe haben feste Zustände, jede Zustandsänderung wird im Audit-Log f
 | `classbook.open` (offener Eintrag) | Lehrer | In-App, Push optional |
 | `exam.created` | Schüler, Eltern | In-App |
 | `message.new` | Empfänger | Push, In-App |
-| `announcement.published` | Zielgruppe | Push, In-App, Erinnerung bei fehlender Lesebestätigung |
+| `announcement.published` | Zielgruppe | Push, In-App |
+| `announcement.required` (Rundschreiben mit Lesebestätigung, auch Erinnerung) | Zielgruppe | Push, E-Mail, In-App – Pflichtmitteilung, nicht abschaltbar |
 | `invitation.created` | eingeladene Person | E-Mail |
 
 **Ablauf:** Fachmodule rufen `notifications.emit(type, recipients, payload)` auf. Der Dienst legt `Notification`-Zeilen an und stellt pro Kanal einen Job in pg-boss ein. Der Job beachtet `NotificationPreference` und Ruhezeiten, sendet per Web-Push (VAPID) oder E-Mail und wiederholt bei Fehlern mit steigendem Abstand. Antwortet der Push-Dienst mit "Gone" (410), wird die `PushSubscription` gelöscht.
@@ -757,7 +773,7 @@ Offline-Fähigkeit gilt im MVP für **Heute-Ansicht, Stundenplan und Klassenbuch
 
 - **Konten:** Passwörter mit Argon2id, TOTP-Zwei-Faktor mit Wiederherstellungscodes, temporäre Sperre bei wiederholten Fehlversuchen, Geräteliste mit "überall abmelden".
 - **Sitzungen:** Rotierende Session-ID, Ablauf bei Inaktivität (einstellbar), httpOnly, Secure, SameSite=Lax, CSRF-Schutz.
-- **Web-Härtung:** Strenge Content-Security-Policy ohne Fremdquellen, HSTS, Security-Header, striktes CORS.
+- **Web-Härtung:** Strenge Content-Security-Policy ohne Fremdquellen (Nonce je Anfrage, `apps/web/proxy.ts`), HSTS, Security-Header, striktes CORS (API nur über die Web-App erreichbar).
 - **Mandantentrennung:** Row-Level-Security und Policy-Modul. Ein Test prüft für jeden Endpunkt, dass Mandant A keine Daten von Mandant B sieht.
 - **Eingaben und Dateien:** Zod-Validierung überall, Uploads mit Typ- und Größenprüfung, Virenscan, nur signierte URLs, kein öffentlicher Speicher.
 - **Verschlüsselung:** TLS überall, Datenträgerverschlüsselung der Datenbank, TOTP-Geheimnisse zusätzlich auf Anwendungsebene verschlüsselt, Backups verschlüsselt.
@@ -770,7 +786,7 @@ Offline-Fähigkeit gilt im MVP für **Heute-Ansicht, Stundenplan und Klassenbuch
 - Hosting nur in der EU, keine Drittlandübermittlung, Liste der Unterauftragsverarbeiter in `docs/datenschutz/`.
 - Keine Drittanbieter-Skripte, keine externen Schriften, keine Tracker. Optionale Nutzungsstatistik nur selbst gehostet und ohne Personenbezug.
 - **Betroffenenrechte:** Auskunft als Export (JSON und PDF), Berichtigung, Löschung als Anonymisierung (`Person.anonymizedAt`), Einschränkung der Verarbeitung. Verwaltung über `/admin/datenschutz`, Selbstbedienung über `GET /me/export`.
-- **Aufbewahrung:** `settings.retention` pro Datentyp (Nachrichten, Fehlzeiten, Anhänge, Audit-Log). Ein täglicher Job löscht oder anonymisiert nach Ablauf.
+- **Aufbewahrung:** `settings.retention` pro Datentyp (Nachrichten, Fehlzeiten, Anhänge, Benachrichtigungen, Audit-Log mindestens 90 Tage). Ein täglicher Job löscht oder anonymisiert nach Ablauf; das Audit-Log nur über die Datenbankfunktion `prune_audit_log` (M6). Fristen stellt die Administration unter `/admin/einstellungen` ein.
 - **Dokumente für die Schule:** Vorlage Auftragsverarbeitungsvertrag, Verarbeitungsverzeichnis, technisch-organisatorische Maßnahmen und Datenschutz-Folgenabschätzung als Entwurf im Repository.
 - **Minderjährige:** Altersgrenzen und Elternrechte in `settings`, Einwilligungen mit Zeitstempel und Version des Textes gespeichert.
 - Die rechtliche Bewertung (Klassenbuchpflicht, Entschuldigungsfristen, Datenschutz im Schulbereich) erfolgt vor dem Pilotstart durch eine fachkundige Stelle.
@@ -792,10 +808,10 @@ Offline-Fähigkeit gilt im MVP für **Heute-Ansicht, Stundenplan und Klassenbuch
 - **Umgebungen:** lokal (Docker Compose), Staging, Produktion. Migrationen laufen in der Pipeline mit `prisma migrate deploy`.
 - **CI/CD:** GitHub Actions mit Lint, Typprüfung, Tests, Build, Docker-Images und Deployment. Hauptzweig geschützt, Änderungen nur per Pull Request.
 - **Backups:** Tägliche Datenbank-Sicherung plus Point-in-Time-Recovery, Aufbewahrung einstellbar, monatlicher Test der Wiederherstellung.
-- **Überwachung:** `/healthz` und `/readyz`, Metriken, Warnungen bei Fehlerrate, Job-Rückstau und fehlgeschlagenen Pushes, externer Verfügbarkeitscheck.
+- **Überwachung:** `/healthz` und `/readyz`, Metriken (`/metrics`), Warnungen bei Fehlerrate, Job-Rückstau und fehlgeschlagenen Pushes, externer Verfügbarkeitscheck.
 - **Verfügbarkeit:** Ziel in der Schulzeit werktags morgens (zu validieren), Wartung außerhalb der Schulzeit.
 - **Mandanten anlegen:** `pnpm tenant:create` erzeugt Schule, Raster-Vorlage, Administrator und Einladung.
-- **Betriebshandbuch** in `docs/runbooks/`: Schuljahreswechsel, Wiederherstellung, Ausfall des Push-Dienstes, Datenschutzanfrage.
+- **Betriebshandbuch** in `docs/runbooks/`: Betrieb (Aufsetzen, Ausrollen, Überwachen, Lasttest), Schuljahreswechsel, Wiederherstellung, Ausfall des Push-Dienstes, Datenschutzanfrage. Images und Compose-Datei in `infra/`.
 
 ## 14. Umsetzungsplan für Claude Code
 

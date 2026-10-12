@@ -87,6 +87,19 @@ export class QueueService implements OnApplicationBootstrap, OnModuleDestroy {
     this.logger.log(`Jobs gestartet (${this.registrations.map((r) => r.name).join(', ')})`);
   }
 
+  /** Stand der Queues für /metrics (leer, wenn Jobs aus sind). */
+  async stats(): Promise<
+    { name: string; readyCount: number; activeCount: number; failedCount: number }[]
+  > {
+    if (!this.boss) return [];
+    return (await this.boss.getQueues()).map((q) => ({
+      name: q.name,
+      readyCount: q.readyCount,
+      activeCount: q.activeCount,
+      failedCount: q.failedCount,
+    }));
+  }
+
   async onModuleDestroy(): Promise<void> {
     await this.boss?.stop({ graceful: true });
   }

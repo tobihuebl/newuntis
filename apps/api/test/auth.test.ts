@@ -275,4 +275,32 @@ describe('Ratenbegrenzung', () => {
       await h.close();
     }
   });
+
+  it('pro Sitzung: Route mit Limit und Grundlimit für Schreibzugriffe', async () => {
+    process.env.SP_TEST_RATELIMIT = 'on';
+    const h = await Harness.create();
+    try {
+      const t = await h.createTenant();
+      const u = await h.createUser(t.id, [{ role: 'STUDENT' }], undefined, 'STUDENT');
+      const { client } = await h.loginFully(t.slug, u.email);
+      // Grundlimit für Schreibzugriffe einer Sitzung
+      const { SESSION_LIMITS } = await import('../src/common/rate-limit.guard');
+      const original = SESSION_LIMITS.write;
+      SESSION_LIMITS.write = { limit: 3, windowSeconds: 60 };
+      try {
+        const statuses: number[] = [];
+        for (let i = 0; i < 5; i++)
+          statuses.push((await client.post('/notifications/read-all')).status);
+        expect(statuses.slice(0, 3).every((s) => s < 400)).toBe(true);
+        expect(statuses.slice(3)).toEqual([429, 429]);
+        // Lesen hat ein eigenes, höheres Kontingent
+        expect((await client.get('/me')).status).toBe(200);
+      } finally {
+        SESSION_LIMITS.write = original;
+      }
+    } finally {
+      delete process.env.SP_TEST_RATELIMIT;
+      await h.close();
+    }
+  });
 });

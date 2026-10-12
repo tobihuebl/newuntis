@@ -16,6 +16,7 @@ import { EventsService } from '../events/events.service';
 import { QueueService } from '../jobs/queue.service';
 import { MailQueue } from '../mail/mail-queue.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { MetricsService } from '../metrics/metrics.service';
 import { PushSender, type PushTarget } from './push.sender';
 import { ENV, type Env } from '../../config/env';
 
@@ -56,6 +57,7 @@ export class NotificationsService implements OnModuleInit {
     private readonly events: EventsService,
     private readonly push: PushSender,
     private readonly mail: MailQueue,
+    private readonly metrics: MetricsService,
     @Inject(ENV) private readonly env: Env,
   ) {}
 
@@ -241,6 +243,7 @@ export class NotificationsService implements OnModuleInit {
         { endpoint: s.endpoint, keys: s.keys as unknown as PushTarget['keys'] },
         payload,
       );
+      this.metrics.inc('sp_push_total', 'Web-Push-Zustellungen je Ergebnis', { result: r });
       if (r === 'gone') gone.push(s.id);
       if (r === 'failed') failed++;
     }

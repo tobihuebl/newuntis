@@ -1,0 +1,76 @@
+# Betrieb auf einem EU-Server (z. B. Hetzner), siehe docs/runbooks/betrieb.md.
+# Start: docker compose -f infra/docker-compose.prod.yml --env-file /etc/schulplattform/env up -d
+# Migrationen: docker compose -f infra/docker-compose.prod.yml --env-file … run --rm migrate
+name: schulplattform
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: schulplattform
+    volumes: ['pgdata:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d schulplattform']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+
+  migrate:
+    image: ${IMAGE_PREFIX:-ghcr.io/tobihuebl/newuntis}/migrate:${IMAGE_TAG:-latest}
+    profiles: ['tools']
+    env_file: ${ENV_FILE:-/etc/schulplattform/env}
+    depends_on: { postgres: { condition: service_healthy } }
+    networks: [internal]
+
+  api:
+    image: ${IMAGE_PREFIX:-ghcr.io/tobihuebl/newuntis}/api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: ${ENV_FILE:-/etc/schulplattform/env}
+    environment:
+      API_HOST: 0.0.0.0
+      CLAMAV_URL: tcp://clamav:3310
+      UPLOADS_REQUIRE_SCAN: 'true'
+    depends_on:
+      postgres: { condition: service_healthy }
+      clamav: { condition: service_started }
+    networks: [internal]
+
+  web:
+    image: ${IMAGE_PREFIX:-ghcr.io/tobihuebl/newuntis}/web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: ${ENV_FILE:-/etc/schulplattform/env}
+    depends_on: [api]
+    networks: [internal, edge]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    environment:
+      SCHOOL_HOSTS: ${SCHOOL_HOSTS}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web]
+    networks: [edge]
+
+  clamav:
+    image: clamav/clamav:stable
+    restart: unless-stopped
+    networks: [internal]
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+
+# Keine Ports außer Caddy veröffentlicht. "internal" braucht ausgehenden Zugang (SMTP, S3, Push-Dienste,
+# Virensignaturen), ist aber von außen nicht erreichbar.
+networks:
+  internal:
+  edge:

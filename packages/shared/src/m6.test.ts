@@ -119,3 +119,25 @@ describe('Auswertungen und Einstellungen', () => {
     ).toBe(true);
   });
 });
+
+describe('Umgebung', () => {
+  it('leeres METRICS_TOKEN schaltet /metrics ab, zu kurzes ist ein Fehler', async () => {
+    const { serverEnvSchema } = await import('./env');
+    const base = {
+      DATABASE_URL: 'postgresql://x',
+      DATABASE_APP_URL: 'postgresql://y',
+      BASE_DOMAIN: 'localhost',
+      SESSION_SECRET: 'x'.repeat(32),
+      APP_URL: 'http://localhost:3000',
+      API_URL: 'http://localhost:4000',
+      SMTP_URL: 'smtp://localhost:1025',
+      S3_ENDPOINT: 'http://localhost:9000',
+      S3_BUCKET: 'b',
+      S3_ACCESS_KEY: 'a',
+      S3_SECRET_KEY: 's',
+      ENCRYPTION_KEY: btoa('x'.repeat(32)),
+    };
+    expect(serverEnvSchema.parse({ ...base, METRICS_TOKEN: '' }).METRICS_TOKEN).toBeUndefined();
+    expect(serverEnvSchema.safeParse({ ...base, METRICS_TOKEN: 'kurz' }).success).toBe(false);
+  });
+});

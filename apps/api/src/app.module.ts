@@ -9,6 +9,8 @@ import { ExamsModule } from './modules/exams/exams.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { PrivacyModule } from './modules/privacy/privacy.module';
+import { MetricsCoreModule } from './modules/metrics/metrics.service';
+import { MetricsController } from './modules/metrics/metrics.controller';
 import { ClassbookModule } from './modules/classbook/classbook.module';
 import { EventsModule } from './modules/events/events.module';
 import { JobsModule } from './modules/jobs/jobs.module';
@@ -29,6 +31,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
 
 @Module({
   imports: [
+    MetricsCoreModule,
     PrismaModule,
     QueueModule,
     MailModule,
@@ -51,6 +54,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     JobsModule,
     HealthModule,
   ],
+  controllers: [MetricsController],
   providers: [
     // Reihenfolge ist wesentlich: erst Mandant, dann Ratenbegrenzung, dann Anmeldung und Rechte.
     { provide: APP_GUARD, useClass: TenantGuard },
