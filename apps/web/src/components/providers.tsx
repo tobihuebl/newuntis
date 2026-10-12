@@ -72,6 +72,18 @@ function EventStream() {
         for (const id of ids) void qc.invalidateQueries({ queryKey: ['occurrence', id] });
         void qc.invalidateQueries({ queryKey: ['today'] });
         void qc.invalidateQueries({ queryKey: ['classbook'] });
+        void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      });
+      es.addEventListener('message.new', (e) => {
+        const { ids } = JSON.parse((e as MessageEvent<string>).data) as { ids: string[] };
+        for (const id of ids) void qc.invalidateQueries({ queryKey: ['thread', id] });
+        void qc.invalidateQueries({ queryKey: ['threads'] });
+        void qc.invalidateQueries({ queryKey: ['inbox'] });
+      });
+      es.addEventListener('announcement.published', () => {
+        void qc.invalidateQueries({ queryKey: ['announcements'] });
+        void qc.invalidateQueries({ queryKey: ['inbox'] });
+        void qc.invalidateQueries({ queryKey: ['today'] });
       });
       es.addEventListener('notification.new', () => {
         void qc.invalidateQueries({ queryKey: ['notifications'] });

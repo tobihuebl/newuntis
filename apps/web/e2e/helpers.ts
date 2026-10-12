@@ -15,6 +15,7 @@ export const accounts = () =>
     studentEmail: string;
     principalEmail: string;
     guardianEmail: string;
+    databaseUrl: string;
   };
 
 type Secrets = Record<string, { secret: string; step: number }>;
@@ -59,5 +60,17 @@ export async function login(page: Page, email: string, landing: RegExp) {
     await page.getByLabel('Code').fill(totp(email, saved!.secret));
     await page.getByLabel('Code').press('Enter');
   }
+  // Beim ersten Login: Einführung mit Datenschutzhinweis (M6); Umleitungen erst abwarten
+  await page.waitForURL((u) => u.pathname === '/willkommen' || landing.test(u.href));
+  await page.waitForLoadState('networkidle');
+  if (new URL(page.url()).pathname === '/willkommen') await completeOnboarding(page);
   await expect(page).toHaveURL(landing);
+}
+
+/** Einführung durchklicken: Datenschutzhinweis bestätigen, Push überspringen, Hinweise lesen. */
+export async function completeOnboarding(page: Page) {
+  await page.getByLabel('Ich habe den Datenschutzhinweis gelesen.').check();
+  await page.getByRole('button', { name: 'Weiter' }).click();
+  await page.getByRole('button', { name: 'Weiter' }).click();
+  await page.getByRole('button', { name: 'Los geht’s' }).click();
 }

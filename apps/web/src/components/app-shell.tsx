@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Button, Sheet, cn } from '@sp/ui';
 import type { NavItem } from '@sp/shared';
 import { apiPost } from '../lib/api-client';
+import { useApi } from '../lib/use-api';
 import { clearOfflineData, db } from '../offline/db';
 import { NAV_ICONS } from './nav-icons';
 import { NotificationBell } from './notifications/bell';
@@ -27,6 +28,9 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
   const router = useRouter();
   const [unsynced, setUnsynced] = useState(0);
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  // Ungelesene Nachrichten und Rundschreiben am Tab (aktualisiert über den Echtzeit-Stream)
+  const inbox = useApi<{ messages: number; announcements: number }>(['inbox'], '/threads/unread');
+  const unread = (inbox.data?.messages ?? 0) + (inbox.data?.announcements ?? 0);
 
   /** Abmelden leert den lokalen Speicher (Spec Abschnitt 12); offene Änderungen vorher ansagen. */
   async function logout(force = false) {
@@ -61,8 +65,21 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
           layout === 'side' && active && 'bg-surface-2',
         )}
       >
-        <Icon aria-hidden="true" size={layout === 'tab' ? 22 : 20} />
-        <span>{t(item.labelKey)}</span>
+        <span className="relative">
+          <Icon aria-hidden="true" size={layout === 'tab' ? 22 : 20} />
+          {item.href === '/nachrichten' && unread > 0 ? (
+            <span
+              aria-hidden="true"
+              className="absolute -right-1.5 -top-1 h-2.5 w-2.5 rounded-full bg-danger"
+            />
+          ) : null}
+        </span>
+        <span>
+          {t(item.labelKey)}
+          {item.href === '/nachrichten' && unread > 0 ? (
+            <span className="sr-only">, {t('unread', { count: unread })}</span>
+          ) : null}
+        </span>
       </Link>
     );
   };

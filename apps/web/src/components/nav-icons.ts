@@ -19,6 +19,7 @@ import {
   MessageSquare,
   NotebookPen,
   ScrollText,
+  Settings,
   ShieldCheck,
   Upload,
   UserRound,
@@ -54,4 +55,5 @@ export const NAV_ICONS: Record<string, LucideIcon> = {
   'scroll-text': ScrollText,
   'shield-check': ShieldCheck,
   lock: Lock,
+  settings: Settings,
 };

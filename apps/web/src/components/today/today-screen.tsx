@@ -1,5 +1,11 @@
 'use client';
-import { BookOpenCheck, CalendarDays, ClipboardList, UserRoundCog } from 'lucide-react';
+import {
+  BookOpenCheck,
+  CalendarDays,
+  ClipboardList,
+  MessageSquare,
+  UserRoundCog,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -98,6 +104,7 @@ export function TodayScreen() {
       ) : (
         <>
           <CachedHint result={q.data} />
+          <InboxHint data={q.data.data} />
           {q.data.data.view === 'teacher' ? (
             <TeacherToday data={q.data.data} fromCache={q.data.fromCache} />
           ) : q.data.data.view === 'none' ? (
@@ -110,6 +117,46 @@ export function TodayScreen() {
         </>
       )}
     </div>
+  );
+}
+
+/** Ungelesene Nachrichten und Rundschreiben (Spec Abschnitt 5: "ungelesene Mitteilungen"). */
+function InboxHint({ data }: { data: TodayResponse }) {
+  const t = useTranslations('today');
+  // Ältere Offline-Stände haben noch keine Zähler
+  const inbox = data.inbox as TodayResponse['inbox'] | undefined;
+  if (!inbox || inbox.messages + inbox.announcements === 0) return null;
+  return (
+    <Link
+      href={
+        inbox.announcements > 0 && inbox.messages === 0
+          ? '/nachrichten?ansicht=rundschreiben'
+          : '/nachrichten'
+      }
+      className={cn(
+        'flex min-h-12 items-center gap-3 rounded-md border bg-surface px-4 py-2 hover:bg-surface-2',
+        inbox.required > 0 ? 'border-warning' : 'border-border',
+      )}
+    >
+      <MessageSquare aria-hidden="true" size={20} className="shrink-0 text-primary" />
+      <span className="flex flex-col">
+        <span className="font-medium">
+          {[
+            inbox.messages > 0 ? t('unreadMessages', { count: inbox.messages }) : null,
+            inbox.announcements > 0
+              ? t('unreadAnnouncements', { count: inbox.announcements })
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </span>
+        {inbox.required > 0 ? (
+          <span className="text-sm text-warning">
+            {t('confirmRequired', { count: inbox.required })}
+          </span>
+        ) : null}
+      </span>
+    </Link>
   );
 }
 

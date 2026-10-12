@@ -11,6 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { me } = r;
   if (me.stage === 'NEEDS_2FA_VERIFY') redirect('/2fa');
   if (me.stage === 'NEEDS_2FA_SETUP') redirect('/2fa/einrichten');
+  if (me.needsOnboarding) redirect('/willkommen');
   const t = await getTranslations('roles');
   const roles = [...new Set(me.user.roles.map((x) => x.role))];
   const nav = navigationFor(roles);

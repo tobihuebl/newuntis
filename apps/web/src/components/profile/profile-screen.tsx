@@ -1,5 +1,6 @@
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
+import { Download } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -99,6 +100,8 @@ export function ProfileScreen(p: ProfileProps) {
       </Section>
 
       <Devices twoFactor={p.twoFactor} />
+
+      <MyData />
     </div>
   );
 }
@@ -156,12 +159,18 @@ function NotificationSettings() {
                   <tr key={type} className="border-t border-border">
                     <th scope="row" className="py-1 pr-2 text-left font-normal">
                       {t(`types.${type.replace('.', '_')}`)}
+                      {q.data.mandatory.some((m) => m.type === type) ? (
+                        <span className="block text-xs text-muted">{t('mandatory')}</span>
+                      ) : null}
                     </th>
                     <td className="px-2 text-muted">{t('always')}</td>
                     {(['push', 'email'] as const).map((channel) => (
                       <td key={channel} className="px-2">
                         <Switch
                           checked={enabled(type, channel)}
+                          disabled={q.data!.mandatory.some(
+                            (m) => m.type === type && m.channel === channel,
+                          )}
                           hideLabel
                           label={`${t(`types.${type.replace('.', '_')}`)}: ${channel === 'push' ? t('channelPush') : t('channelEmail')}`}
                           onCheckedChange={(v) =>
@@ -213,6 +222,31 @@ function NotificationSettings() {
           </p>
         </>
       )}
+    </Section>
+  );
+}
+
+/** Datenauskunft zur Selbstbedienung (Spec Abschnitt 13: GET /me/export als JSON und PDF). */
+function MyData() {
+  const t = useTranslations('profile');
+  return (
+    <Section title={t('myData')}>
+      <p className="text-sm">{t('myDataText')}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" asChild>
+          <a href="/api/v1/me/export?format=pdf" download>
+            <Download aria-hidden="true" size={18} />
+            {t('exportPdf')}
+          </a>
+        </Button>
+        <Button variant="ghost" asChild>
+          <a href="/api/v1/me/export?format=json" download>
+            <Download aria-hidden="true" size={18} />
+            {t('exportJson')}
+          </a>
+        </Button>
+      </div>
+      <p className="text-sm text-muted">{t('myDataHelp')}</p>
     </Section>
   );
 }

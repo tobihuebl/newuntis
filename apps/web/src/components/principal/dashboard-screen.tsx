@@ -1,0 +1,263 @@
+'use client';
+import {
+  ArrowLeftRight,
+  BookX,
+  CalendarX2,
+  ChevronLeft,
+  ChevronRight,
+  FileClock,
+  UserRoundX,
+  UsersRound,
+  type LucideIcon,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { addDays, nextWeekday, type PrincipalDashboard, type TimelineKind } from '@sp/shared';
+import { Badge, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
+import { longDate, timeOf, todayVienna, weekdayDate } from '../../lib/dates';
+import { useApi } from '../../lib/use-api';
+
+const TONE: Record<TimelineKind, 'danger' | 'warning' | 'info' | 'neutral'> = {
+  cancelled: 'danger',
+  open: 'warning',
+  substituted: 'warning',
+  supervision: 'warning',
+  roomChanged: 'info',
+  missingClassbook: 'neutral',
+};
+
+function prevWeekday(date: string): string {
+  let d = addDays(date, -1);
+  while ([0, 6].includes(new Date(`${d}T00:00:00Z`).getUTCDay())) d = addDays(d, -1);
+  return d;
+}
+
+/**
+ * Lagebild der Direktion (DB-02, Spec Abschnitt 5): Karten mit Fehlenden, Entfall, offenen Supplierungen und
+ * fehlenden Klassenbuch-Einträgen, darunter der Zeitstrahl des Tages. Jede Karte führt zur Aktion.
+ */
+export function DashboardScreen() {
+  const t = useTranslations('dashboard');
+  const tc = useTranslations('common');
+  const router = useRouter();
+  const today = todayVienna();
+  const date = useSearchParams().get('datum') ?? today;
+  const q = useApi<PrincipalDashboard>(['dashboard', date], `/dashboard/principal?date=${date}`);
+  const d = q.data;
+  const go = (to: string) => router.push(to === today ? '/lagebild' : `/lagebild?datum=${to}`);
+
+  const cards: {
+    key: keyof PrincipalDashboard['cards'];
+    icon: LucideIcon;
+    href: string;
+    tone: 'danger' | 'warning' | 'info' | 'neutral';
+  }[] = [
+    {
+      key: 'teachersAbsent',
+      icon: UserRoundX,
+      href: `/supplierung?datum=${date}`,
+      tone: 'warning',
+    },
+    {
+      key: 'openSubstitutions',
+      icon: ArrowLeftRight,
+      href: `/supplierung?datum=${date}`,
+      tone: 'warning',
+    },
+    { key: 'cancelled', icon: CalendarX2, href: `/supplierung?datum=${date}`, tone: 'danger' },
+    { key: 'missingClassbook', icon: BookX, href: '#fehlend', tone: 'neutral' },
+    { key: 'studentsAbsent', icon: UsersRound, href: '/auswertung', tone: 'info' },
+    { key: 'pendingExcuses', icon: FileClock, href: '/klasse', tone: 'info' },
+  ];
+
+  return (
+    <div className="mx-auto flex max-w-5xl flex-col gap-5 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">{t('title')}</h1>
+          <p className="text-sm text-muted">{longDate(date)}</p>
+        </div>
+        <nav aria-label={t('day')} className="flex gap-2">
+          <Button variant="secondary" onClick={() => go(prevWeekday(date))}>
+            <ChevronLeft aria-hidden="true" size={18} />
+            <span className="sr-only sm:not-sr-only">{t('prev')}</span>
+          </Button>
+          {date !== today ? (
+            <Button variant="ghost" onClick={() => go(today)}>
+              {t('today')}
+            </Button>
+          ) : null}
+          <Button variant="secondary" onClick={() => go(nextWeekday(date))}>
+            <span className="sr-only sm:not-sr-only">{t('next')}</span>
+            <ChevronRight aria-hidden="true" size={18} />
+          </Button>
+        </nav>
+      </div>
+
+      {q.isPending ? (
+        <Skeleton className="h-64 w-full" />
+      ) : q.isError || !d ? (
+        <Card>
+          <EmptyState
+            title={tc('error')}
+            action={
+              <Button variant="secondary" onClick={() => void q.refetch()}>
+                {tc('retry')}
+              </Button>
+            }
+          />
+        </Card>
+      ) : (
+        <>
+          <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+            {cards.map((c) => {
+              const n = d.cards[c.key];
+              const Icon = c.icon;
+              return (
+                <li key={c.key}>
+                  <Link
+                    href={c.href}
+                    className={cn(
+                      'flex min-h-24 flex-col justify-between gap-2 rounded-md border bg-surface p-4 hover:bg-surface-2',
+                      n > 0 && c.tone === 'danger' && 'border-danger',
+                      n > 0 && c.tone === 'warning' && 'border-warning',
+                      (n === 0 || c.tone === 'info' || c.tone === 'neutral') && 'border-border',
+                    )}
+                  >
+                    <span className="flex items-center gap-2 text-sm text-muted">
+                      <Icon aria-hidden="true" size={18} />
+                      {t(`card_${c.key}`)}
+                    </span>
+                    <span className="text-3xl font-semibold tabular-nums">{n}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {d.teachersAbsent.length > 0 ? (
+            <section aria-labelledby="absent-h" className="flex flex-col gap-2">
+              <h2 id="absent-h" className="text-lg font-semibold">
+                {t('absentTeachers')}
+              </h2>
+              <Card className="p-0">
+                <ul>
+                  {d.teachersAbsent.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex min-h-12 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 last:border-b-0"
+                    >
+                      <span>
+                        <span className="font-medium">{a.teacher.name}</span>
+                        <span className="text-sm text-muted"> · {t(`kind_${a.kind}`)}</span>
+                      </span>
+                      <span className="flex items-center gap-2 text-sm">
+                        {t('affected', { count: a.affected })}
+                        {a.open > 0 ? (
+                          <Badge tone="warning">{t('open', { count: a.open })}</Badge>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </section>
+          ) : null}
+
+          <section aria-labelledby="timeline-h" className="flex flex-col gap-2">
+            <h2 id="timeline-h" className="text-lg font-semibold">
+              {t('timeline')}
+            </h2>
+            {d.timeline.length === 0 ? (
+              <Card>
+                <p className="text-muted">{t('timelineEmpty')}</p>
+              </Card>
+            ) : (
+              <Card className="p-0">
+                <ol>
+                  {d.timeline.map((x) => (
+                    <li
+                      key={x.occurrenceId}
+                      className="flex min-h-14 items-center gap-3 border-b border-border px-4 py-2 last:border-b-0"
+                    >
+                      <span className="w-24 shrink-0 text-sm tabular-nums">
+                        <span className="block font-medium">
+                          {x.periodCount > 1
+                            ? t('periods', {
+                                from: x.periodStart,
+                                to: x.periodStart + x.periodCount - 1,
+                              })
+                            : t('period', { n: x.periodStart })}
+                        </span>
+                        <span className="block text-xs text-muted">{timeOf(x.startsAt)}</span>
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium">
+                          {x.className ? `${x.className} · ` : ''}
+                          {x.subject}
+                        </span>
+                        <span className="block truncate text-sm text-muted">
+                          {x.teachers.join(', ')}
+                        </span>
+                      </span>
+                      {x.kind === 'missingClassbook' ? (
+                        <Link
+                          href={`/klassenbuch/${x.occurrenceId}`}
+                          className="text-sm text-primary underline-offset-2 hover:underline"
+                        >
+                          {t('kindmissingClassbook')}
+                        </Link>
+                      ) : (
+                        <Badge tone={TONE[x.kind]}>{t(`kind${x.kind}`)}</Badge>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </Card>
+            )}
+          </section>
+
+          <section
+            id="fehlend"
+            aria-labelledby="missing-h"
+            className="flex scroll-mt-4 flex-col gap-2"
+          >
+            <h2 id="missing-h" className="text-lg font-semibold">
+              {t('missing', { count: d.cards.missingClassbook })}
+            </h2>
+            {d.missingClassbook.length === 0 ? (
+              <Card>
+                <p className="text-muted">{t('missingEmpty')}</p>
+              </Card>
+            ) : (
+              <Card className="p-0">
+                <ul>
+                  {d.missingClassbook.map((m) => (
+                    <li key={m.occurrenceId} className="border-b border-border last:border-b-0">
+                      <Link
+                        href={`/klassenbuch/${m.occurrenceId}`}
+                        className="flex min-h-12 items-center gap-3 px-4 py-2 hover:bg-surface-2"
+                      >
+                        <span className="w-28 shrink-0 text-sm tabular-nums">
+                          {weekdayDate(m.date)}, {t('period', { n: m.periodStart })}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {m.className ? `${m.className} · ` : ''}
+                          {m.subject}
+                        </span>
+                        <span className="hidden truncate text-sm text-muted sm:block">
+                          {m.teachers.join(', ')}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+          </section>
+        </>
+      )}
+    </div>
+  );
+}

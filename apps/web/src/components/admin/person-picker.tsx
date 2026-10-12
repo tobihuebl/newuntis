@@ -12,13 +12,13 @@ interface Hit {
   email: string | null;
 }
 
-/** Sucht Personen einer Art und meldet die gewählte zurück. */
+/** Sucht Personen (einer Art oder aller Arten) und meldet die gewählte zurück. */
 export function PersonPicker({
   kind,
   label,
   onPick,
 }: {
-  kind: 'STUDENT' | 'GUARDIAN';
+  kind?: 'STUDENT' | 'GUARDIAN' | 'TEACHER' | 'STAFF';
   label: string;
   onPick: (id: string, name: string) => void;
 }) {
@@ -34,7 +34,7 @@ export function PersonPicker({
     const timer = setTimeout(() => {
       apiRequest<{ data: Hit[] }>(
         'GET',
-        `/admin/persons?kind=${kind}&limit=8&q=${encodeURIComponent(q.trim())}`,
+        `/admin/persons?${kind ? `kind=${kind}&` : ''}limit=8&q=${encodeURIComponent(q.trim())}`,
       )
         .then((r) => setHits(r.data))
         .catch(() => setHits([]));

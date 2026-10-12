@@ -1,0 +1,45 @@
+import { DoorOpen } from 'lucide-react';
+import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
+import { Card, EmptyState } from '@sp/ui';
+import { apiGet } from '../../../src/lib/api-server';
+import { requireRoute } from '../../../src/lib/route-guard';
+
+interface Directory {
+  rooms: { id: string; name: string }[];
+}
+
+/** Räume (Spec Abschnitt 5): Übersicht mit Belegungsplan je Raum. */
+export default async function RaeumePage() {
+  await requireRoute('/raeume');
+  const t = await getTranslations('rooms');
+  const { rooms } = await apiGet<Directory>('/timetable/directory');
+  return (
+    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+      <div>
+        <h1 className="text-2xl font-semibold">{t('title')}</h1>
+        <p className="text-sm text-muted">{t('intro')}</p>
+      </div>
+      {rooms.length === 0 ? (
+        <Card>
+          <EmptyState title={t('empty')} />
+        </Card>
+      ) : (
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {rooms.map((r) => (
+            <li key={r.id}>
+              <Link
+                href={`/plan?room=${r.id}`}
+                className="flex min-h-16 items-center gap-3 rounded-md border border-border bg-surface px-4 hover:bg-surface-2"
+              >
+                <DoorOpen aria-hidden="true" size={20} className="text-muted" />
+                <span className="font-medium">{r.name}</span>
+                <span className="sr-only">{t('openPlan')}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

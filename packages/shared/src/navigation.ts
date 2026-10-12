@@ -87,6 +87,8 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/fehlzeiten',
       '/klassen',
       '/klassen/[id]',
+      '/raeume',
+      '/auswertung',
     ],
   },
   PRINCIPAL: {
@@ -101,7 +103,13 @@ const NAV: Record<Role, RoleNav> = {
     routes: [
       '/freigaben',
       '/rundschreiben',
+      '/rundschreiben/neu',
+      '/rundschreiben/[id]',
       '/profil',
+      '/klassen',
+      '/klassen/[id]',
+      '/raeume',
+      '/admin/einstellungen',
       '/klassenbuch/[occurrenceId]', // Korrektur durch die Direktion
       '/klasse',
       '/klasse/[id]/entschuldigungen',
@@ -143,8 +151,13 @@ const NAV: Record<Role, RoleNav> = {
       '/admin/schuljahr',
       '/admin/protokoll',
       '/admin/datenschutz',
+      '/admin/einstellungen',
       '/nachrichten',
       '/rundschreiben',
+      '/rundschreiben/neu',
+      '/rundschreiben/[id]',
+      '/lagebild',
+      '/auswertung',
       '/supplierung',
       '/profil',
       '/abwesenheit/neu',
@@ -171,8 +184,11 @@ const MORE: Partial<Record<Role, NavItem[]>> = {
     { labelKey: 'faecher', href: '/admin/faecher', icon: 'book-open' },
     { labelKey: 'raeume', href: '/admin/raeume', icon: 'door-open' },
     { labelKey: 'protokoll', href: '/admin/protokoll', icon: 'scroll-text' },
+    { labelKey: 'einstellungen', href: '/admin/einstellungen', icon: 'settings' },
   ],
   ADMIN: [
+    { labelKey: 'lagebild', href: '/lagebild', icon: 'layout-dashboard' },
+    { labelKey: 'auswertung', href: '/auswertung', icon: 'chart-column' },
     { labelKey: 'plan', href: '/plan', icon: 'calendar-range' },
     { labelKey: 'schuljahr', href: '/admin/schuljahr', icon: 'calendar-range' },
     { labelKey: 'raster', href: '/admin/raster', icon: 'clock' },
@@ -181,6 +197,8 @@ const MORE: Partial<Record<Role, NavItem[]>> = {
     { labelKey: 'rollen', href: '/admin/rollen', icon: 'shield-check' },
     { labelKey: 'protokoll', href: '/admin/protokoll', icon: 'scroll-text' },
     { labelKey: 'datenschutz', href: '/admin/datenschutz', icon: 'lock' },
+    { labelKey: 'einstellungen', href: '/admin/einstellungen', icon: 'settings' },
+    { labelKey: 'nachrichten', href: '/nachrichten', icon: 'message-square' },
     { labelKey: 'rundschreiben', href: '/rundschreiben', icon: 'megaphone' },
     { labelKey: 'supplierung', href: '/supplierung', icon: 'arrow-left-right' },
     { labelKey: 'entschuldigungen', href: '/klasse', icon: 'file-check' },
@@ -207,7 +225,15 @@ export function navigationFor(roles: readonly Role[]): Navigation {
   const ordered = ROLE_PRIORITY.filter((r) => roles.includes(r));
   const primary = ordered[0];
   if (!primary) return { home: '/profil', tabs: [profil], allowedRoutes: ['/profil'] };
-  const allowed = new Set<string>(['/profil', '/nachrichten', '/mehr', '/benachrichtigungen']);
+  const allowed = new Set<string>([
+    '/profil',
+    '/nachrichten',
+    '/nachrichten/neu',
+    '/nachrichten/[id]',
+    '/nachrichten/rundschreiben/[id]',
+    '/mehr',
+    '/benachrichtigungen',
+  ]);
   for (const role of ordered) {
     for (const t of NAV[role].tabs) allowed.add(t.href);
     for (const r of NAV[role].routes) allowed.add(r);

@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { accounts, login } from './helpers';
+import pg from 'pg';
+import { accounts, completeOnboarding, login } from './helpers';
 
 /** Barrierefreiheit (Spec Abschnitt 13): Kernseiten ohne Verstöße gegen WCAG 2.2 AA (axe). */
 async function check(page: Page, path: string) {
@@ -35,6 +36,25 @@ for (const scheme of ['light', 'dark'] as const) {
       await check(page, '/pruefungen');
       await check(page, '/krankmeldung');
       await check(page, '/klasse');
+      await check(page, '/klassen');
+      await check(page, '/nachrichten');
+      await check(page, '/nachrichten/neu');
+      await check(page, '/raeume');
+    });
+
+    test('Einführung nach dem ersten Login', async ({ page }) => {
+      const { studentEmail, databaseUrl } = accounts();
+      await login(page, studentEmail, /\/heute$/);
+      // Einführung erneut fällig machen (z. B. neue Fassung des Datenschutzhinweises)
+      const db = new pg.Client({ connectionString: databaseUrl });
+      await db.connect();
+      await db.query('UPDATE "User" SET "onboardedAt" = NULL WHERE email = $1', [studentEmail]);
+      await db.end();
+      await page.goto('/heute');
+      await expect(page).toHaveURL(/\/willkommen$/);
+      await check(page, '/willkommen');
+      await completeOnboarding(page);
+      await expect(page).toHaveURL(/\/heute$/);
     });
 
     test('Schüler:in: Heute, Plan, Aufgaben, Profil, Benachrichtigungen', async ({ page }) => {
@@ -44,6 +64,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await check(page, '/aufgaben');
       await check(page, '/profil');
       await check(page, '/benachrichtigungen');
+      await check(page, '/nachrichten?ansicht=rundschreiben');
     });
 
     test('Eltern: Abwesenheit melden, Fehlzeiten, Termine', async ({ page }) => {
@@ -58,15 +79,24 @@ for (const scheme of ['light', 'dark'] as const) {
       await check(page, href!);
     });
 
-    test('Direktion: Supplierung', async ({ page }) => {
+    test('Direktion: Lagebild, Supplierung, Auswertung, Rundschreiben', async ({ page }) => {
       await login(page, accounts().principalEmail, /\/lagebild$/);
+      await check(page, '/lagebild');
       await check(page, '/supplierung');
+      await check(page, '/auswertung');
+      await check(page, '/auswertung?ansicht=supplierungen');
+      await check(page, '/rundschreiben');
+      await check(page, '/rundschreiben/neu');
+      await check(page, '/freigaben');
     });
 
     test('Administration: Personen und Stundenplan', async ({ page }) => {
       await login(page, accounts().adminEmail, /\/admin\/personen$/);
       await check(page, '/admin/personen');
       await check(page, '/admin/stundenplan');
+      await check(page, '/admin/datenschutz');
+      await check(page, '/admin/einstellungen');
+      await check(page, '/admin/rollen');
     });
   });
 }

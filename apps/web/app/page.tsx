@@ -8,5 +8,6 @@ export default async function Home() {
   if (!r.ok) redirect('/login');
   if (r.me.stage === 'NEEDS_2FA_VERIFY') redirect('/2fa');
   if (r.me.stage === 'NEEDS_2FA_SETUP') redirect('/2fa/einrichten');
+  if (r.me.needsOnboarding) redirect('/willkommen');
   redirect(navigationFor(r.me.user.roles.map((x) => x.role)).home);
 }
