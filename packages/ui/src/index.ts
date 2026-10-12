@@ -45,3 +45,5 @@ export {
   type AttendanceRowProps,
   type AttendanceState,
 } from './components/attendance-row';
+export { RasterMotif, type RasterMotifProps } from './components/raster-motif';
+export { CodeInput, type CodeInputProps } from './components/code-input';

@@ -6,6 +6,7 @@ import { weekdayDate } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
 import { ExamRows } from '../teacher/exams-screen';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 /** Schüler:innen "Aufgaben" und Eltern "Termine": Hausübungen und Prüfungen der nächsten Wochen. */
 export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
@@ -27,8 +28,8 @@ export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
     studentQuery === null ? null : `/exams${studentQuery}`,
   );
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-h1">{mode === 'student' ? t('title') : t('termine')}</h1>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="unterricht">{mode === 'student' ? t('title') : t('termine')}</PageTitle>
       {kids.length > 1 ? (
         <nav className="flex flex-wrap gap-2" aria-label={t('termine')}>
           {kids.map((k) => (

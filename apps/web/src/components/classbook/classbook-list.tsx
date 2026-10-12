@@ -7,6 +7,7 @@ import { SyncStatus } from '../sync-status';
 import { LessonRow } from '../today/lesson-row';
 import { LoadError, TodaySkeleton, previousEnds } from '../today/today-screen';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 /** Tab "Klassenbuch" der Lehrkräfte: offene Einträge (KB-04) und die Stunden von heute. */
 export function ClassbookList() {
@@ -34,8 +35,8 @@ export function ClassbookList() {
     );
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-h1">{t('title')}</h1>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="unterricht">{t('title')}</PageTitle>
       <SyncStatus />
       <section aria-labelledby="open" className="flex flex-col gap-2">
         <h2 id="open" className="text-h3">

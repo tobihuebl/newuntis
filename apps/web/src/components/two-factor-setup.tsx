@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 import { useState } from 'react';
-import { Button, Input } from '@sp/ui';
+import { Button, CodeInput } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
 import { FormError, useErrorText } from './form-bits';
 import { useT } from '../lib/i18n';
@@ -40,9 +40,7 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
     setBusy(false);
   }
 
-  async function confirm(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const code = String(new FormData(e.currentTarget).get('code') ?? '').trim();
+  async function confirm(code: string) {
     setBusy(true);
     setError(null);
     try {
@@ -63,12 +61,13 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
       <div className="flex flex-col gap-4">
         <h1 className="text-h1">{t('recoveryTitle')}</h1>
         <p className="text-ink-muted">{t('recoveryHelp')}</p>
-        <ul className="grid grid-cols-2 gap-2 rounded-sm bg-bg-sunken p-3 font-mono text-body-sm">
+        <ul className="grid grid-cols-2 gap-2 rounded-md bg-bg-sunken p-4 text-mono">
           {step.codes.map((c) => (
             <li key={c}>{c}</li>
           ))}
         </ul>
         <Button
+          block
           onClick={() => {
             router.replace('/');
             router.refresh();
@@ -82,27 +81,31 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
 
   if (step.name === 'confirm') {
     return (
-      <form method="post" onSubmit={confirm} className="flex flex-col gap-4" noValidate>
+      <form
+        method="post"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const code = String(new FormData(e.currentTarget).get('code') ?? '').trim();
+          if (/^\d{6}$/.test(code)) void confirm(code);
+          else setError(t('codeIncomplete'));
+        }}
+        className="flex flex-col gap-4"
+        noValidate
+      >
         <h1 className="text-h1">{t('setupTitle')}</h1>
-        <p className="text-ink-muted">{t('setupHelp')}</p>
+        <p className="text-body-sm text-ink-muted">{t('setupHelp')}</p>
         <img
           src={step.qr}
           alt=""
           width={192}
           height={192}
-          className="self-center rounded-sm bg-creme"
+          className="self-center rounded-md bg-creme p-2"
         />
         <p className="text-body-sm text-ink-muted">{t('setupManual')}</p>
-        <code className="break-all rounded-sm bg-bg-sunken p-2 text-body-sm">{step.secret}</code>
-        <Input
-          label={t('code')}
-          name="code"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          required
-        />
+        <code className="rounded-md bg-bg-sunken p-3 text-mono break-all">{step.secret}</code>
+        <CodeInput label={t('code')} disabled={busy} onComplete={(c) => void confirm(c)} />
         <FormError message={error} />
-        <Button type="submit" disabled={busy}>
+        <Button type="submit" block loading={busy}>
           {t('enable')}
         </Button>
       </form>
@@ -112,9 +115,9 @@ export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-h1">{t('setupTitle')}</h1>
-      <p className="text-ink-muted">{t('setupHelp')}</p>
+      <p className="text-body-sm text-ink-muted">{t('setupHelp')}</p>
       <FormError message={error} />
-      <Button onClick={start} disabled={busy}>
+      <Button block onClick={start} loading={busy}>
         {t('setupStart')}
       </Button>
     </div>

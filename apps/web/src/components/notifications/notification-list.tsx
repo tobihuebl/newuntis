@@ -7,6 +7,7 @@ import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 interface Page {
   data: NotificationItem[];
@@ -37,9 +38,9 @@ export function NotificationList() {
   const unread = q.data?.pages[0]?.unread ?? 0;
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="konto">{t('title')}</PageTitle>
         {unread > 0 ? (
           <Button
             variant="secondary"

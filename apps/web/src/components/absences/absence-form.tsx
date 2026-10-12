@@ -3,7 +3,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { ABSENCE_REASONS, addDays, type AbsenceItem, type TodayChild } from '@sp/shared';
-import { Button, Card, Checkbox, Input, SegmentedControl, Select, Textarea } from '@sp/ui';
+import { CircleCheck, FileWarning, Send } from 'lucide-react';
+import { Banner, Button, Card, Checkbox, Input, SegmentedControl, Select, Textarea } from '@sp/ui';
+import { FormError } from '../form-bits';
+import { StatusSteps } from './status-steps';
 import { ApiError, apiRequest, apiUpload } from '../../lib/api-client';
 import { todayVienna } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
@@ -113,17 +116,19 @@ export function AbsenceForm({
 
   if (result)
     return (
-      <Card className="flex flex-col gap-3" role="status">
-        <p className="font-medium text-brand-text">{t('sent')}</p>
+      <Card className="flex flex-col gap-4" role="status">
+        <p className="flex items-center gap-2 text-h3">
+          <CircleCheck aria-hidden="true" className="size-6 text-brand-text" />
+          {t('sent')}
+        </p>
+        <StatusSteps current="reported" />
         {result.uploadError ? (
-          <p className="text-body-sm text-danger-ink">
-            {t('uploadFailed', { error: result.uploadError })}
-          </p>
+          <FormError message={t('uploadFailed', { error: result.uploadError })} />
         ) : null}
         {result.item.attachmentRequired && !result.item.hasAttachment ? (
-          <p className="text-body-sm text-signal-ink">{t('photoMissing')}</p>
+          <Banner icon={FileWarning}>{t('photoMissing')}</Banner>
         ) : null}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <Button variant="secondary" asChild>
             <Link href={`/kind/${result.item.student.id}/fehlzeiten`}>{t('history')}</Link>
           </Button>
@@ -221,10 +226,10 @@ export function AbsenceForm({
         </div>
       ) : null}
 
-      <Select
+      <SegmentedControl
         label={t('reason')}
         value={reasonCode}
-        onChange={(e) => setReasonCode(e.target.value as (typeof ABSENCE_REASONS)[number])}
+        onChange={setReasonCode}
         options={ABSENCE_REASONS.map((r) => ({ value: r, label: t(`reasons.${r}`) }))}
       />
       <Textarea
@@ -234,7 +239,7 @@ export function AbsenceForm({
         onChange={(e) => setReason(e.target.value)}
       />
       <div className="flex flex-col gap-1">
-        <label htmlFor="absence-file" className="text-label">
+        <label htmlFor="absence-file" className="pf-field__label">
           {t('photo')}
         </label>
         <input
@@ -243,16 +248,12 @@ export function AbsenceForm({
           accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
           capture="environment"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="min-h-11 text-body-sm file:mr-3 file:min-h-11 file:rounded-sm file:border file:border-line file:bg-bg-raised file:px-4 file:text-ink"
+          className="min-h-(--tap-comfort) text-body-sm file:mr-3 file:min-h-(--tap-comfort) file:rounded-md file:border-0 file:bg-bg-raised file:px-4 file:font-bold file:text-ink file:ring-control"
         />
-        <p className="text-body-sm text-ink-muted">{t('photoHelp')}</p>
+        <p className="pf-field__hint">{t('photoHelp')}</p>
       </div>
-      {error ? (
-        <p role="alert" className="text-body-sm text-danger-ink">
-          {error}
-        </p>
-      ) : null}
-      <Button type="submit" disabled={busy || !chosen} className="self-start">
+      <FormError message={error} />
+      <Button type="submit" block size="lg" iconLeft={Send} loading={busy} disabled={!chosen}>
         {t('send')}
       </Button>
     </form>

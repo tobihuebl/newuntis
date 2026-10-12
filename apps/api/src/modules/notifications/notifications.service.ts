@@ -9,6 +9,8 @@ import {
   notificationText,
   type Channel,
   type NotificationType,
+  formalAddress,
+  type Role,
 } from '@sp/shared';
 import { DateTime } from 'luxon';
 import { tenantAppUrl } from '../../common/urls';
@@ -186,10 +188,12 @@ export class NotificationsService implements OnModuleInit {
         return { kind: 'push' as const, push: subs, text, url, ids };
       }
       const user = await tx.user.findUnique({ where: { personId }, select: { email: true } });
+      const roles = await tx.roleAssignment.findMany({ where: { personId }, select: { role: true } });
       return user
         ? {
             kind: 'email' as const,
             email: user.email,
+            formal: formalAddress(roles.map((r) => r.role as Role)),
             text,
             url: tenantAppUrl(this.env, tenant.slug, url),
             school: tenant.name,
@@ -220,6 +224,7 @@ export class NotificationsService implements OnModuleInit {
         title: plan.text.title,
         body: plan.text.body,
         url: plan.url,
+        formal: plan.formal,
       });
     }
     await this.prisma.runAsTenant(tenantId, (tx) =>

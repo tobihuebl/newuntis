@@ -53,24 +53,21 @@ export function SyncStatus({ className }: { className?: string }) {
   }
   return (
     <div
-      className={cn(
-        'flex min-h-11 flex-wrap items-center gap-2 text-body-sm',
-        tone === 'ok' && 'text-brand-text',
-        tone === 'busy' && 'text-ink-muted',
-        tone === 'warn' && 'text-signal-ink',
-        tone === 'error' && 'text-danger-ink',
-        className,
-      )}
+      className={cn('flex min-h-(--tap-min) flex-wrap items-center gap-2', className)}
       data-sync-state={tone}
       data-pending={s.pending}
     >
-      <p role="status" aria-live="polite" className="flex items-center gap-2">
-        <Icon
-          aria-hidden="true"
-          size={16}
-          className={cn(tone === 'busy' && 'motion-safe:animate-spin')}
-        />
-        <span>{text}</span>
+      {/* Speicherstatus als Chip (Design System: Zustand immer mit Wort und Icon; offline = "wartet", kein Fehler) */}
+      <p role="status" aria-live="polite">
+        <Chip
+          tone={
+            tone === 'ok' ? 'ok' : tone === 'warn' ? 'late' : tone === 'error' ? 'danger' : 'absent'
+          }
+          icon={Icon}
+          className={cn(tone === 'busy' && '[&>svg]:motion-safe:animate-spin')}
+        >
+          {text}
+        </Chip>
       </p>
       {s.authExpired ? (
         <Button variant="secondary" asChild>

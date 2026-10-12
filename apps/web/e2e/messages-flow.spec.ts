@@ -61,7 +61,9 @@ test('Nachricht an die Eltern der Klasse, Antwort, Rundschreiben mit Lesebestät
   await expect(
     principal.getByRole('status').filter({ hasText: /Geht an \d+ Person/ }),
   ).toBeVisible();
-  await principal.getByRole('button', { name: 'Veröffentlichen' }).click();
+  await principal.getByRole('button', { name: 'Senden' }).click();
+  // nicht umkehrbar: Vorschau und Bestätigung im Sheet
+  await principal.getByRole('dialog').getByRole('button', { name: 'Jetzt senden' }).click();
   await expect(principal).toHaveURL(/\/rundschreiben\/[^/]+$/);
   await expect(principal.getByText(/^0 von \d+ gelesen$/)).toBeVisible();
 

@@ -12,6 +12,7 @@ import { clearOfflineData } from '../../offline/db';
 import { applyTheme, readTheme, type Theme } from '../../lib/theme';
 import { PushToggle } from './push-toggle';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const id = `s-${title.replace(/\W+/g, '-')}`;
@@ -39,8 +40,8 @@ export function ProfileScreen(p: ProfileProps) {
   useEffect(() => setTheme(readTheme()), []);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4">
-      <h1 className="text-h1">{t('title')}</h1>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="konto">{t('title')}</PageTitle>
 
       <Section title={t('account')}>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body-sm">

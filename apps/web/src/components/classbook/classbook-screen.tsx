@@ -1,5 +1,5 @@
 'use client';
-import { ArrowLeft, Check, Lock, X } from 'lucide-react';
+import { ArrowLeft, Check, Lock, TriangleAlert, X } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -19,9 +19,10 @@ import {
   Skeleton,
   StatusBadge,
   Textarea,
+  useToast,
 } from '@sp/ui';
 import { ApiError } from '../../lib/api-client';
-import { dateTimeOf, longDate, timeOf } from '../../lib/dates';
+import { dateTimeOf, longDate, timeOf, todayVienna } from '../../lib/dates';
 import { OfflineMissError } from '../../offline/cached';
 import { useOccurrence } from '../../offline/hooks';
 import { statusOf, type OutboxItem } from '../../offline/mutations';
@@ -97,14 +98,10 @@ export function ClassbookScreen({ id, backHref }: { id: string; backHref: string
 function Shell({ backHref, children }: { backHref: string; children: React.ReactNode }) {
   const t = useT('classbook');
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <Link
-        href={backHref}
-        className="inline-flex min-h-11 items-center gap-2 self-start rounded-sm pr-3 text-body-sm text-ink-muted hover:text-ink"
-      >
-        <ArrowLeft aria-hidden="true" size={18} />
-        {t('back')}
-      </Link>
+    <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-2 pb-8 lg:px-6 lg:pt-4">
+      <Button variant="ghost" size="sm" asChild iconLeft={ArrowLeft} className="-ml-4 self-start">
+        <Link href={backHref}>{t('back')}</Link>
+      </Button>
       {children}
     </div>
   );
@@ -133,6 +130,35 @@ function Loaded({
   );
   const failed = outbox.filter((o) => o.state === 'failed');
 
+  /**
+   * Tastatur am Desktop (Design System, Klassenbuch): Pfeile wechseln die Zeile, A wechselt anwesend/abwesend,
+   * V öffnet die Verspätung, Strg/Cmd+Enter schließt die Stunde ab (Enter allein bleibt der Button der Zeile).
+   */
+  const onListKey = (e: React.KeyboardEvent<HTMLElement>) => {
+    const rows = [
+      ...e.currentTarget.querySelectorAll<HTMLButtonElement>(
+        'li[data-student] > button:first-child',
+      ),
+    ];
+    const i = rows.findIndex((b) => b === document.activeElement);
+    if (i < 0 || e.altKey) return;
+    const student = detail.students.find((x) => x.id === rows[i]!.closest('li')?.dataset.student);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      rows[Math.max(0, Math.min(rows.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))]?.focus();
+    } else if ((e.key === 'a' || e.key === 'A') && !e.metaKey && !e.ctrlKey && student) {
+      e.preventDefault();
+      const cur = statusOf(detail, student.id);
+      setStatus(student, cur === 'PRESENT' ? 'ABSENT' : 'PRESENT');
+    } else if ((e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && student) {
+      e.preventDefault();
+      setLateFor(student);
+    } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      document.querySelector<HTMLButtonElement>('[data-close-lesson]')?.click();
+    }
+  };
+
   const setStatus = (s: Student, status: AttendanceStatusName, lateMinutes: number | null = null) =>
     void sync.enqueue(
       { kind: 'attendance', occurrenceId: detail.id, studentId: s.id, status, lateMinutes },
@@ -141,22 +167,27 @@ function Loaded({
 
   return (
     <>
+      {/* Kopf (Design System, Klassenbuch): overline Tag, Titel Klasse · Fach, darunter Stunde und Raum */}
       <header className="flex flex-col gap-1">
-        <h1 className="text-h1">
-          {detail.subject.name} · {detail.class?.name ?? detail.group?.name}
-        </h1>
-        <p className="text-ink-muted">
-          {longDate(detail.date)} · {periodLabel(tt, detail)} ·{' '}
-          {tt('time', { from: timeOf(detail.startsAt), to: timeOf(detail.endsAt) })}
-          {detail.room ? ` · ${detail.room.name}` : ''}
+        <p className="text-overline text-brand-text">
+          {detail.date === todayVienna() ? tt('title') : longDate(detail.date)}
         </p>
-        <div className="flex flex-wrap gap-2 pt-1">
+        <h1 className="text-h1">
+          {detail.class?.name ?? detail.group?.name} · {detail.subject.name}
+        </h1>
+        <p className="text-body-sm text-ink-muted">
+          {periodLabel(tt, detail)}
+          {detail.room ? `, ${detail.room.name}` : ''} ·{' '}
+          <span className="font-data">
+            {tt('time', { from: timeOf(detail.startsAt), to: timeOf(detail.endsAt) })}
+          </span>
+        </p>
+        <div className="flex flex-wrap gap-2 pt-2">
           {detail.substitution ? (
             <StatusBadge status="substituted" label={tp('substituted')} />
           ) : null}
           {closed ? (
-            <Chip tone="ok">
-              <Lock aria-hidden="true" size={14} />
+            <Chip tone="ok" icon={Lock}>
               {t('closedAt', { time: dateTimeOf(closed) })}
             </Chip>
           ) : null}
@@ -192,40 +223,52 @@ function Loaded({
         </Card>
       ))}
 
-      <section aria-labelledby="students" className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="students" className="text-h3">
-            {t('students')}
-          </h2>
-          <p className="text-body-sm text-ink-muted" aria-live="polite">
-            {t('summary', { present: counts.PRESENT, absent: counts.ABSENT, late: counts.LATE })}
-          </p>
-        </div>
-        {writable ? <p className="text-body-sm text-ink-muted">{t('toggleHint')}</p> : null}
-        {detail.students.length === 0 ? (
-          <Card>
-            <p className="text-ink-muted">{t('noStudents')}</p>
-          </Card>
-        ) : (
-          <ul className="pf-list">
-            {detail.students.map((s) => (
-              <StudentRow
-                key={s.id}
-                student={s}
-                status={statusOf(detail, s.id)}
-                lateMinutes={detail.attendance[s.id]?.lateMinutes ?? null}
-                disabled={!writable}
-                onToggle={(cur) => setStatus(s, cur === 'PRESENT' ? 'ABSENT' : 'PRESENT')}
-                onLate={() => setLateFor(s)}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
+        <section
+          aria-labelledby="students"
+          className="flex flex-col gap-3"
+          onKeyDown={writable ? onListKey : undefined}
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="students" className="text-h2">
+              {t('students')}
+            </h2>
+            <p className="text-body-sm text-ink-muted" aria-live="polite">
+              {t('summary', { present: counts.PRESENT, absent: counts.ABSENT, late: counts.LATE })}
+            </p>
+          </div>
+          {writable ? (
+            <p className="text-body-sm text-ink-muted">
+              {t('toggleHint')} <span className="hidden lg:inline">{t('keyboardHint')}</span>
+            </p>
+          ) : null}
+          {detail.students.length === 0 ? (
+            <Card>
+              <p className="text-ink-muted">{t('noStudents')}</p>
+            </Card>
+          ) : (
+            <ul className="pf-list">
+              {detail.students.map((s) => (
+                <StudentRow
+                  key={s.id}
+                  student={s}
+                  status={statusOf(detail, s.id)}
+                  lateMinutes={detail.attendance[s.id]?.lateMinutes ?? null}
+                  disabled={!writable}
+                  onToggle={(cur) => setStatus(s, cur === 'PRESENT' ? 'ABSENT' : 'PRESENT')}
+                  onLate={() => setLateFor(s)}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
 
-      {detail.status !== 'CANCELLED' ? (
-        <EntryBar detail={detail} serverVersion={serverVersion} outbox={outbox} />
-      ) : null}
+        {detail.status !== 'CANCELLED' ? (
+          <div className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--topbar-h)+var(--space-4))]">
+            <EntryBar detail={detail} serverVersion={serverVersion} outbox={outbox} />
+          </div>
+        ) : null}
+      </div>
 
       <LateSheet
         student={lateFor}
@@ -348,6 +391,7 @@ function EntryBar({
   outbox: OutboxItem[];
 }) {
   const t = useT('classbook');
+  const toast = useToast();
   const [fields, setFields] = useState<EntryFields>(() => fieldsOf(detail.entry));
   const latest = useRef(fields);
   const dirty = useRef(false);
@@ -461,10 +505,12 @@ function EntryBar({
             <Button
               block
               iconLeft={Check}
+              data-close-lesson=""
               disabled={!detail.canClose || Boolean(closed) || closing}
               onClick={() => {
                 flush(fields);
                 void sync.enqueue({ kind: 'close', occurrenceId: detail.id }, serverVersion);
+                toast({ text: t('closedToast') });
               }}
             >
               {closed ? t('closed') : t('close')}
@@ -499,17 +545,20 @@ function ConflictPanel({
     </dl>
   );
   return (
-    <Card className="flex flex-col gap-3 border-signal" role="alert">
-      <div>
-        <p className="font-semibold text-signal-ink">{t('conflictTitle')}</p>
-        <p className="text-body-sm text-ink-muted">{t('conflictText')}</p>
+    <Card tone="signal" flat className="flex flex-col gap-3" role="alert">
+      <div className="flex flex-col gap-1">
+        <Chip tone="solid" icon={TriangleAlert} className="self-start">
+          {t('conflict')}
+        </Chip>
+        <p className="text-h3">{t('conflictTitle')}</p>
+        <p className="text-body-sm">{t('conflictText')}</p>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="flex flex-col gap-1 rounded-sm border border-line p-3">
+        <div className="flex flex-col gap-1 rounded-md bg-bg-raised p-3">
           <p className="text-label">{t('conflictTheirs')}</p>
           {show(theirs ?? { topic: null, homework: null })}
         </div>
-        <div className="flex flex-col gap-1 rounded-sm border border-line p-3">
+        <div className="flex flex-col gap-1 rounded-md bg-bg-raised p-3">
           <p className="text-label">{t('conflictMine')}</p>
           {show(mine)}
         </div>

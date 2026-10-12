@@ -4,6 +4,7 @@ import { Card, EmptyState } from '@sp/ui';
 import { apiGet } from '../../../src/lib/api-server';
 import { requireRoute } from '../../../src/lib/route-guard';
 import { getT } from '../../../src/lib/nav-server';
+import { PageTitle } from '../../../src/components/page-title';
 
 interface Directory {
   rooms: { id: string; name: string }[];
@@ -15,9 +16,9 @@ export default async function RaeumePage() {
   const t = await getT('rooms');
   const { rooms } = await apiGet<Directory>('/timetable/directory');
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div>
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="unterricht">{t('title')}</PageTitle>
         <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </div>
       {rooms.length === 0 ? (

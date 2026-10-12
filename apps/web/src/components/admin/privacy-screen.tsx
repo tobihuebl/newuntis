@@ -16,6 +16,8 @@ import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { PersonPicker } from './person-picker';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 /**
  * Datenschutz (Spec Abschnitt 13, /admin/datenschutz): Anfragen zu Betroffenenrechten erfassen und erledigen,
@@ -91,8 +93,8 @@ export function PrivacyScreen() {
   );
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4">
-      <h1 className="text-h1">{t('title')}</h1>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="administration">{t('title')}</PageTitle>
 
       <section aria-labelledby="new-h" className="flex flex-col gap-2">
         <h2 id="new-h" className="text-h3">
@@ -128,11 +130,7 @@ export function PrivacyScreen() {
               maxLength={2000}
               onChange={(e) => setNote(e.target.value)}
             />
-            {error && !resolve ? (
-              <p role="alert" className="text-body-sm text-danger-ink">
-                {error}
-              </p>
-            ) : null}
+            {error && !resolve ? <FormError message={error} /> : null}
             <div className="flex flex-wrap items-center gap-2">
               <Button type="submit" disabled={!person}>
                 {t('record')}
@@ -256,11 +254,7 @@ export function PrivacyScreen() {
             maxLength={2000}
             onChange={(e) => setResolveNote(e.target.value)}
           />
-          {error && resolve ? (
-            <p role="alert" className="text-body-sm text-danger-ink">
-              {error}
-            </p>
-          ) : null}
+          {error && resolve ? <FormError message={error} /> : null}
           <div className="flex flex-wrap gap-2">
             {resolve?.kind === 'ERASURE' ? (
               <Button variant="danger" onClick={() => void finish('DONE')}>

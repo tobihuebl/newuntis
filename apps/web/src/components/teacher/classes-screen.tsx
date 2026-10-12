@@ -5,6 +5,7 @@ import type { MyClass, MyClassDetail } from '@sp/shared';
 import { Chip, Button, Card, EmptyState, Skeleton } from '@sp/ui';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 /** Klassen der Lehrkraft (Spec Abschnitt 5, /klassen). */
 export function ClassesScreen() {
@@ -12,8 +13,8 @@ export function ClassesScreen() {
   const tc = useT('common');
   const q = useApi<{ data: MyClass[] }>(['my-classes'], '/my-classes');
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-h1">{t('title')}</h1>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="unterricht">{t('title')}</PageTitle>
       {q.isPending ? (
         <Skeleton className="h-40 w-full" />
       ) : !q.data ? (
@@ -59,7 +60,7 @@ export function ClassDetailScreen({ id }: { id: string }) {
   const q = useApi<MyClassDetail>(['my-classes', id], `/my-classes/${id}`);
   const c = q.data;
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <Button variant="ghost" asChild className="self-start">
         <Link href="/klassen">
           <ArrowLeft aria-hidden="true" size={18} />
@@ -75,7 +76,7 @@ export function ClassDetailScreen({ id }: { id: string }) {
       ) : (
         <>
           <div>
-            <h1 className="text-h1">{t('class', { name: c.name })}</h1>
+            <PageTitle area="unterricht">{t('class', { name: c.name })}</PageTitle>
             <p className="text-body-sm text-ink-muted">
               {c.homeroomTeacher
                 ? t('homeroomTeacher', { name: c.homeroomTeacher })

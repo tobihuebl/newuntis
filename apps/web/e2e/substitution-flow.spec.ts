@@ -18,6 +18,10 @@ test('Direktion weist eine Vertretung zu und veröffentlicht', async ({ page }) 
   await dialog.getByRole('button', { name: 'Übernehmen' }).click();
   await expect(page.locator('li[data-substitution="ASSIGNED"]')).toHaveCount(1);
   await page.getByRole('button', { name: /^Veröffentlichen \(1\)$/ }).click();
-  await expect(page.getByText(/1 Änderung veröffentlicht/)).toBeVisible();
+  // nicht umkehrbar: Bestätigungs-Sheet, danach Toast
+  await page.getByRole('dialog').getByRole('button', { name: 'Jetzt veröffentlichen' }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: /1 Änderung veröffentlicht/ }),
+  ).toBeVisible();
   await expect(page.locator('li[data-substitution="PUBLISHED"]')).toHaveCount(1);
 });

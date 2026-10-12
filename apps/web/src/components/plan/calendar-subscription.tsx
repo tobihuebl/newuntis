@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, Card, Input } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { FormError } from '../form-bits';
 
 export function CalendarSubscription({
   csrfToken,
@@ -80,11 +81,7 @@ export function CalendarSubscription({
           </Button>
         ) : null}
       </div>
-      {error ? (
-        <p role="alert" className="text-body-sm text-danger-ink">
-          {error}
-        </p>
-      ) : null}
+      {error ? <FormError message={error} /> : null}
     </Card>
   );
 }

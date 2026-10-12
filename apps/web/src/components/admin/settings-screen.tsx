@@ -7,6 +7,7 @@ import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 type SectionKey = keyof TenantSettingsPatch;
 type FieldKind = 'int' | 'intList' | 'url';
@@ -148,9 +149,9 @@ export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div>
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="administration">{t('title')}</PageTitle>
         <p className="text-body-sm text-ink-muted">{readOnly ? t('readOnly') : t('intro')}</p>
       </div>
       {!draft ? (

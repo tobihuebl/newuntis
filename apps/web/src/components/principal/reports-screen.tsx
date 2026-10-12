@@ -7,6 +7,8 @@ import { Button, Card, EmptyState, Input, SegmentedControl, Select, Skeleton } f
 import { todayVienna } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 type Tab = 'attendance' | 'substitutions';
 
@@ -120,8 +122,8 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
   ];
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <h1 className="text-h1">{t('title')}</h1>
+    <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="direktion">{t('title')}</PageTitle>
       {schoolWide ? (
         <SegmentedControl
           label={t('view')}
@@ -183,11 +185,7 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
             {t('lastYear')}
           </Button>
         </div>
-        {!valid ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {t('invalidRange')}
-          </p>
-        ) : null}
+        {!valid ? <FormError message={t('invalidRange')} /> : null}
       </Card>
 
       <div className="flex justify-end">

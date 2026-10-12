@@ -266,6 +266,15 @@ export function navViews(roles: readonly Role[]): Role[] {
   return ordered.filter((r) => !(r === 'TEACHER' && ordered.includes('HOMEROOM')));
 }
 
+/**
+ * Anrede (Design System, Inhaltliche Grundsätze): Sie für Eltern, Direktion und Administration, du für
+ * Schüler:innen und Lehrkräfte. Maßgeblich ist die wichtigste Rolle; ohne Rolle gilt Sie (z. B. E-Mails).
+ */
+export function formalAddress(roles: readonly Role[]): boolean {
+  const view = navViews(roles)[0];
+  return view === undefined || view === 'GUARDIAN' || view === 'PRINCIPAL' || view === 'ADMIN';
+}
+
 export interface Navigation {
   /** Rolle, deren Navigation gezeigt wird. */
   view: Role | null;

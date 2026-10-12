@@ -26,7 +26,7 @@ export default async function ClassesPage() {
   const current = years.find((y) => y.isCurrent);
   if (!current) {
     return (
-      <div className="mx-auto max-w-4xl p-4">
+      <div className="mx-auto w-full max-w-4xl px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
         <Card>{t('noYear')}</Card>
       </div>
     );

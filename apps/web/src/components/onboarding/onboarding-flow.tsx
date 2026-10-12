@@ -9,6 +9,7 @@ import { useApi, useProblemText } from '../../lib/use-api';
 import { PushToggle } from '../profile/push-toggle';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
+import { FormError } from '../form-bits';
 
 type Step = 'privacy' | 'notifications' | 'role';
 
@@ -176,11 +177,7 @@ export function OnboardingFlow({
               </li>
             ))}
           </ul>
-          {error ? (
-            <p role="alert" className="text-body-sm text-danger-ink">
-              {error}
-            </p>
-          ) : null}
+          {error ? <FormError message={error} /> : null}
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => void finish()} disabled={busy}>
               {t('done')}

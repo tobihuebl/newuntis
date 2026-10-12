@@ -17,6 +17,8 @@ import { ApiError, apiRequest } from '../../lib/api-client';
 import { GuardianCodes } from './guardian-codes';
 import { PersonPicker } from './person-picker';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 interface LinkRow {
   id: string;
@@ -139,7 +141,7 @@ export function PersonDetail({
 
   if (person.anonymized) {
     return (
-      <div className="mx-auto max-w-3xl p-4">
+      <div className="mx-auto w-full max-w-3xl px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
         <Link href="/admin/personen" className="text-body-sm text-brand-text underline">
           {t('title')}
         </Link>
@@ -150,13 +152,13 @@ export function PersonDetail({
 
   const links = person.kind === 'GUARDIAN' ? person.children : person.guardians;
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div>
         <Link href="/admin/personen" className="text-body-sm text-brand-text underline">
           {t('title')}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-h1">{name}</h1>
+          <PageTitle area="stammdaten">{name}</PageTitle>
           {readOnly ? null : (
             <Button
               variant="secondary"
@@ -214,11 +216,7 @@ export function PersonDetail({
           </div>
         )}
         {notice ? <p role="status">{notice}</p> : null}
-        {error && !sheet ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {error}
-          </p>
-        ) : null}
+        {error && !sheet ? <FormError message={error} /> : null}
       </Card>
 
       {person.kind === 'STUDENT' ? (
@@ -371,11 +369,7 @@ export function PersonDetail({
               />
             </fieldset>
           ) : null}
-          {error ? (
-            <p role="alert" className="text-body-sm text-danger-ink">
-              {error}
-            </p>
-          ) : null}
+          {error ? <FormError message={error} /> : null}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setSheet(null)}>
               {c('cancel')}
@@ -411,11 +405,7 @@ export function PersonDetail({
             )
           }
         />
-        {error ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {error}
-          </p>
-        ) : null}
+        {error ? <FormError message={error} /> : null}
       </Sheet>
 
       <Sheet
@@ -425,11 +415,7 @@ export function PersonDetail({
         description={p('anonymizeHelp')}
         closeLabel={c('close')}
       >
-        {error ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {error}
-          </p>
-        ) : null}
+        {error ? <FormError message={error} /> : null}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => setSheet(null)}>
             {c('cancel')}

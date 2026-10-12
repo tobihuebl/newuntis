@@ -1,14 +1,15 @@
 'use client';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Megaphone, PenSquare } from 'lucide-react';
+import { CircleCheck, Megaphone, PenSquare } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { AnnouncementItem, ThreadSummary } from '@sp/shared';
-import { Chip, Button, Card, EmptyState, SegmentedControl, Skeleton, cn } from '@sp/ui';
+import { Banner, Chip, Button, Card, EmptyState, SegmentedControl, Skeleton, cn } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 interface Page<T> {
   data: T[];
@@ -81,33 +82,27 @@ export function InboxScreen({ canSend, canAnnounce }: { canSend: boolean; canAnn
   const skipped = Number(search.get('ohne') ?? 0);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="kommunikation">{t('title')}</PageTitle>
         <div className="flex flex-wrap gap-2">
           {canAnnounce ? (
-            <Button variant="secondary" asChild>
-              <Link href="/rundschreiben">
-                <Megaphone aria-hidden="true" size={18} />
-                {t('announcementsManage')}
-              </Link>
+            <Button variant="secondary" size="sm" asChild iconLeft={Megaphone}>
+              <Link href="/rundschreiben">{t('announcementsManage')}</Link>
             </Button>
           ) : null}
           {canSend ? (
-            <Button asChild>
-              <Link href="/nachrichten/neu">
-                <PenSquare aria-hidden="true" size={18} />
-                {t('new')}
-              </Link>
+            <Button size="sm" asChild iconLeft={PenSquare}>
+              <Link href="/nachrichten/neu">{t('new')}</Link>
             </Button>
           ) : null}
         </div>
       </div>
       {sent > 0 ? (
-        <p role="status" className="rounded-sm border border-brand px-4 py-3 text-body-sm">
+        <Banner role="status" tone="brand" icon={CircleCheck}>
           {t('sentMany', { count: sent })}
           {skipped > 0 ? ` ${t('skipped', { count: skipped })}` : ''}
-        </p>
+        </Banner>
       ) : null}
       <SegmentedControl
         label={t('view')}

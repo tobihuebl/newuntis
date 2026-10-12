@@ -19,7 +19,7 @@ test('Eltern melden eine Abwesenheit, der Klassenvorstand nimmt sie an, Eltern w
   await parent.getByLabel('Grund').selectOption('ILLNESS');
   const note = `Fieber (E2E ${Date.now().toString(36)})`;
   await parent.getByLabel('Anmerkung (optional)').fill(note);
-  await parent.getByRole('button', { name: 'Senden' }).click();
+  await parent.getByRole('button', { name: 'Melden' }).click();
   await expect(parent.getByText('Abwesenheit gemeldet.')).toBeVisible();
   await parent.getByRole('link', { name: 'Bisherige Fehlzeiten' }).click();
   const reported = parent.locator('li[data-absence="REPORTED"]', { hasText: note });

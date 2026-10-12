@@ -6,6 +6,8 @@ import { Button, Card, EmptyState, Sheet, Skeleton, Textarea, cn } from '@sp/ui'
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
 import { AbsenceList, absenceRange } from './absence-list';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 type Tab = 'entschuldigungen' | 'fehlzeiten';
 
@@ -100,8 +102,8 @@ export function ClassAbsences({
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-h1">{className}</h1>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="klassenvorstand">{className}</PageTitle>
       <nav aria-label={t('title')} className="flex flex-wrap gap-2">
         {tabLink('entschuldigungen', t('excuses'))}
         {tabLink('fehlzeiten', t('absences'))}
@@ -187,11 +189,7 @@ export function ClassAbsences({
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
-        {review.error ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {problem(review.error)}
-          </p>
-        ) : null}
+        {review.error ? <FormError message={problem(review.error)} /> : null}
         <div className="flex flex-wrap gap-2">
           <Button disabled={review.isPending} onClick={() => void decide('EXCUSED')}>
             {t('accept')}

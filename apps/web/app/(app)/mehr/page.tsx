@@ -2,6 +2,7 @@ import { moreSections, navViews, navigationFor } from '@sp/shared';
 import { MoreScreen } from '../../../src/components/shell/more-screen';
 import { navigationOf, getT } from '../../../src/lib/nav-server';
 import { requireRoute } from '../../../src/lib/route-guard';
+import { PageTitle } from '../../../src/components/page-title';
 
 export default async function MorePage() {
   const me = await requireRoute('/mehr');
@@ -11,7 +12,7 @@ export default async function MorePage() {
   const roles = [...new Set(me.user.roles.map((r) => r.role))];
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:px-6">
-      <h1 className="text-h1">{t('moreTitle')}</h1>
+      <PageTitle area="konto">{t('moreTitle')}</PageTitle>
       <MoreScreen
         sections={moreSections(nav)}
         views={navViews(roles).map((role) => ({

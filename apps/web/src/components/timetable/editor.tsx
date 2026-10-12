@@ -15,6 +15,7 @@ import {
 import { Chip, Button, Card, Checkbox, Input, Select, Sheet, cn } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 // ───────────────────────── Typen ─────────────────────────
 type EditorLesson = LessonRule & { version: number };
@@ -508,7 +509,9 @@ export function TimetableEditor({
           <Link href="/admin/stundenplan" className="text-body-sm text-brand-text underline">
             {t('back')}
           </Link>
-          <h1 className="text-h1">{initial.version.name ?? initial.version.schoolYear.name}</h1>
+          <PageTitle area="stundenplan">
+            {initial.version.name ?? initial.version.schoolYear.name}
+          </PageTitle>
           <p className="flex flex-wrap items-center gap-2 text-body-sm text-ink-muted">
             <Chip
               tone={

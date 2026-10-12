@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@sp/ui';
 import { ApiError, apiPost } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { FormError } from '../form-bits';
 
 /** Byte-Order-Mark, damit Excel UTF-8 erkennt. */
 const BOM = String.fromCharCode(0xfeff);
@@ -74,11 +75,7 @@ export function GuardianCodes({
     return (
       <div className="flex flex-col gap-2">
         <p className="text-body-sm text-ink-muted">{t('codesHelp')}</p>
-        {error ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {error}
-          </p>
-        ) : null}
+        {error ? <FormError message={error} /> : null}
         <div>
           <Button variant="secondary" onClick={generate} disabled={busy || studentIds.length === 0}>
             {label ?? t('codes')}

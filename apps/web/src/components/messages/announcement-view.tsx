@@ -10,6 +10,7 @@ import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 /**
  * Rundschreiben lesen (Empfänger:innen). Ohne Lesebestätigung gilt das Öffnen als gelesen,
@@ -46,7 +47,7 @@ export function AnnouncementView({ id }: { id: string }) {
   }, [a?.id]);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <Button variant="ghost" asChild className="self-start">
         <Link href="/nachrichten?ansicht=rundschreiben">
           <ArrowLeft aria-hidden="true" size={18} />
@@ -62,7 +63,7 @@ export function AnnouncementView({ id }: { id: string }) {
       ) : (
         <article className="flex flex-col gap-4">
           <header>
-            <h1 className="text-h1 break-words">{a.title}</h1>
+            <PageTitle area="kommunikation">{a.title}</PageTitle>
             <p className="text-body-sm text-ink-muted">
               {a.author} · <time dateTime={a.publishedAt}>{dateTimeOf(a.publishedAt)}</time>
             </p>

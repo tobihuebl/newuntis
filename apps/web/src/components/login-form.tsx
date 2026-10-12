@@ -42,18 +42,23 @@ export function LoginForm() {
         required
       />
       <FormError message={error} />
-      <Button type="submit" disabled={busy}>
+      <Button type="submit" block loading={busy}>
         {t('login')}
       </Button>
-      <Link
-        href="/passwort-vergessen"
-        className="text-center text-body-sm text-brand-text underline"
-      >
-        {t('forgot')}
-      </Link>
-      <Link href="/eltern-code" className="text-center text-body-sm text-brand-text underline">
-        {t('guardianCode')}
-      </Link>
+      <div className="flex flex-col items-center gap-1">
+        <Link
+          href="/passwort-vergessen"
+          className="inline-flex min-h-(--tap-min) items-center text-label text-brand-text underline-offset-4 hover:underline"
+        >
+          {t('forgot')}
+        </Link>
+        <Link
+          href="/eltern-code"
+          className="inline-flex min-h-(--tap-min) items-center text-center text-label text-brand-text underline-offset-4 hover:underline"
+        >
+          {t('guardianCode')}
+        </Link>
+      </div>
     </form>
   );
 }

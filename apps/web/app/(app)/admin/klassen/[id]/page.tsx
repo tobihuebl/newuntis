@@ -4,6 +4,7 @@ import { GuardianCodes } from '../../../../../src/components/admin/guardian-code
 import { adminPage } from '../../../../../src/lib/admin';
 import { apiGet } from '../../../../../src/lib/api-server';
 import { getT } from '../../../../../src/lib/nav-server';
+import { PageTitle } from '../../../../../src/components/page-title';
 
 interface ClassDetail {
   id: string;
@@ -18,12 +19,12 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
   const t = await getT('admin.classes');
   const c = await apiGet<ClassDetail>(`/admin/classes/${id}`);
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div>
         <Link href="/admin/klassen" className="text-body-sm text-brand-text underline">
           {t('title')}
         </Link>
-        <h1 className="text-h1">{c.name}</h1>
+        <PageTitle area="stammdaten">{c.name}</PageTitle>
         <p className="text-ink-muted">
           {t('homeroom')}:{' '}
           {c.homeroomTeacher

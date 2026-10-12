@@ -10,6 +10,8 @@ import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 /** Ein Gespräch: Verlauf, Antworten; beim Öffnen und bei neuen Nachrichten als gelesen markiert. */
 export function ThreadScreen({ id }: { id: string }) {
@@ -62,14 +64,14 @@ export function ThreadScreen({ id }: { id: string }) {
   );
   if (q.isPending)
     return (
-      <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
         {back}
         <Skeleton className="h-64 w-full" />
       </div>
     );
   if (q.isError || !q.data)
     return (
-      <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
         {back}
         <Card>
           <EmptyState title={problem(q.error) ?? tc('error')} />
@@ -79,10 +81,10 @@ export function ThreadScreen({ id }: { id: string }) {
   const th = q.data;
   const others = th.participants.filter((p) => p.id !== personId);
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       {back}
       <div>
-        <h1 className="text-h1 break-words">{th.subject}</h1>
+        <PageTitle area="kommunikation">{th.subject}</PageTitle>
         <p className="text-body-sm text-ink-muted">
           {th.aboutStudent ? `${t('about', { name: th.aboutStudent.name })} · ` : ''}
           {th.className ? `${th.className} · ` : ''}
@@ -121,11 +123,7 @@ export function ThreadScreen({ id }: { id: string }) {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void send(e);
             }}
           />
-          {error ? (
-            <p role="alert" className="text-body-sm text-danger-ink">
-              {error}
-            </p>
-          ) : null}
+          {error ? <FormError message={error} /> : null}
           <Button type="submit" disabled={busy || !body.trim()} className="self-end">
             <Send aria-hidden="true" size={18} />
             {t('send')}

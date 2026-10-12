@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { Button, Checkbox, EmptyState, Input, Select, Sheet, type SelectOption } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 export type FieldType = 'text' | 'number' | 'date' | 'time' | 'checkbox' | 'select';
 
@@ -134,9 +136,9 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
   const values = editing?.row ? toForm(editing.row) : {};
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-h1">{props.title}</h1>
+        <PageTitle area="stammdaten">{props.title}</PageTitle>
         <div className="flex flex-wrap gap-2">
           {props.headerExtra}
           {readOnly ? (
@@ -287,11 +289,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
                   />
                 );
               })}
-            {error ? (
-              <p role="alert" className="text-body-sm text-danger-ink">
-                {error}
-              </p>
-            ) : null}
+            {error ? <FormError message={error} /> : null}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setEditing(null)}>
                 {t('cancel')}
@@ -310,11 +308,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
         title={t('confirmDelete')}
         closeLabel={t('close')}
       >
-        {error ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {error}
-          </p>
-        ) : null}
+        {error ? <FormError message={error} /> : null}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => setDeleting(null)}>
             {t('cancel')}

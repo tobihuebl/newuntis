@@ -16,3 +16,42 @@ describe('Übersetzungen', () => {
     expect(bad).toEqual([]);
   });
 });
+
+/** Ton (Design System, Inhaltliche Grundsätze): keine Ausrufezeichen, Anrede nach Rolle. */
+describe('Ton und Anrede', () => {
+  const entries = (o: unknown, path = ''): [string, string][] =>
+    o && typeof o === 'object'
+      ? Object.entries(o).flatMap(([k, v]) => entries(v, `${path}${k}/`))
+      : [[path.slice(0, -1), String(o)]];
+  const all = entries(messages);
+
+  it('keine Ausrufezeichen in der Oberfläche', () => {
+    expect(all.filter(([, v]) => /!/.test(v)).map(([k]) => k)).toEqual([]);
+  });
+
+  it('öffentliche Seiten und Verwaltung siezen (kein du)', () => {
+    const formalOnly = [
+      'auth',
+      'guardianCode',
+      'admin',
+      'settings',
+      'rolesAdmin',
+      'privacy',
+      'adminOverview',
+      'approvals',
+      'timetable',
+      'dashboard',
+      'absence',
+    ];
+    const du = /\b(du|dich|dir|dein|deine|deinen|deinem|deiner|deines)\b/i;
+    const bad = all.filter(([k, v]) => formalOnly.includes(k.split('/')[0]!) && du.test(v));
+    expect(bad.map(([k]) => k)).toEqual([]);
+  });
+
+  it('Anrede-Auswahl hat immer beide Fassungen', () => {
+    const bad = all.filter(
+      ([, v]) => v.includes('{formal, select') && !/yes \{[^}]*\} other \{/.test(v),
+    );
+    expect(bad.map(([k]) => k)).toEqual([]);
+  });
+});

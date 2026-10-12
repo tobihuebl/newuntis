@@ -10,6 +10,8 @@ import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 type Mode = 'persons' | 'class';
 
@@ -77,14 +79,14 @@ export function ComposeScreen() {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <Button variant="ghost" asChild className="self-start">
         <Link href="/nachrichten">
           <ArrowLeft aria-hidden="true" size={18} />
           {t('back')}
         </Link>
       </Button>
-      <h1 className="text-h1">{t('new')}</h1>
+      <PageTitle area="kommunikation">{t('new')}</PageTitle>
       {!options.data && options.isPending ? (
         <Skeleton className="h-48 w-full" />
       ) : (
@@ -203,11 +205,7 @@ export function ComposeScreen() {
             rows={6}
             onChange={(e) => setBody(e.target.value)}
           />
-          {error ? (
-            <p role="alert" className="text-body-sm text-danger-ink">
-              {error}
-            </p>
-          ) : null}
+          {error ? <FormError message={error} /> : null}
           <Button
             type="submit"
             disabled={busy || !subject.trim() || !body.trim()}

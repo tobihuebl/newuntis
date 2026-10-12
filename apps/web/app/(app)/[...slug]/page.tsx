@@ -8,8 +8,8 @@ export default async function PlaceholderPage({ params }: { params: Promise<{ sl
   await requireRoute(`/${slug.join('/')}`);
   const t = await getT('placeholder');
   return (
-    <div className="mx-auto max-w-2xl p-4">
-      <Card>
+    <div className="mx-auto w-full max-w-2xl px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <Card flat>
         <EmptyState title={t('title')} description={t('description')} />
       </Card>
     </div>

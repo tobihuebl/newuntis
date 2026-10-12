@@ -1,10 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Chip, Button, Card, Checkbox, Select } from '@sp/ui';
+import { Download, Upload } from 'lucide-react';
+import { Chip, Button, Card, Checkbox, Select, cn } from '@sp/ui';
+import { FormError } from '../form-bits';
 import { IMPORT_FIELDS, type ImportField, type ImportPreview } from '@sp/shared';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 /** Byte-Order-Mark, damit Excel UTF-8 erkennt. */
 const BOM = String.fromCharCode(0xfeff);
@@ -52,6 +55,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
   const t = useT('admin.import');
   const c = useT('common');
   const [csv, setCsv] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState('');
   const [mapping, setMapping] = useState<Partial<Record<ImportField, string>>>({});
   const [createClasses, setCreateClasses] = useState(false);
@@ -86,7 +90,10 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (file) await load(file);
+  }
+
+  async function load(file: File) {
     const text = await readText(file);
     setCsv(text);
     setFileName(file.name);
@@ -142,8 +149,8 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
 
   if (done) {
     return (
-      <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-        <h1 className="text-h1">{t('done')}</h1>
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+        <PageTitle area="stammdaten">{t('done')}</PageTitle>
         <Card className="flex flex-col gap-2" role="status">
           <p>
             {t('result', {
@@ -167,29 +174,58 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-      <h1 className="text-h1">{t('title')}</h1>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="stammdaten">{t('title')}</PageTitle>
 
-      <Card className="flex flex-col gap-3">
-        <h2 className="text-h3">{t('step1')}</h2>
-        <p className="text-body-sm text-ink-muted">{t('fileHelp')}</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex min-h-11 cursor-pointer items-center rounded-sm bg-brand px-4 text-label text-on-brand focus-within:outline-2">
-            {t('chooseFile')}
-            <input type="file" accept=".csv,.txt,text/csv" className="sr-only" onChange={onFile} />
-          </label>
-          {fileName ? <span className="text-body-sm">{fileName}</span> : null}
-          <Button variant="ghost" onClick={downloadTemplate}>
-            {t('template')}
-          </Button>
-        </div>
-      </Card>
+      <section aria-labelledby="step1" className="flex flex-col gap-3">
+        <h2 id="step1" className="text-h2">
+          {t('step1')}
+        </h2>
+        {/* Große Ablagefläche als Kachel-Bereich (Design System, CSV-Import); Klick öffnet die Dateiauswahl */}
+        <label
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            const file = e.dataTransfer.files[0];
+            if (file) void load(file);
+          }}
+          className={cn(
+            'flex min-h-56 cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-focus',
+            dragging
+              ? 'border-brand bg-brand-soft'
+              : 'border-line-strong bg-bg-raised hover:bg-brand-soft',
+          )}
+        >
+          <span className="pf-empty__tiles" aria-hidden="true">
+            <i />
+            <i className="a" />
+            <i />
+            <i />
+            <i />
+            <i className="b" />
+          </span>
+          <Upload aria-hidden="true" className="size-6 text-brand-text" />
+          <span className="text-h3">{fileName || t('chooseFile')}</span>
+          <span className="max-w-prose text-body-sm text-ink-muted">{t('fileHelp')}</span>
+          <input type="file" accept=".csv,.txt,text/csv" className="sr-only" onChange={onFile} />
+        </label>
+        <Button
+          variant="ghost"
+          size="sm"
+          iconLeft={Download}
+          onClick={downloadTemplate}
+          className="self-start"
+        >
+          {t('template')}
+        </Button>
+      </section>
 
-      {error ? (
-        <p role="alert" className="text-body-sm text-danger-ink">
-          {error}
-        </p>
-      ) : null}
+      <FormError message={error} />
 
       {preview && preview.unmappedRequired.length > 0 ? (
         <Card className="flex flex-col gap-3">

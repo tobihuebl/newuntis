@@ -4,10 +4,10 @@ import { requireRoute } from '../../../src/lib/route-guard';
 
 /** Heute (DB-01, KB-01): Inhalte lädt der Client, damit die Ansicht auch offline funktioniert. */
 export default async function HeutePage() {
-  await requireRoute('/heute');
+  const me = await requireRoute('/heute');
   return (
     <Suspense>
-      <TodayScreen />
+      <TodayScreen firstName={me.user.firstName} />
     </Suspense>
   );
 }

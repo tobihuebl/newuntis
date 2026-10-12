@@ -4,6 +4,7 @@ import { ACTIONS, PERMISSION_MATRIX, ROLES, type Role } from '@sp/shared';
 import { Card, EmptyState, Skeleton } from '@sp/ui';
 import { useApi } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 interface Holders {
   holders: {
@@ -25,9 +26,9 @@ export function RolesScreen() {
   const q = useApi<Holders>(['admin', 'roles'], '/admin/roles');
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 p-4">
+    <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div>
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="administration">{t('title')}</PageTitle>
         <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </div>
 

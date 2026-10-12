@@ -1,4 +1,5 @@
 'use client';
+import { Send } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -24,11 +25,14 @@ import {
   Sheet,
   Skeleton,
   cn,
+  useToast,
 } from '@sp/ui';
 import { dateTimeOf, longDate, timeOf, todayVienna } from '../../lib/dates';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
 import { periodLabel } from '../today/lesson-row';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 interface Directory {
   classes: { id: string; name: string }[];
@@ -55,75 +59,107 @@ export function SubstitutionScreen() {
   const [editing, setEditing] = useState<SubstitutionItem | null>(null);
   const [creating, setCreating] = useState<PlanEntry | null>(null);
   const [absenceOpen, setAbsenceOpen] = useState(false);
-  const [published, setPublished] = useState<number | null>(null);
+  const [confirmPublish, setConfirmPublish] = useState(false);
+  const toast = useToast();
   const go = (d: string) => router.replace(`/supplierung?datum=${d}`);
   const items = q.data?.items ?? [];
   const pending = items.filter((i) => i.status === 'ASSIGNED');
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4 pb-28">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-h1">{t('title')}</h1>
-          <p className="text-ink-muted">{longDate(date)}</p>
+    <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <PageTitle area="direktion">{t('title')}</PageTitle>
+          <p className="text-body-sm text-ink-muted">{longDate(date)}</p>
         </div>
         <nav aria-label={t('title')} className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => go(addDays(date, -1))}>
+          <Button variant="secondary" size="sm" onClick={() => go(addDays(date, -1))}>
             {t('prevDay')}
           </Button>
-          <Button variant="ghost" onClick={() => go(todayVienna())}>
+          <Button variant="ghost" size="sm" onClick={() => go(todayVienna())}>
             {t('today')}
           </Button>
-          <Button variant="secondary" onClick={() => go(addDays(date, 1))}>
+          <Button variant="secondary" size="sm" onClick={() => go(addDays(date, 1))}>
             {t('nextDay')}
           </Button>
         </nav>
-      </div>
+      </header>
 
-      <AbsentTeachers day={q.data} onAdd={() => setAbsenceOpen(true)} />
+      {/* Ab 1024 px zweispaltig: Ausfälle links, Stunden mit Aktionen rechts (Design System, Supplierung) */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <div className="flex flex-col gap-6">
+          <AbsentTeachers day={q.data} onAdd={() => setAbsenceOpen(true)} />
+          <ChangeLesson date={date} directory={directory.data} onPick={setCreating} />
+        </div>
 
-      {q.isPending ? (
-        <Skeleton className="h-40 w-full" />
-      ) : items.length === 0 ? (
-        <Card>
-          <EmptyState title={t('none')} />
-        </Card>
-      ) : (
-        <>
-          <ItemSection
-            title={t('open')}
-            items={items.filter((i) => i.status === 'OPEN')}
-            onEdit={setEditing}
-            tone="danger"
-          />
-          <ItemSection title={t('assigned')} items={pending} onEdit={setEditing} tone="late" />
-          <ItemSection
-            title={t('published')}
-            items={items.filter((i) => i.status === 'PUBLISHED')}
-            onEdit={setEditing}
-            tone="ok"
-          />
-        </>
-      )}
+        <div className="flex flex-col gap-6">
+          {q.isPending ? (
+            <Skeleton className="h-40 w-full" />
+          ) : items.length === 0 ? (
+            <Card flat>
+              <EmptyState title={t('none')} />
+            </Card>
+          ) : (
+            <>
+              <ItemSection
+                title={t('open')}
+                items={items.filter((i) => i.status === 'OPEN')}
+                onEdit={setEditing}
+                tone="late"
+              />
+              <ItemSection
+                title={t('assigned')}
+                items={pending}
+                onEdit={setEditing}
+                tone="absent"
+              />
+              <ItemSection
+                title={t('published')}
+                items={items.filter((i) => i.status === 'PUBLISHED')}
+                onEdit={setEditing}
+                tone="ok"
+              />
+            </>
+          )}
 
-      <ChangeLesson date={date} directory={directory.data} onPick={setCreating} />
-
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-line bg-bg-raised p-3 md:bottom-0 md:left-64">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-3">
-          <Button
-            disabled={pending.length === 0 || publish.isPending}
-            onClick={async () => {
-              const r = await publish.mutateAsync({ date });
-              setPublished(r.published);
-            }}
-          >
-            {t('publish', { count: pending.length })}
-          </Button>
-          <p role="status" className="text-body-sm text-brand-text">
-            {published !== null ? t('publishedOk', { count: published }) : ''}
-          </p>
+          {/* Veröffentlichen ist nicht umkehrbar: angeheftet und mit Bestätigungs-Sheet (Design System, Interaktion) */}
+          <div className="sticky bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))] z-nav -mx-4 bg-bg px-4 py-3 lg:bottom-0 lg:mx-0 lg:px-0">
+            <Button
+              block
+              iconLeft={Send}
+              disabled={pending.length === 0 || publish.isPending}
+              onClick={() => setConfirmPublish(true)}
+            >
+              {t('publish', { count: pending.length })}
+            </Button>
+          </div>
         </div>
       </div>
+
+      <Sheet
+        open={confirmPublish}
+        onOpenChange={setConfirmPublish}
+        title={t('publishConfirmTitle', { count: pending.length })}
+        description={t('publishConfirmText')}
+        closeLabel={t('cancel')}
+      >
+        <div className="flex flex-wrap gap-3">
+          <Button
+            iconLeft={Send}
+            loading={publish.isPending}
+            onClick={async () => {
+              const r = await publish.mutateAsync({ date });
+              setConfirmPublish(false);
+              toast({ text: t('publishedOk', { count: r.published }) });
+            }}
+          >
+            {t('publishNow')}
+          </Button>
+          <Button variant="secondary" onClick={() => setConfirmPublish(false)}>
+            {t('cancel')}
+          </Button>
+        </div>
+      </Sheet>
 
       <ActionSheet
         item={editing}
@@ -161,14 +197,14 @@ function ItemSection({
   title: string;
   items: SubstitutionItem[];
   onEdit: (i: SubstitutionItem) => void;
-  tone: 'danger' | 'late' | 'ok';
+  tone: 'late' | 'absent' | 'ok';
 }) {
   const t = useT('substitution');
   const tt = useT('today');
   if (items.length === 0) return null;
   return (
     <section aria-label={title} className="flex flex-col gap-2">
-      <h2 className="flex items-center gap-2 text-h3">
+      <h2 className="flex items-center gap-2 text-h2">
         {title} <Chip tone={tone}>{items.length}</Chip>
       </h2>
       <Card className="p-0">
@@ -331,11 +367,7 @@ function ActionSheet({
         maxLength={500}
         onChange={(e) => setNote(e.target.value)}
       />
-      {error ? (
-        <p role="alert" className="text-body-sm text-danger-ink">
-          {problem(error)}
-        </p>
-      ) : null}
+      {error ? <FormError message={problem(error)} /> : null}
       <div className="flex flex-wrap gap-2">
         <Button
           disabled={(needsTeacher && !teacher && !!item) || (kind === 'ROOM_CHANGE' && !room)}
@@ -496,11 +528,7 @@ function AbsenceSheet({
         onChange={(e) => setKind(e.target.value as typeof kind)}
         options={TEACHER_ABSENCE_KINDS.map((k) => ({ value: k, label: t(`kinds.${k}`) }))}
       />
-      {create.error ? (
-        <p role="alert" className="text-body-sm text-danger-ink">
-          {problem(create.error)}
-        </p>
-      ) : null}
+      {create.error ? <FormError message={problem(create.error)} /> : null}
       <Button
         disabled={!teacherId || create.isPending}
         className="self-start"

@@ -7,12 +7,13 @@ import { apiRequest } from '../../lib/api-client';
 import { longDate, timeOf, weekdayDate } from '../../lib/dates';
 import { useT } from '../../lib/i18n';
 
-const TONE: Record<AbsenceStatusName, 'neutral' | 'late' | 'ok' | 'danger' | 'ok'> = {
+/** Status-Abbildung (Design-Audit 2a): erledigt Kobalt, offen und abgelehnt als Hinweis, Rot nur für Fehler. */
+const TONE: Record<AbsenceStatusName, 'late' | 'ok' | 'absent'> = {
   OPEN: 'late',
-  REPORTED: 'ok',
+  REPORTED: 'absent',
   EXCUSED: 'ok',
-  REJECTED: 'danger',
-  UNEXCUSED: 'danger',
+  REJECTED: 'late',
+  UNEXCUSED: 'late',
 };
 const ICON = { OPEN: Clock, REPORTED: FileCheck, EXCUSED: Check, REJECTED: X, UNEXCUSED: X };
 
@@ -35,8 +36,7 @@ export function AbsenceStatusBadge({ status }: { status: AbsenceStatusName }) {
   const t = useT('absence');
   const Icon = ICON[status];
   return (
-    <Chip tone={TONE[status]}>
-      <Icon aria-hidden="true" size={14} />
+    <Chip tone={TONE[status]} icon={Icon}>
       {t(`status.${status}`)}
     </Chip>
   );
@@ -80,9 +80,9 @@ export function AbsenceList({
               </p>
               {a.reason ? <p className="text-body-sm">{a.reason}</p> : null}
               {a.deadline ? (
-                <p className="text-body-sm text-signal-ink">
+                <Chip tone="late" icon={Clock} className="self-start">
                   {t('deadline', { date: weekdayDate(a.deadline) })}
-                </p>
+                </Chip>
               ) : null}
               {a.reviewComment ? (
                 <p className="text-body-sm text-ink-muted">

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Button } from '@sp/ui';
+import { BellOff } from 'lucide-react';
+import { Banner, Button } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
@@ -98,9 +99,7 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey: string | null }
       {state === 'unsupported' ? (
         <p className="text-body-sm text-ink-muted">{t('pushUnsupported')}</p>
       ) : null}
-      {state === 'denied' ? (
-        <p className="text-body-sm text-signal-ink">{t('pushDenied')}</p>
-      ) : null}
+      {state === 'denied' ? <Banner icon={BellOff}>{t('pushDenied')}</Banner> : null}
       {state === 'on' || state === 'off' ? (
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-body-sm">{state === 'on' ? t('pushOn') : t('pushOff')}</p>

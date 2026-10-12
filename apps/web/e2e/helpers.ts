@@ -53,14 +53,13 @@ export async function login(page: Page, email: string, landing: RegExp) {
   if (page.url().includes('/2fa/einrichten')) {
     await page.getByRole('button', { name: 'Einrichtung starten' }).click();
     const secret = (await page.locator('code').textContent())!.trim();
+    // Sechs Ziffern: das Formular sendet nach der letzten Ziffer selbst ab
     await page.getByLabel('Code').fill(await totp(email, secret));
-    await page.getByRole('button', { name: 'Aktivieren' }).click();
     await page.getByRole('button', { name: 'Ich habe die Codes gespeichert' }).click();
   } else if (new URL(page.url()).pathname === '/2fa') {
     const saved = readSecrets()[email];
     expect(saved, `kein TOTP-Geheimnis für ${email}`).toBeTruthy();
     await page.getByLabel('Code').fill(await totp(email, saved!.secret));
-    await page.getByLabel('Code').press('Enter');
   }
   // Beim ersten Login: Einführung mit Datenschutzhinweis (M6); Umleitungen erst abwarten
   await page.waitForURL((u) => u.pathname === '/willkommen' || landing.test(u.href));

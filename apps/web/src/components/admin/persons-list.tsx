@@ -17,6 +17,8 @@ import {
 } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 export interface PersonRow {
   id: string;
@@ -119,9 +121,9 @@ export function PersonsList({
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="stammdaten">{t('title')}</PageTitle>
         {readOnly ? (
           <span className="text-body-sm text-ink-muted">{c('readOnly')}</span>
         ) : (
@@ -242,11 +244,7 @@ export function PersonsList({
               <Checkbox name="role-ADMIN" label={t('extra.ADMIN')} />
             </fieldset>
           ) : null}
-          {formError ? (
-            <p role="alert" className="text-body-sm text-danger-ink">
-              {formError}
-            </p>
-          ) : null}
+          {formError ? <FormError message={formError} /> : null}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setCreating(false)}>
               {c('cancel')}

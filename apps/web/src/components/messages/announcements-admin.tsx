@@ -1,27 +1,31 @@
 'use client';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, BellRing, Megaphone, Plus } from 'lucide-react';
+import { ArrowLeft, BellRing, CircleAlert, Megaphone, Plus, Send } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { AnnouncementDetail, AnnouncementItem, Audience, AudienceRole } from '@sp/shared';
 import {
-  Chip,
   Button,
   Card,
+  CardTitle,
   Checkbox,
+  Chip,
   EmptyState,
   Input,
   SegmentedControl,
+  Sheet,
   Skeleton,
   Switch,
   Textarea,
 } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
+import { FormError } from '../form-bits';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 function Progress({ read, total, label }: { read: number; total: number; label: string }) {
   const pct = total ? Math.round((read / total) * 100) : 0;
@@ -58,9 +62,9 @@ export function AnnouncementsAdmin() {
   });
   const items = q.data?.pages.flatMap((p) => p.data) ?? [];
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="kommunikation">{t('title')}</PageTitle>
         <Button asChild>
           <Link href="/rundschreiben/neu">
             <Plus aria-hidden="true" size={18} />
@@ -163,8 +167,9 @@ export function AnnouncementForm() {
   const toggle = <T extends string>(list: T[], v: T) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  const [confirm, setConfirm] = useState(false);
+
+  async function submit() {
     setError(null);
     setBusy(true);
     try {
@@ -178,9 +183,11 @@ export function AnnouncementForm() {
       router.push(`/rundschreiben/${r.id}`);
     } catch (err) {
       setError(problem(err));
+      setConfirm(false);
       setBusy(false);
     }
   }
+  const audienceLabel = roles.map((r) => t(`role${r}`)).join(', ');
 
   const pickList = (
     label: string,
@@ -205,15 +212,19 @@ export function AnnouncementForm() {
     ) : null;
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <Button variant="ghost" asChild className="self-start">
-        <Link href="/rundschreiben">
-          <ArrowLeft aria-hidden="true" size={18} />
-          {t('back')}
-        </Link>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <Button variant="ghost" size="sm" asChild iconLeft={ArrowLeft} className="-ml-4 self-start">
+        <Link href="/rundschreiben">{t('back')}</Link>
       </Button>
-      <h1 className="text-h1">{t('new')}</h1>
-      <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
+      <PageTitle area="kommunikation">{t('new')}</PageTitle>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setConfirm(true);
+        }}
+        className="flex flex-col gap-5"
+        noValidate
+      >
         <Input
           label={t('fieldTitle')}
           value={title}
@@ -265,23 +276,52 @@ export function AnnouncementForm() {
           />
           <p className="text-body-sm text-ink-muted">{t('requiresReadHelp')}</p>
         </div>
-        <p role="status" className="text-body-sm">
+        <p role="status" className="text-label text-brand-text">
           {count === null ? '' : t('recipients', { count })}
         </p>
-        {error ? (
-          <p role="alert" className="text-body-sm text-danger-ink">
-            {error}
-          </p>
-        ) : null}
+        <FormError message={error} />
         <Button
           type="submit"
+          block
+          iconLeft={Megaphone}
           disabled={busy || !valid || !title.trim() || !body.trim() || count === 0}
-          className="self-start"
         >
-          <Megaphone aria-hidden="true" size={18} />
-          {t('publish')}
+          {t('send')}
         </Button>
       </form>
+
+      {/* Senden ist nicht umkehrbar: Vorschau "So sehen es …" und Bestätigung (Design System, Rundschreiben) */}
+      <Sheet
+        open={confirm}
+        onOpenChange={setConfirm}
+        title={t('confirmTitle')}
+        description={count === null ? undefined : t('recipients', { count })}
+        closeLabel={t('cancel')}
+      >
+        <p className="text-overline text-brand-text">
+          {t('previewFor', { audience: audienceLabel })}
+        </p>
+        <Card flat className="flex flex-col gap-3 bg-bg">
+          <p className="text-overline text-ink-muted">{t('title')}</p>
+          <CardTitle as="h3" className="break-words">
+            {title}
+          </CardTitle>
+          <p className="whitespace-pre-line break-words">{body}</p>
+          {requiresRead ? (
+            <Chip tone="late" icon={CircleAlert}>
+              {t('requiresRead')}
+            </Chip>
+          ) : null}
+        </Card>
+        <div className="flex flex-wrap gap-3">
+          <Button iconLeft={Send} loading={busy} onClick={() => void submit()}>
+            {t('sendNow')}
+          </Button>
+          <Button variant="secondary" onClick={() => setConfirm(false)}>
+            {t('cancel')}
+          </Button>
+        </div>
+      </Sheet>
     </div>
   );
 }
@@ -314,7 +354,7 @@ export function AnnouncementStats({ id }: { id: string }) {
   };
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <Button variant="ghost" asChild className="self-start">
         <Link href="/rundschreiben">
           <ArrowLeft aria-hidden="true" size={18} />
@@ -330,7 +370,7 @@ export function AnnouncementStats({ id }: { id: string }) {
       ) : (
         <>
           <header>
-            <h1 className="text-h1 break-words">{a.title}</h1>
+            <PageTitle area="kommunikation">{a.title}</PageTitle>
             <p className="text-body-sm text-ink-muted">
               {a.author} · {dateTimeOf(a.publishedAt)}
             </p>

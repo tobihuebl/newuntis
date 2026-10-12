@@ -1,11 +1,17 @@
 'use client';
+import { TriangleAlert } from 'lucide-react';
 import { ApiError } from '../lib/api-client';
 import { useT } from '../lib/i18n';
 
+/** Fehler am Formular (Design System: mit Icon und Anweisung, Fläche danger-soft, nie als Alert-Dialog). */
 export function FormError({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <p role="alert" className="text-body-sm text-danger-ink">
+    <p
+      role="alert"
+      className="flex items-start gap-2 rounded-md bg-danger-soft px-4 py-3 text-label text-danger-ink"
+    >
+      <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
       {message}
     </p>
   );

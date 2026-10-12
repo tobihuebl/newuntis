@@ -2,6 +2,7 @@ import { addDays, fachColorOf, type PlanEntry, type PlanResponse } from '@sp/sha
 import { EmptyState, StatusBadge, TimetableCell, TimetableGrid, cn } from '@sp/ui';
 import { shortDate, todayVienna } from '../../lib/dates';
 import { NowLineSlot } from '../now-line';
+import { MobileDays } from './mobile-days';
 import { PlanNowMarker } from './plan-now-marker';
 import { getT } from '../../lib/nav-server';
 
@@ -58,8 +59,15 @@ export async function WeekPlan({
 
   return (
     <>
-      {/* Mobil: Tagesliste mit Zeitleiste */}
-      <div className="flex flex-col gap-6 md:hidden">
+      {/* Mobil: ein Tag mit Zeitleiste, Wischen oder Tabs wechseln den Tag */}
+      <MobileDays
+        label={t('plan.days')}
+        days={days.map((d, i) => ({
+          key: d,
+          label: t(`days.short${i + 1}`),
+          current: d === today,
+        }))}
+      >
         {days.map((d, i) => {
           const entries = plan.entries.filter((e) => e.date === d);
           return (
@@ -111,7 +119,7 @@ export async function WeekPlan({
             </section>
           );
         })}
-      </div>
+      </MobileDays>
 
       {/* Ab Tablet: Raster mit Tagen als Spalten und Stunden als Zeilen */}
       <TimetableGrid

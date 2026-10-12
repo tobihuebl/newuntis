@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, EmptyState, Input, Skeleton } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
 
 interface Entry {
   id: string;
@@ -53,8 +54,8 @@ export function AuditList() {
   }, [load]);
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <h1 className="text-h1">{t('title')}</h1>
+    <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <PageTitle area="administration">{t('title')}</PageTitle>
       <Input
         label={t('filter')}
         value={filter}

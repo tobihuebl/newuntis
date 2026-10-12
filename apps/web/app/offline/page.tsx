@@ -1,23 +1,15 @@
-import Link from 'next/link';
-import { Button, Card, EmptyState } from '@sp/ui';
+import { SpecialPage } from '../../src/components/special-page';
 import { getT } from '../../src/lib/nav-server';
 
 /** Ersatzseite des Service Workers für Seiten, die offline nicht gespeichert sind. */
 export default async function OfflinePage() {
   const t = await getT('offline');
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md items-center p-4">
-      <Card className="w-full">
-        <EmptyState
-          title={t('title')}
-          description={t('description')}
-          action={
-            <Button asChild>
-              <Link href="/heute">{t('toToday')}</Link>
-            </Button>
-          }
-        />
-      </Card>
-    </main>
+    <SpecialPage
+      title={t('title')}
+      text={t('description')}
+      actionLabel={t('toToday')}
+      actionHref="/heute"
+    />
   );
 }

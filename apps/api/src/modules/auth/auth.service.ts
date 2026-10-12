@@ -1,6 +1,11 @@
 import { Inject, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import type { SessionStage, Tx } from '@sp/db';
-import { TWO_FACTOR_REQUIRED_ROLES, type MeResponse, type Role } from '@sp/shared';
+import {
+  TWO_FACTOR_REQUIRED_ROLES,
+  formalAddress,
+  type MeResponse,
+  type Role,
+} from '@sp/shared';
 import { ENV, type Env } from '../../config/env';
 import { tenantAppUrl } from '../../common/urls';
 import type { Principal, TenantInfo } from '../../common/request';
@@ -279,8 +284,8 @@ export class AuthService {
     createdById?: string,
   ): Promise<string> {
     const token = this.crypto.randomToken();
-    await this.prisma.runAsTenant(tenant.id, (tx) =>
-      tx.invitation.create({
+    const roles = await this.prisma.runAsTenant(tenant.id, async (tx) => {
+      await tx.invitation.create({
         data: {
           tenantId: tenant.id,
           personId,
@@ -289,13 +294,15 @@ export class AuthService {
           expiresAt: new Date(Date.now() + INVITE_VALID_DAYS * 86_400_000),
           createdById: createdById ?? null,
         },
-      }),
-    );
+      });
+      return tx.roleAssignment.findMany({ where: { personId }, select: { role: true } });
+    });
     await this.mail.send(email, {
       kind: 'invitation',
       school: tenant.name,
       url: this.appUrl(tenant, `/einladung?token=${token}`),
       validDays: INVITE_VALID_DAYS,
+      formal: formalAddress(roles.map((r) => r.role as Role)),
     });
     return token;
   }
@@ -345,16 +352,20 @@ export class AuthService {
     );
     if (!user || !user.passwordHash) return;
     const token = this.crypto.randomToken();
-    await this.prisma.runAsTenant(tenant.id, (tx) =>
-      tx.passwordResetToken.create({
+    const roles = await this.prisma.runAsTenant(tenant.id, async (tx) => {
+      await tx.passwordResetToken.create({
         data: {
           tenantId: tenant.id,
           userId: user.id,
           tokenHash: this.crypto.sha256(token),
           expiresAt: new Date(Date.now() + RESET_VALID_MINUTES * 60_000),
         },
-      }),
-    );
+      });
+      return tx.roleAssignment.findMany({
+        where: { personId: user.personId },
+        select: { role: true },
+      });
+    });
     await this.audit.record({
       tenantId: tenant.id,
       actorId: user.personId,
@@ -367,6 +378,7 @@ export class AuthService {
       school: tenant.name,
       url: this.appUrl(tenant, `/passwort-zuruecksetzen?token=${token}`),
       validMinutes: RESET_VALID_MINUTES,
+      formal: formalAddress(roles.map((r) => r.role as Role)),
     });
   }
 

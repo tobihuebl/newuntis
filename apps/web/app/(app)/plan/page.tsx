@@ -8,6 +8,7 @@ import { apiGet } from '../../../src/lib/api-server';
 import { shortDate, weekOf } from '../../../src/lib/dates';
 import { requireRoute } from '../../../src/lib/route-guard';
 import { getT } from '../../../src/lib/nav-server';
+import { PageTitle } from '../../../src/components/page-title';
 
 interface Search {
   from?: string;
@@ -79,10 +80,10 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
     `/plan?${new URLSearchParams({ ...Object.fromEntries(keep), from })}`;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-h1">{title}</h1>
+          <PageTitle area="stundenplan">{title}</PageTitle>
           <p className="text-body-sm text-ink-muted">
             {t('week', { from: shortDate(week.from), to: shortDate(week.to) })}
           </p>

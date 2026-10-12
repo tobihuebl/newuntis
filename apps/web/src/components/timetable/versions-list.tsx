@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { Chip, Button, EmptyState, Input, Select, Sheet } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
+import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
 
 export interface VersionRow {
   id: string;
@@ -57,9 +59,9 @@ export function VersionsList({
   }
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-h1">{t('versions')}</h1>
+        <PageTitle area="stundenplan">{t('versions')}</PageTitle>
         {canEdit && schoolYearId ? (
           <Button onClick={() => setOpen(true)}>
             <Plus aria-hidden="true" size={18} />
@@ -129,11 +131,7 @@ export function VersionsList({
               label: `${r.name ?? r.schoolYear.name} (${t('statuses.' + r.status)}, ${r.validFrom})`,
             }))}
           />
-          {error ? (
-            <p role="alert" className="text-body-sm text-danger-ink">
-              {error}
-            </p>
-          ) : null}
+          {error ? <FormError message={error} /> : null}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               {c('cancel')}

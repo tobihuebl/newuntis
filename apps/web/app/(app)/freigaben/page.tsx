@@ -4,6 +4,7 @@ import { apiGet } from '../../../src/lib/api-server';
 import { shortDate } from '../../../src/lib/dates';
 import { requireRoute } from '../../../src/lib/route-guard';
 import { getT } from '../../../src/lib/nav-server';
+import { PageTitle } from '../../../src/components/page-title';
 
 interface Version {
   id: string;
@@ -22,9 +23,9 @@ export default async function FreigabenPage() {
   const drafts = data.filter((v) => v.status === 'DRAFT');
   const current = data.find((v) => v.status === 'PUBLISHED');
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div>
-        <h1 className="text-h1">{t('title')}</h1>
+        <PageTitle area="direktion">{t('title')}</PageTitle>
         <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </div>
       {drafts.length === 0 ? (

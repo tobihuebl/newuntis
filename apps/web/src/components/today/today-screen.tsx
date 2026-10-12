@@ -2,9 +2,11 @@
 import {
   BookOpenCheck,
   CalendarDays,
-  ClipboardList,
+  CloudOff,
+  FileClock,
   MessageSquare,
   UserRoundCog,
+  UserRoundX,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -17,7 +19,19 @@ import {
   type TodayLesson,
   type TodayResponse,
 } from '@sp/shared';
-import { Chip, Button, Card, EmptyState, FACH_BORDER, Skeleton, cn } from '@sp/ui';
+import {
+  Banner,
+  Button,
+  Card,
+  CardSub,
+  CardTitle,
+  Chip,
+  EmptyState,
+  FACH_BORDER,
+  KpiTile,
+  Skeleton,
+  cn,
+} from '@sp/ui';
 import { dateTimeOf, longDate, shortDate, timeOf, weekdayDate } from '../../lib/dates';
 import { OfflineMissError, type Cached } from '../../offline/cached';
 import { useCached, useOutbox } from '../../offline/hooks';
@@ -52,10 +66,10 @@ export function previousEnds<T extends { startsAt: string; endsAt: string }>(
 export function TodaySkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-hidden="true">
-      <Skeleton className="h-8 w-40" />
-      <Skeleton className="h-28 w-full" />
-      <Skeleton className="h-16 w-full" />
-      <Skeleton className="h-16 w-full" />
+      <Skeleton className="h-40 w-full rounded-lg" />
+      <Skeleton className="h-14 w-full" />
+      <Skeleton className="h-14 w-full" />
+      <Skeleton className="h-14 w-full" />
     </div>
   );
 }
@@ -80,15 +94,28 @@ export function LoadError({ error, onRetry }: { error: unknown; onRetry: () => v
 function CachedHint({ result }: { result: Cached<unknown> }) {
   const t = useT('today');
   if (!result.fromCache) return null;
-  return (
-    <p className="text-body-sm text-signal-ink">
-      {t('cachedAt', { time: dateTimeOf(result.savedAt) })}
-    </p>
-  );
+  return <Banner icon={CloudOff}>{t('cachedAt', { time: dateTimeOf(result.savedAt) })}</Banner>;
 }
 
-export function TodayScreen() {
+/** Begrüßung nach Tageszeit (Wien): Guten Morgen bis 11 Uhr, Guten Tag bis 17 Uhr, sonst Guten Abend. */
+function greetingKey(now: number): 'greetingMorning' | 'greetingDay' | 'greetingEvening' {
+  const hour = Number(
+    new Intl.DateTimeFormat('de-AT', {
+      hour: 'numeric',
+      hour12: false,
+      timeZone: 'Europe/Vienna',
+    }).format(now),
+  );
+  return hour < 11 ? 'greetingMorning' : hour < 17 ? 'greetingDay' : 'greetingEvening';
+}
+
+/**
+ * Heute (Design System, Screens "Heute"): Begrüßung in display-lg, die aktuelle bzw. nächste Stunde als
+ * Nachtkarte, darunter die Tagesliste; ab 1024 px zweispaltig mit Hinweisen rechts.
+ */
+export function TodayScreen({ firstName }: { firstName: string }) {
   const t = useT('today');
+  const now = useNow();
   const child = useSearchParams().get('kind');
   const key = child ?? 'me';
   const q = useCached<TodayResponse>(
@@ -102,11 +129,13 @@ export function TodayScreen() {
     if (online && day) void cachePlanPages(addDays(mondayOf(day), 7));
   }, [online, day]);
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <div>
-        <h1 className="text-h1">{t('title')}</h1>
-        {q.data ? <p className="text-ink-muted">{longDate(q.data.data.date)}</p> : null}
-      </div>
+    <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
+      <header className="flex flex-col gap-1">
+        <p className="text-overline text-brand-text">
+          {q.data ? longDate(q.data.data.date) : t('title')}
+        </p>
+        <h1 className="text-display-lg">{t(greetingKey(now), { name: firstName })}</h1>
+      </header>
       {q.isPending ? (
         <TodaySkeleton />
       ) : q.isError ? (
@@ -114,7 +143,6 @@ export function TodayScreen() {
       ) : (
         <>
           <CachedHint result={q.data} />
-          <InboxHint data={q.data.data} />
           {q.data.data.view === 'teacher' ? (
             <TeacherToday data={q.data.data} fromCache={q.data.fromCache} />
           ) : q.data.data.view === 'none' ? (
@@ -130,6 +158,16 @@ export function TodayScreen() {
   );
 }
 
+/** Zweispaltig ab 1024 px: Tag links, Hinweise rechts; mobil untereinander. */
+function Columns({ main, aside }: { main: React.ReactNode; aside: React.ReactNode }) {
+  return (
+    <div className="grid gap-6 lg:grid-cols-5">
+      <div className="flex min-w-0 flex-col gap-6 lg:col-span-3">{main}</div>
+      <aside className="flex min-w-0 flex-col gap-4 lg:col-span-2">{aside}</aside>
+    </div>
+  );
+}
+
 /** Ungelesene Nachrichten und Rundschreiben (Spec Abschnitt 5: "ungelesene Mitteilungen"). */
 function InboxHint({ data }: { data: TodayResponse }) {
   const t = useT('today');
@@ -137,36 +175,40 @@ function InboxHint({ data }: { data: TodayResponse }) {
   const inbox = data.inbox as TodayResponse['inbox'] | undefined;
   if (!inbox || inbox.messages + inbox.announcements === 0) return null;
   return (
-    <Link
-      href={
-        inbox.announcements > 0 && inbox.messages === 0
-          ? '/nachrichten?ansicht=rundschreiben'
-          : '/nachrichten'
-      }
-      className={cn(
-        'flex min-h-12 items-center gap-3 rounded-md border bg-bg-raised px-4 py-2 hover:bg-bg-sunken',
-        inbox.required > 0 ? 'border-signal' : 'border-line',
-      )}
+    <Card
+      interactive
+      tone={inbox.required > 0 ? 'signal' : 'brand'}
+      flat
+      asChild
+      className="flex items-center gap-3"
     >
-      <MessageSquare aria-hidden="true" size={20} className="shrink-0 text-brand-text" />
-      <span className="flex flex-col">
-        <span className="font-medium">
-          {[
-            inbox.messages > 0 ? t('unreadMessages', { count: inbox.messages }) : null,
-            inbox.announcements > 0
-              ? t('unreadAnnouncements', { count: inbox.announcements })
-              : null,
-          ]
-            .filter(Boolean)
-            .join(' · ')}
-        </span>
-        {inbox.required > 0 ? (
-          <span className="text-body-sm text-signal-ink">
-            {t('confirmRequired', { count: inbox.required })}
+      <Link
+        href={
+          inbox.announcements > 0 && inbox.messages === 0
+            ? '/nachrichten?ansicht=rundschreiben'
+            : '/nachrichten'
+        }
+      >
+        <MessageSquare aria-hidden="true" className="size-6 shrink-0 text-brand-text" />
+        <span className="flex flex-col">
+          <span className="text-body-strong">
+            {[
+              inbox.messages > 0 ? t('unreadMessages', { count: inbox.messages }) : null,
+              inbox.announcements > 0
+                ? t('unreadAnnouncements', { count: inbox.announcements })
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
           </span>
-        ) : null}
-      </span>
-    </Link>
+          {inbox.required > 0 ? (
+            <span className="text-body-sm text-signal-ink">
+              {t('confirmRequired', { count: inbox.required })}
+            </span>
+          ) : null}
+        </span>
+      </Link>
+    </Card>
   );
 }
 
@@ -190,52 +232,24 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
   const hero =
     current ?? data.lessons.find((l) => l.status !== 'CANCELLED' && Date.parse(l.startsAt) > now);
   const subs = data.teacher?.substitutions ?? [];
+  const openEntries = data.teacher?.openEntries ?? 0;
   const teacherPrev = previousEnds(data.lessons);
   const progress = (l: TodayLesson) => {
     if (l.classbook === null) return null;
     if (closing.has(l.id) && l.classbook !== 'closed')
       return <Chip tone="ok">{t('progress_pending')}</Chip>;
     return (
-      <Chip tone={l.classbook === 'closed' ? 'ok' : l.classbook === 'started' ? 'late' : 'neutral'}>
+      <Chip
+        tone={l.classbook === 'closed' ? 'ok' : l.classbook === 'started' ? 'late' : 'absent'}
+        icon={l.classbook === 'closed' ? BookOpenCheck : undefined}
+      >
         {t(`progress_${l.classbook}`)}
       </Chip>
     );
   };
 
-  return (
+  const main = (
     <>
-      <SyncStatus />
-      {(data.teacher?.openEntries ?? 0) > 0 || subs.length > 0 ? (
-        <div className="flex flex-col gap-2" role="region" aria-label={t('title')}>
-          {(data.teacher?.openEntries ?? 0) > 0 ? (
-            <Link
-              href="/klassenbuch"
-              className="flex min-h-11 items-center gap-3 rounded-md border border-signal bg-bg-raised px-4 py-3 text-signal-ink hover:bg-bg-sunken"
-            >
-              <ClipboardList aria-hidden="true" size={20} />
-              <span className="font-medium">
-                {t('openEntries', { count: data.teacher!.openEntries })}
-              </span>
-            </Link>
-          ) : null}
-          {subs.length > 0 ? (
-            <Link
-              href={`/klassenbuch/${subs[0]!.id}`}
-              className="flex min-h-11 items-center gap-3 rounded-md border border-signal bg-bg-raised px-4 py-3 text-signal-ink hover:bg-bg-sunken"
-            >
-              <UserRoundCog aria-hidden="true" size={20} />
-              <span className="font-medium">
-                {t('substitutionsForYou', { count: subs.length })}
-              </span>
-              <span className="ml-auto text-body-sm text-ink-muted">
-                {weekdayDate(subs[0]!.date)}, {periodLabel(t, subs[0]!)} ·{' '}
-                {subs[0]!.class?.name ?? subs[0]!.group?.name}
-              </span>
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
-
       {hero ? (
         <NowCard
           overline={hero === current ? t('now') : t('next')}
@@ -264,17 +278,17 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
         />
       ) : null}
 
-      <section aria-labelledby="my-lessons" className="flex flex-col gap-2">
-        <h2 id="my-lessons" className="text-h3">
+      <section aria-labelledby="my-lessons" className="flex flex-col gap-3">
+        <h2 id="my-lessons" className="text-h2">
           {t('myLessons')}
         </h2>
         {data.lessons.length === 0 ? (
-          <Card>
+          <Card flat>
             <EmptyState
               title={t('emptyTitle')}
               description={t('emptyDescription')}
               action={
-                <Button variant="secondary" asChild>
+                <Button variant="secondary" asChild iconLeft={CalendarDays}>
                   <Link href="/plan">{t('plan')}</Link>
                 </Button>
               }
@@ -299,30 +313,55 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
           </Card>
         )}
       </section>
-      {subs.length > 1 ? (
-        <section aria-labelledby="subs" className="flex flex-col gap-2">
-          <h2 id="subs" className="text-h3">
-            {t('upcomingSubstitutions')}
-          </h2>
-          <Card className="p-0">
-            <ul>
-              {subs.map((s) => (
-                <LessonRow
-                  key={s.id}
-                  entry={s}
-                  perspective="teacher"
-                  href={`/klassenbuch/${s.id}`}
-                  trailing={
-                    <span className="text-caption text-ink-muted">{weekdayDate(s.date)}</span>
-                  }
-                />
-              ))}
-            </ul>
-          </Card>
-        </section>
+    </>
+  );
+
+  const aside = (
+    <>
+      <SyncStatus />
+      <InboxHint data={data} />
+      {openEntries > 0 ? (
+        <KpiTile
+          as={Link}
+          href="/klassenbuch"
+          value={openEntries}
+          label={t('openEntriesLabel', { count: openEntries })}
+        />
+      ) : null}
+      {subs.length > 0 ? (
+        <Card tone="signal" flat className="flex flex-col gap-3">
+          <p className="flex items-center gap-2 text-overline text-signal-ink">
+            <UserRoundCog aria-hidden="true" className="size-4" />
+            {t('substitutionsForYou', { count: subs.length })}
+          </p>
+          <ul className="flex flex-col gap-3">
+            {subs.map((s) => (
+              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3">
+                <span className="text-body-strong">
+                  {t('substituteFor', {
+                    day: weekdayDate(s.date),
+                    className: s.class?.name ?? s.group?.name ?? '',
+                    period: periodLabel(t, s),
+                    room: s.room?.name ?? '–',
+                  })}
+                </span>
+                <Button size="sm" variant="secondary" asChild>
+                  <Link href={`/klassenbuch/${s.id}`}>{t('openClassbook')}</Link>
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+      {openEntries === 0 && subs.length === 0 ? (
+        <Card flat>
+          <EmptyState as="h3" title={t('allDoneTitle')} description={t('allDoneText')} />
+        </Card>
       ) : null}
     </>
   );
+
+  return <Columns main={main} aside={aside} />;
 }
 
 // ───────────── Schüler:innen und Eltern ─────────────
@@ -336,6 +375,7 @@ function ChildSwitcher({ data }: { data: TodayResponse }) {
       {data.children.map((c) => (
         <Button
           key={c.id}
+          size="sm"
           variant={c.id === data.studentId ? 'primary' : 'secondary'}
           aria-current={c.id === data.studentId ? 'page' : undefined}
           onClick={() => router.replace(`/heute?kind=${encodeURIComponent(c.id)}`)}
@@ -353,12 +393,12 @@ function StudentToday({ data }: { data: TodayResponse }) {
   const now = useNow();
   if (data.view === 'guardian' && data.children.length === 0)
     return (
-      <Card>
+      <Card flat>
         <EmptyState
           title={t('noChildren')}
           description={t('noChildrenDescription')}
           action={
-            <Button variant="secondary" asChild>
+            <Button asChild>
               <Link href="/eltern-code">{t('linkChild')}</Link>
             </Button>
           }
@@ -368,70 +408,52 @@ function StudentToday({ data }: { data: TodayResponse }) {
   const lessons = data.lessons;
   const next = lessons.find((l) => l.status !== 'CANCELLED' && Date.parse(l.endsAt) > now);
   const changes = lessons.filter((l) => l.status !== 'SCHEDULED');
-  // Ganzer Tag mit Zeitlinie; Änderungen stehen zusätzlich oben (Spec Abschnitt 5)
-  const rest = lessons;
-  const restPrev = previousEnds(rest);
+  const restPrev = previousEnds(lessons);
   const running = next && Date.parse(next.startsAt) <= now;
+  const planHref =
+    data.view === 'guardian' && data.studentId ? `/plan?child=${data.studentId}` : '/plan';
 
-  return (
+  const main = (
     <>
       <ChildSwitcher data={data} />
-      {data.view === 'guardian' && data.studentId ? (
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" asChild>
-            <Link href={`/kind/${data.studentId}/fehlzeiten`}>{t('absences')}</Link>
-          </Button>
-          <Button variant="secondary" asChild>
-            <Link href={`/abwesenheit/neu?kind=${data.studentId}`}>{t('reportAbsence')}</Link>
-          </Button>
-        </div>
-      ) : null}
       {lessons.length === 0 ? (
-        <Card>
+        <Card flat>
           <EmptyState
             title={t('emptyTitle')}
             description={t('emptyDescription')}
             action={
-              <Button variant="secondary" asChild>
-                <Link
-                  href={
-                    data.view === 'guardian' && data.studentId
-                      ? `/plan?child=${data.studentId}`
-                      : '/plan'
-                  }
-                >
-                  <CalendarDays aria-hidden="true" size={18} />
-                  {t('plan')}
-                </Link>
+              <Button variant="secondary" asChild iconLeft={CalendarDays}>
+                <Link href={planHref}>{t('plan')}</Link>
               </Button>
             }
           />
         </Card>
       ) : next ? (
-        <Card
-          className={cn('flex flex-col gap-2 border-l-8', FACH_BORDER[fachColorOf(next.subject)])}
+        <NowCard
+          overline={running ? t('now') : t('next')}
+          title={next.subject.name}
+          sub={[
+            t('time', { from: timeOf(next.startsAt), to: timeOf(next.endsAt) }),
+            periodLabel(t, next),
+            lessonDetail(next, 'student'),
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         >
-          <p className="text-label text-brand-text">{running ? t('now') : t('next')}</p>
-          <p className="text-h1">{next.subject.name}</p>
-          <p className="text-body-lg tabular-nums">
-            {t('time', { from: timeOf(next.startsAt), to: timeOf(next.endsAt) })} ·{' '}
-            {periodLabel(t, next)}
-          </p>
-          <p className="text-ink-muted">{lessonDetail(next, 'student')}</p>
-          <PlanStatusBadge entry={next} />
-        </Card>
+          {next.status !== 'SCHEDULED' ? <PlanStatusBadge entry={next} /> : null}
+        </NowCard>
       ) : (
-        <Card>
-          <p className="text-ink-muted">{t('doneForToday')}</p>
+        <Card flat>
+          <EmptyState as="h2" title={t('doneForToday')} />
         </Card>
       )}
 
       {changes.length > 0 ? (
-        <section aria-labelledby="changes" className="flex flex-col gap-2">
-          <h2 id="changes" className="text-h3 text-signal-ink">
+        <section aria-labelledby="changes" className="flex flex-col gap-3">
+          <h2 id="changes" className="text-h2">
             {t('changes')}
           </h2>
-          <Card className="border-signal p-0">
+          <Card className="p-0">
             <ul>
               {changes.map((l) => (
                 <LessonRow key={l.id} entry={l} perspective="student" />
@@ -441,14 +463,14 @@ function StudentToday({ data }: { data: TodayResponse }) {
         </section>
       ) : null}
 
-      {rest.length > 0 ? (
-        <section aria-labelledby="rest" className="flex flex-col gap-2">
-          <h2 id="rest" className="text-h3">
+      {lessons.length > 0 ? (
+        <section aria-labelledby="rest" className="flex flex-col gap-3">
+          <h2 id="rest" className="text-h2">
             {t('rest')}
           </h2>
           <Card className="p-0">
             <ul>
-              {rest.map((l, i) => (
+              {lessons.map((l, i) => (
                 <LessonRow
                   key={l.id}
                   entry={l}
@@ -462,64 +484,66 @@ function StudentToday({ data }: { data: TodayResponse }) {
           </Card>
         </section>
       ) : null}
-
-      <section aria-labelledby="homework" className="flex flex-col gap-2">
-        <h2 id="homework" className="text-h3">
-          {t('homework', { date: shortDate(nextWeekday(data.date)) })}
-        </h2>
-        <Card className={cn(data.homework.length > 0 && 'p-0')}>
-          {data.homework.length === 0 ? (
-            <p className="text-ink-muted">{t('homeworkEmpty')}</p>
-          ) : (
-            <ul>
-              {data.homework.map((h) => (
-                <li
-                  key={h.occurrenceId}
-                  className="flex flex-col gap-0.5 border-b border-line px-4 py-3 last:border-b-0"
-                >
-                  <p
-                    className={cn(
-                      'border-l-4 pl-2 text-label',
-                      FACH_BORDER[fachColorOf(h.subject)],
-                    )}
-                  >
-                    {h.subject.name} · {weekdayDate(h.dueOn)}
-                  </p>
-                  <p className="whitespace-pre-line">{h.text}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </section>
-
-      <section aria-labelledby="exams" className="flex flex-col gap-2">
-        <h2 id="exams" className="text-h3">
-          {t('exams')}
-        </h2>
-        <Card className={cn(data.exams.length > 0 && 'p-0')}>
-          {data.exams.length === 0 ? (
-            <p className="text-ink-muted">{t('examsEmpty')}</p>
-          ) : (
-            <ul>
-              {data.exams.map((x) => (
-                <li
-                  key={x.id}
-                  className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 last:border-b-0"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium">{x.title}</p>
-                    <p className="text-body-sm text-ink-muted">
-                      {x.subject.name} · {x.kind}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-body-sm tabular-nums">{weekdayDate(x.date)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </section>
     </>
   );
+
+  const aside = (
+    <>
+      <InboxHint data={data} />
+      {data.view === 'guardian' && data.studentId ? (
+        <div className="flex flex-wrap gap-3">
+          <Button variant="secondary" asChild iconLeft={UserRoundX}>
+            <Link href={`/abwesenheit/neu?kind=${data.studentId}`}>{t('reportAbsence')}</Link>
+          </Button>
+          <Button variant="secondary" asChild iconLeft={FileClock}>
+            <Link href={`/kind/${data.studentId}/fehlzeiten`}>{t('absences')}</Link>
+          </Button>
+        </div>
+      ) : null}
+      <Card className="flex flex-col gap-3">
+        <CardTitle as="h2">{t('homework', { date: shortDate(nextWeekday(data.date)) })}</CardTitle>
+        {data.homework.length === 0 ? (
+          <CardSub className="mt-0">{t('homeworkEmpty')}</CardSub>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line">
+            {data.homework.map((h) => (
+              <li key={h.occurrenceId} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0">
+                <p
+                  className={cn('border-l-4 pl-2 text-label', FACH_BORDER[fachColorOf(h.subject)])}
+                >
+                  {h.subject.name} · {weekdayDate(h.dueOn)}
+                </p>
+                <p className="whitespace-pre-line">{h.text}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+      <Card className="flex flex-col gap-3">
+        <CardTitle as="h2">{t('exams')}</CardTitle>
+        {data.exams.length === 0 ? (
+          <CardSub className="mt-0">{t('examsEmpty')}</CardSub>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line">
+            {data.exams.map((x) => (
+              <li
+                key={x.id}
+                className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <p className="text-body-strong">{x.title}</p>
+                  <p className="text-body-sm text-ink-muted">
+                    {x.subject.name} · {x.kind}
+                  </p>
+                </div>
+                <Chip tone="mono">{weekdayDate(x.date)}</Chip>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </>
+  );
+
+  return <Columns main={main} aside={aside} />;
 }
