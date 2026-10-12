@@ -26,11 +26,13 @@ const readSecrets = (): Secrets =>
  * Gültiger, noch nicht benutzter Code: der Server lässt jede 30-s-Scheibe nur einmal zu und erlaubt
  * eine Scheibe Abweichung. Die zuletzt benutzte Scheibe je Konto steht in einer Zustandsdatei.
  */
-function totp(email: string, secret: string): string {
+async function totp(email: string, secret: string): Promise<string> {
   const all = readSecrets();
   const last = all[email]?.step ?? -1;
+  // Ist auch die nächste Scheibe schon verbraucht (zwei Logins kurz hintereinander), auf eine neue warten
+  while (Math.floor(Date.now() / 30_000) + 1 <= last) await new Promise((r) => setTimeout(r, 1000));
   const now = Math.floor(Date.now() / 30_000);
-  const step = [now - 1, now, now + 1].find((s) => s > last) ?? now + 1;
+  const step = [now - 1, now, now + 1].find((s) => s > last)!;
   writeFileSync(SECRETS_FILE, JSON.stringify({ ...all, [email]: { secret, step } }));
   return new OTPAuth.TOTP({
     algorithm: 'SHA1',
@@ -51,13 +53,13 @@ export async function login(page: Page, email: string, landing: RegExp) {
   if (page.url().includes('/2fa/einrichten')) {
     await page.getByRole('button', { name: 'Einrichtung starten' }).click();
     const secret = (await page.locator('code').textContent())!.trim();
-    await page.getByLabel('Code').fill(totp(email, secret));
+    await page.getByLabel('Code').fill(await totp(email, secret));
     await page.getByRole('button', { name: 'Aktivieren' }).click();
     await page.getByRole('button', { name: 'Ich habe die Codes gespeichert' }).click();
   } else if (new URL(page.url()).pathname === '/2fa') {
     const saved = readSecrets()[email];
     expect(saved, `kein TOTP-Geheimnis für ${email}`).toBeTruthy();
-    await page.getByLabel('Code').fill(totp(email, saved!.secret));
+    await page.getByLabel('Code').fill(await totp(email, saved!.secret));
     await page.getByLabel('Code').press('Enter');
   }
   // Beim ersten Login: Einführung mit Datenschutzhinweis (M6); Umleitungen erst abwarten

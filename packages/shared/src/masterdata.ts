@@ -55,12 +55,54 @@ export const periodPatch = z
   })
   .partial();
 
+/**
+ * Fächerfarben des Design Systems (Tokens fach-*, Text darauf immer on-fach). Die Zuordnung je Fach legt die
+ * Schule fest; Amber ist Konflikten vorbehalten und deshalb keine Fächerfarbe.
+ */
+export const FACH_COLORS = [
+  'kobalt',
+  'mint',
+  'himmel',
+  'flieder',
+  'rosa',
+  'limette',
+  'koralle',
+  'sand',
+] as const;
+export type FachColor = (typeof FACH_COLORS)[number];
+
+/** Standardzuordnung (Design System): Mathe Kobalt, Deutsch Koralle, Sprachen Rosa, Bio Mint, Physik/Chemie Himmel, Musik/Kunst Flieder, Sport Limette, sonst Sand. */
+const DEFAULT_FACH: [RegExp, FachColor][] = [
+  [/^(m|ma|mathe|mathematik)\b|mathemat/i, 'kobalt'],
+  [/^(d|de)$|deutsch/i, 'koralle'],
+  [/^(e|en|f|fr|l|la|it)$|englisch|franz|latein|spanisch|italienisch|sprache/i, 'rosa'],
+  [/^(bio|biu|bu|nawi)$|biolog|naturkunde|umweltkunde/i, 'mint'],
+  [/^(ph|ch)$|physik|chemie/i, 'himmel'],
+  [/^(mu|me|be|bk|ku)$|musik|kunst|bildnerisch/i, 'flieder'],
+  [/^(bsp|spo|bus)$|sport|bewegung|turnen/i, 'limette'],
+];
+
+export function defaultFachColor(name: string, code = ''): FachColor {
+  for (const [re, color] of DEFAULT_FACH) if (re.test(code) || re.test(name)) return color;
+  return 'sand';
+}
+
+/** Farbe eines Fachs: gespeicherte Fächerfarbe, sonst die Standardzuordnung. */
+export function fachColorOf(subject: {
+  color: string | null;
+  name: string;
+  code: string;
+}): FachColor {
+  return (FACH_COLORS as readonly string[]).includes(subject.color ?? '')
+    ? (subject.color as FachColor)
+    : defaultFachColor(subject.name, subject.code);
+}
+
 export const subjectInput = z.object({
   name: trimmed(80),
   code: trimmed(10),
   color: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, 'Farbe als #RRGGBB')
+    .enum(FACH_COLORS, 'Eine der acht Fächerfarben wählen.')
     .nullish()
     .transform((v) => v ?? null),
 });
@@ -68,10 +110,7 @@ export const subjectPatch = z
   .object({
     name: trimmed(80),
     code: trimmed(10),
-    color: z
-      .string()
-      .regex(/^#[0-9a-fA-F]{6}$/)
-      .nullable(),
+    color: z.enum(FACH_COLORS).nullable(),
   })
   .partial();
 

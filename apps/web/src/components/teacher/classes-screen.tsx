@@ -1,15 +1,15 @@
 'use client';
 import { ArrowLeft, CalendarDays, MessageSquare, NotebookPen, UserCheck } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import type { MyClass, MyClassDetail } from '@sp/shared';
 import { Chip, Button, Card, EmptyState, Skeleton } from '@sp/ui';
 import { useApi, useProblemText } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 /** Klassen der Lehrkraft (Spec Abschnitt 5, /klassen). */
 export function ClassesScreen() {
-  const t = useTranslations('classes');
-  const tc = useTranslations('common');
+  const t = useT('classes');
+  const tc = useT('common');
   const q = useApi<{ data: MyClass[] }>(['my-classes'], '/my-classes');
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
@@ -36,7 +36,9 @@ export function ClassesScreen() {
                   <span className="text-h3">{c.name}</span>
                   {c.homeroom ? <Chip tone="ok">{t('homeroom')}</Chip> : null}
                 </span>
-                <span className="text-body-sm text-ink-muted">{t('students', { count: c.students })}</span>
+                <span className="text-body-sm text-ink-muted">
+                  {t('students', { count: c.students })}
+                </span>
                 {c.subjects.length ? (
                   <span className="text-body-sm">{c.subjects.join(', ')}</span>
                 ) : null}
@@ -51,8 +53,8 @@ export function ClassesScreen() {
 
 /** Eine Klasse: Schülerliste, Fächer und Lehrkräfte, schnelle Wege zu Plan, Nachricht und Prüfungen. */
 export function ClassDetailScreen({ id }: { id: string }) {
-  const t = useTranslations('classes');
-  const tc = useTranslations('common');
+  const t = useT('classes');
+  const tc = useT('common');
   const problem = useProblemText();
   const q = useApi<MyClassDetail>(['my-classes', id], `/my-classes/${id}`);
   const c = q.data;
@@ -119,7 +121,9 @@ export function ClassDetailScreen({ id }: { id: string }) {
                     key={s.id}
                     className="flex min-h-11 items-center gap-3 border-b border-line px-4 py-2 last:border-b-0"
                   >
-                    <span className="w-6 text-right text-body-sm text-ink-muted tabular-nums">{i + 1}</span>
+                    <span className="w-6 text-right text-body-sm text-ink-muted tabular-nums">
+                      {i + 1}
+                    </span>
                     <span className="flex-1">{s.name}</span>
                     {!s.hasAccount ? <Chip>{t('noAccount')}</Chip> : null}
                     {s.guardians === 0 ? <Chip tone="late">{t('noGuardian')}</Chip> : null}

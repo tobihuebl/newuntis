@@ -1,11 +1,11 @@
 'use client';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import type { AbsenceItem } from '@sp/shared';
 import { Button, Card, EmptyState, Sheet, Skeleton, Textarea, cn } from '@sp/ui';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
 import { AbsenceList, absenceRange } from './absence-list';
+import { useT } from '../../lib/i18n';
 
 type Tab = 'entschuldigungen' | 'fehlzeiten';
 
@@ -19,9 +19,9 @@ export function ClassAbsences({
   className: string;
   tab: Tab;
 }) {
-  const t = useTranslations('klasse');
-  const ta = useTranslations('absence');
-  const tc = useTranslations('common');
+  const t = useT('klasse');
+  const ta = useT('absence');
+  const tc = useT('common');
   const problem = useProblemText();
   const q = useApi<{ data: AbsenceItem[] }>(
     ['absences', 'class', classId],

@@ -1,7 +1,6 @@
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import type { AbsenceItem } from '@sp/shared';
 import { Button, Card, EmptyState, Skeleton } from '@sp/ui';
@@ -9,11 +8,12 @@ import { ApiError, apiUpload } from '../../lib/api-client';
 import { useApi } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { AbsenceList } from './absence-list';
+import { useT } from '../../lib/i18n';
 
 /** Fehlzeiten eines Kindes (Eltern, Spec Abschnitt 5: /kind/[id]/fehlzeiten). */
 export function ChildAbsences({ studentId }: { studentId: string }) {
-  const t = useTranslations('absence');
-  const tc = useTranslations('common');
+  const t = useT('absence');
+  const tc = useT('common');
   const { csrfToken } = useSession();
   const qc = useQueryClient();
   const q = useApi<{ data: AbsenceItem[] }>(

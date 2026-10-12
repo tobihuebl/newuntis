@@ -1,11 +1,11 @@
 'use client';
 import { CloudOff, Check, LoaderCircle, TriangleAlert, WifiOff } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { Banner, Button, Chip, cn, useToast } from '@sp/ui';
 import { useSyncState } from '../offline/hooks';
 import { sync } from '../offline/sync';
+import { useT } from '../lib/i18n';
 
 /** Verbindung laut Browser; reagiert auf online/offline-Ereignisse. */
 export function useOnline(): boolean {
@@ -28,7 +28,7 @@ export function useOnline(): boolean {
  * wird synchronisiert, Fehler mit Wiederholen. Änderungen werden per aria-live angesagt.
  */
 export function SyncStatus({ className }: { className?: string }) {
-  const t = useTranslations('sync');
+  const t = useT('sync');
   const online = useOnline();
   const s = useSyncState();
   let tone: 'ok' | 'busy' | 'warn' | 'error' = 'ok';
@@ -91,7 +91,7 @@ export function SyncStatus({ className }: { className?: string }) {
  * Synchronisation meldet ein Toast "Synchronisiert".
  */
 export function OfflineBanner() {
-  const t = useTranslations('sync');
+  const t = useT('sync');
   const online = useOnline();
   const s = useSyncState();
   const toast = useToast();
@@ -115,7 +115,7 @@ export function OfflineBanner() {
 
 /** Kleiner Status-Chip in der Topbar: offline oder wartende Einträge. */
 export function OfflineChip() {
-  const t = useTranslations('nav');
+  const t = useT('nav');
   const online = useOnline();
   const s = useSyncState();
   if (online && s.pending === 0) return null;

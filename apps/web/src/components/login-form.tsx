@@ -1,14 +1,14 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Input } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
 import { FormError, useErrorText } from './form-bits';
+import { useT } from '../lib/i18n';
 
 export function LoginForm() {
-  const t = useTranslations('auth');
+  const t = useT('auth');
   const errorText = useErrorText();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +45,10 @@ export function LoginForm() {
       <Button type="submit" disabled={busy}>
         {t('login')}
       </Button>
-      <Link href="/passwort-vergessen" className="text-center text-body-sm text-brand-text underline">
+      <Link
+        href="/passwort-vergessen"
+        className="text-center text-body-sm text-brand-text underline"
+      >
         {t('forgot')}
       </Link>
       <Link href="/eltern-code" className="text-center text-body-sm text-brand-text underline">

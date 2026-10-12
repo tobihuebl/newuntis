@@ -1,10 +1,10 @@
 'use client';
 import { ArrowRight, Check, Circle, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import type { Role } from '@sp/shared';
 import { Banner, Button, Card, CardSub, CardTitle, Chip, Skeleton, cn } from '@sp/ui';
 import { useApi } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 interface ListOf<T> {
   data: T[];
@@ -25,7 +25,7 @@ const HREF: Record<Step, string> = {
  * eine Zeile mit Status-Chip und Weg zur Seite. Stand aus vorhandenen Abfragen, kein eigener Endpunkt.
  */
 export function OverviewScreen() {
-  const t = useTranslations('adminOverview');
+  const t = useT('adminOverview');
   const years = useApi<ListOf<{ freeDayCount?: number }>>(
     ['admin', 'school-years'],
     '/admin/school-years',

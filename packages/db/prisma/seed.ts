@@ -92,18 +92,18 @@ const LAST = [
 ];
 
 const SUBJECTS = [
-  { code: 'D', name: 'Deutsch', color: '#4F46E5' },
-  { code: 'M', name: 'Mathematik', color: '#DC2626' },
-  { code: 'E', name: 'Englisch', color: '#0284C7' },
-  { code: 'GWK', name: 'Geografie und Wirtschaftskunde', color: '#16A34A' },
-  { code: 'GS', name: 'Geschichte', color: '#D97706' },
-  { code: 'BIU', name: 'Biologie und Umweltkunde', color: '#65A30D' },
-  { code: 'PH', name: 'Physik', color: '#7C3AED' },
-  { code: 'CH', name: 'Chemie', color: '#DB2777' },
-  { code: 'BSP', name: 'Bewegung und Sport', color: '#EA580C' },
-  { code: 'MU', name: 'Musik', color: '#0D9488' },
-  { code: 'BE', name: 'Bildnerische Erziehung', color: '#CA8A04' },
-  { code: 'INF', name: 'Informatik', color: '#475569' },
+  { code: 'D', name: 'Deutsch', color: 'koralle' },
+  { code: 'M', name: 'Mathematik', color: 'kobalt' },
+  { code: 'E', name: 'Englisch', color: 'rosa' },
+  { code: 'GWK', name: 'Geografie und Wirtschaftskunde', color: 'sand' },
+  { code: 'GS', name: 'Geschichte', color: 'sand' },
+  { code: 'BIU', name: 'Biologie und Umweltkunde', color: 'mint' },
+  { code: 'PH', name: 'Physik', color: 'himmel' },
+  { code: 'CH', name: 'Chemie', color: 'himmel' },
+  { code: 'BSP', name: 'Bewegung und Sport', color: 'limette' },
+  { code: 'MU', name: 'Musik', color: 'flieder' },
+  { code: 'BE', name: 'Bildnerische Erziehung', color: 'flieder' },
+  { code: 'INF', name: 'Informatik', color: 'sand' },
 ] as const;
 
 // Wochenstunden je Fach und Jahrgang (1 bis 4), grob nach Mittelschul-Stundentafel

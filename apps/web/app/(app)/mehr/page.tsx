@@ -1,13 +1,12 @@
-import { getTranslations } from 'next-intl/server';
 import { moreSections, navViews, navigationFor } from '@sp/shared';
 import { MoreScreen } from '../../../src/components/shell/more-screen';
-import { navigationOf } from '../../../src/lib/nav-server';
+import { navigationOf, getT } from '../../../src/lib/nav-server';
 import { requireRoute } from '../../../src/lib/route-guard';
 
 export default async function MorePage() {
   const me = await requireRoute('/mehr');
-  const t = await getTranslations('nav');
-  const tr = await getTranslations('roles');
+  const t = await getT('nav');
+  const tr = await getT('roles');
   const nav = await navigationOf(me);
   const roles = [...new Set(me.user.roles.map((r) => r.role))];
   return (

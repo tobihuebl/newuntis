@@ -1,12 +1,12 @@
 'use client';
 import { Download } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { addDays, type AttendanceReport, type SubstitutionReport } from '@sp/shared';
 import { Button, Card, EmptyState, Input, SegmentedControl, Select, Skeleton } from '@sp/ui';
 import { todayVienna } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 type Tab = 'attendance' | 'substitutions';
 
@@ -60,8 +60,8 @@ function Table({
 
 /** Basis-Auswertungen (DB-03): Anwesenheit je Klasse und Schüler:in, Supplierstunden, Export als CSV. */
 export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
-  const t = useTranslations('reports');
-  const tc = useTranslations('common');
+  const t = useT('reports');
+  const tc = useT('common');
   const router = useRouter();
   const search = useSearchParams();
   const today = todayVienna();

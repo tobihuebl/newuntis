@@ -1,13 +1,13 @@
 'use client';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Input } from '@sp/ui';
 import { ApiError, apiPost } from '../lib/api-client';
 import { FormError } from './form-bits';
+import { useT } from '../lib/i18n';
 
 export function GuardianCodeForm() {
-  const t = useTranslations('guardianCode');
+  const t = useT('guardianCode');
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);

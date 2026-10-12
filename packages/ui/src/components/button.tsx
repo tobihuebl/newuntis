@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Slot } from '@radix-ui/react-slot';
+import { Slot, Slottable } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { LoaderCircle, type LucideIcon } from 'lucide-react';
 import { cn } from '../cn';
@@ -51,9 +51,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const classes = cn(buttonVariants({ variant, size, block }), className);
     if (asChild) {
+      // Icon vor den Inhalt des Kind-Elements (z. B. next/link) setzen
       return (
         <Slot ref={ref} className={classes} {...props}>
-          {children}
+          {Icon ? <Icon aria-hidden="true" /> : null}
+          <Slottable>{children}</Slottable>
         </Slot>
       );
     }

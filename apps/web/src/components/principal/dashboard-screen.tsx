@@ -12,11 +12,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { addDays, nextWeekday, type PrincipalDashboard, type TimelineKind } from '@sp/shared';
 import { Chip, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
 import { longDate, timeOf, todayVienna, weekdayDate } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 const TONE: Record<TimelineKind, 'danger' | 'late' | 'ok' | 'neutral'> = {
   cancelled: 'danger',
@@ -38,8 +38,8 @@ function prevWeekday(date: string): string {
  * fehlenden Klassenbuch-Einträgen, darunter der Zeitstrahl des Tages. Jede Karte führt zur Aktion.
  */
 export function DashboardScreen() {
-  const t = useTranslations('dashboard');
-  const tc = useTranslations('common');
+  const t = useT('dashboard');
+  const tc = useT('common');
   const router = useRouter();
   const today = todayVienna();
   const date = useSearchParams().get('datum') ?? today;
@@ -150,7 +150,10 @@ export function DashboardScreen() {
                     >
                       <span>
                         <span className="font-medium">{a.teacher.name}</span>
-                        <span className="text-body-sm text-ink-muted"> · {t(`kind_${a.kind}`)}</span>
+                        <span className="text-body-sm text-ink-muted">
+                          {' '}
+                          · {t(`kind_${a.kind}`)}
+                        </span>
                       </span>
                       <span className="flex items-center gap-2 text-body-sm">
                         {t('affected', { count: a.affected })}
@@ -190,7 +193,9 @@ export function DashboardScreen() {
                               })
                             : t('period', { n: x.periodStart })}
                         </span>
-                        <span className="block text-caption text-ink-muted">{timeOf(x.startsAt)}</span>
+                        <span className="block text-caption text-ink-muted">
+                          {timeOf(x.startsAt)}
+                        </span>
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">

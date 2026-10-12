@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
 import { can, type PlanResponse } from '@sp/shared';
 import { Button } from '@sp/ui';
 import { CalendarSubscription } from '../../../src/components/plan/calendar-subscription';
@@ -8,6 +7,7 @@ import { WeekPlan, type PlanPerspective } from '../../../src/components/plan/wee
 import { apiGet } from '../../../src/lib/api-server';
 import { shortDate, weekOf } from '../../../src/lib/dates';
 import { requireRoute } from '../../../src/lib/route-guard';
+import { getT } from '../../../src/lib/nav-server';
 
 interface Search {
   from?: string;
@@ -31,7 +31,7 @@ interface Directory {
 export default async function PlanPage({ searchParams }: { searchParams: Promise<Search> }) {
   const me = await requireRoute('/plan');
   const q = await searchParams;
-  const t = await getTranslations('plan');
+  const t = await getT('plan');
   const roles = me.user.roles.map((r) => r.role);
   const canOther = can({ personId: me.user.personId, roles }, 'timetable.read.other');
   const week = weekOf(q.from);

@@ -141,3 +141,34 @@ describe('Umgebung', () => {
     expect(serverEnvSchema.safeParse({ ...base, METRICS_TOKEN: 'kurz' }).success).toBe(false);
   });
 });
+
+describe('Fächerfarben (Design System, Entscheidung F3)', () => {
+  it('ordnet Standardfächer wie im Design System zu', async () => {
+    const { defaultFachColor, fachColorOf } = await import('./masterdata');
+    expect(defaultFachColor('Mathematik', 'M')).toBe('kobalt');
+    expect(defaultFachColor('Deutsch', 'D')).toBe('koralle');
+    expect(defaultFachColor('Englisch', 'E')).toBe('rosa');
+    expect(defaultFachColor('Biologie und Umweltkunde', 'BIU')).toBe('mint');
+    expect(defaultFachColor('Physik', 'PH')).toBe('himmel');
+    expect(defaultFachColor('Chemie', 'CH')).toBe('himmel');
+    expect(defaultFachColor('Musik', 'MU')).toBe('flieder');
+    expect(defaultFachColor('Bildnerische Erziehung', 'BE')).toBe('flieder');
+    expect(defaultFachColor('Bewegung und Sport', 'BSP')).toBe('limette');
+    expect(defaultFachColor('Geografie und Wirtschaftskunde', 'GWK')).toBe('sand');
+    expect(defaultFachColor('Informatik', 'INF')).toBe('sand');
+    expect(fachColorOf({ color: 'mint', name: 'Deutsch', code: 'D' })).toBe('mint');
+    expect(fachColorOf({ color: '#4F46E5', name: 'Deutsch', code: 'D' })).toBe('koralle');
+  });
+  it('nimmt nur die acht Fächerfarben an, nie Amber oder Hex', async () => {
+    const { subjectInput } = await import('./masterdata');
+    expect(subjectInput.safeParse({ name: 'Mathe', code: 'M', color: 'kobalt' }).success).toBe(
+      true,
+    );
+    expect(subjectInput.safeParse({ name: 'Mathe', code: 'M', color: 'amber' }).success).toBe(
+      false,
+    );
+    expect(subjectInput.safeParse({ name: 'Mathe', code: 'M', color: '#2e53ea' }).success).toBe(
+      false,
+    );
+  });
+});

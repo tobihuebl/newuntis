@@ -2,12 +2,12 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { CornerDownLeft, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useEffect, useId, useMemo, useState } from 'react';
 import type { NavItem } from '@sp/shared';
 import { cn } from '@sp/ui';
 import { NAV_ICONS } from '../nav-icons';
 import { normalize } from './nav-model';
+import { useT } from '../../lib/i18n';
 
 /**
  * Befehlspalette (Strg/Cmd + K, Design System "Web und Mobile" Abschnitt 1): findet die Seiten der eigenen Rolle.
@@ -22,7 +22,7 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
   items: NavItem[];
 }) {
-  const t = useTranslations('nav');
+  const t = useT('nav');
   const router = useRouter();
   const listId = useId();
   const [query, setQuery] = useState('');

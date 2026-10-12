@@ -1,11 +1,11 @@
-import { getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 import { AbsenceForm } from '../../../../src/components/absences/absence-form';
 import { requireRoute } from '../../../../src/lib/route-guard';
+import { getT } from '../../../../src/lib/nav-server';
 
 export default async function AbwesenheitNeuPage() {
   const me = await requireRoute('/abwesenheit/neu');
-  const t = await getTranslations('absence');
+  const t = await getT('absence');
   const roles = me.user.roles.map((r) => r.role);
   const mode = roles.includes('GUARDIAN')
     ? 'guardian'

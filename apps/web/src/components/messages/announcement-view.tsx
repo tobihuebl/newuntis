@@ -2,7 +2,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { AnnouncementDetail } from '@sp/shared';
 import { Button, Card, EmptyState, Skeleton } from '@sp/ui';
@@ -10,14 +9,15 @@ import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 /**
  * Rundschreiben lesen (Empfänger:innen). Ohne Lesebestätigung gilt das Öffnen als gelesen,
  * mit Lesebestätigung braucht es den ausdrücklichen Klick.
  */
 export function AnnouncementView({ id }: { id: string }) {
-  const t = useTranslations('messages');
-  const tc = useTranslations('common');
+  const t = useT('messages');
+  const tc = useT('common');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const qc = useQueryClient();

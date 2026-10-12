@@ -1,8 +1,8 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Card, Input } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 export function CalendarSubscription({
   csrfToken,
@@ -11,8 +11,8 @@ export function CalendarSubscription({
   csrfToken: string;
   active: boolean;
 }) {
-  const t = useTranslations('plan');
-  const c = useTranslations('common');
+  const t = useT('plan');
+  const c = useT('common');
   const [url, setUrl] = useState<string | null>(null);
   const [active, setActive] = useState(initiallyActive);
   const [copied, setCopied] = useState(false);

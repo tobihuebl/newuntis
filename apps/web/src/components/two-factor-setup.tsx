@@ -1,11 +1,11 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import { useState } from 'react';
 import { Button, Input } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
 import { FormError, useErrorText } from './form-bits';
+import { useT } from '../lib/i18n';
 
 type Step =
   | { name: 'start' }
@@ -13,7 +13,7 @@ type Step =
   | { name: 'codes'; codes: string[] };
 
 export function TwoFactorSetup({ csrfToken }: { csrfToken: string }) {
-  const t = useTranslations('auth');
+  const t = useT('auth');
   const errorText = useErrorText();
   const router = useRouter();
   const [step, setStep] = useState<Step>({ name: 'start' });

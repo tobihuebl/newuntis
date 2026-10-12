@@ -1,10 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import {
-  Chip, Button,
+  Chip,
+  Button,
   Card,
   Checkbox,
   Input,
@@ -16,6 +16,7 @@ import {
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { GuardianCodes } from './guardian-codes';
 import { PersonPicker } from './person-picker';
+import { useT } from '../../lib/i18n';
 
 interface LinkRow {
   id: string;
@@ -68,9 +69,9 @@ export function PersonDetail({
   readOnly: boolean;
   currentPersonId: string;
 }) {
-  const t = useTranslations('admin.persons');
-  const p = useTranslations('person');
-  const c = useTranslations('common');
+  const t = useT('admin.persons');
+  const p = useT('person');
+  const c = useT('common');
   const router = useRouter();
   const [sheet, setSheet] = useState<'edit' | 'link' | 'anonymize' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -222,9 +223,7 @@ export function PersonDetail({
 
       {person.kind === 'STUDENT' ? (
         <Card className="p-0">
-          <h2 className="border-b border-line px-4 py-3 text-h3">
-            {p('enrollments')}
-          </h2>
+          <h2 className="border-b border-line px-4 py-3 text-h3">{p('enrollments')}</h2>
           {person.enrollments.length === 0 ? (
             <p className="p-4 text-ink-muted">{t('noClass')}</p>
           ) : null}

@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import { Card, EmptyState } from '@sp/ui';
 import { apiGet } from '../../../src/lib/api-server';
 import { requireRoute } from '../../../src/lib/route-guard';
+import { getT } from '../../../src/lib/nav-server';
 
 /** "Meine Klasse": Klassenvorstand direkt zur eigenen Klasse, Direktion und Administration wählen. */
 export default async function KlassePage() {
   const me = await requireRoute('/klasse');
-  const t = await getTranslations('klasse');
+  const t = await getT('klasse');
   const roles = me.user.roles.map((r) => r.role);
   const own = me.user.roles.flatMap((r) => (r.role === 'HOMEROOM' && r.classId ? [r.classId] : []));
   const manager = roles.includes('PRINCIPAL') || roles.includes('ADMIN');

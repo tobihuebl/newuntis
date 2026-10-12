@@ -1,8 +1,10 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { FACH_COLORS, fachColorOf } from '@sp/shared';
+import { FACH_BG, cn } from '@sp/ui';
 import { CrudManager } from './crud-manager';
 import { DefaultPeriodsButton } from './default-periods-button';
+import { useT } from '../../lib/i18n';
 
 interface Common {
   csrfToken: string;
@@ -17,7 +19,7 @@ export interface SubjectRow {
   color: string | null;
 }
 export function SubjectsManager({ rows, csrfToken, readOnly }: Common & { rows: SubjectRow[] }) {
-  const t = useTranslations('admin.subjects');
+  const t = useT('admin.subjects');
   return (
     <CrudManager<SubjectRow>
       resource="subjects"
@@ -34,27 +36,30 @@ export function SubjectsManager({ rows, csrfToken, readOnly }: Common & { rows: 
         {
           key: 'color',
           label: t('color'),
-          render: (r) =>
-            r.color ? (
+          render: (r) => {
+            const fach = fachColorOf(r);
+            return (
               <span className="inline-flex items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className="size-4 rounded-full border border-line"
-                  style={{ background: r.color }}
-                />
-                {r.color}
+                <span aria-hidden="true" className={cn('size-5 rounded-xs', FACH_BG[fach])} />
+                {t(`fach.${fach}`)}
+                {r.color ? null : <span className="text-ink-muted">({t('colorEmpty')})</span>}
               </span>
-            ) : (
-              '–'
-            ),
+            );
+          },
         },
       ]}
       fields={[
         { name: 'name', label: t('name'), type: 'text', required: true },
         { name: 'code', label: t('code'), type: 'text', required: true },
-        { name: 'color', label: t('color'), type: 'color' },
+        {
+          name: 'color',
+          label: t('color'),
+          type: 'select',
+          emptyLabel: t('colorEmpty'),
+          options: FACH_COLORS.map((c) => ({ value: c, label: t(`fach.${c}`) })),
+        },
       ]}
-      toForm={(r) => ({ name: r.name, code: r.code, color: r.color ?? '#4f46e5' })}
+      toForm={(r) => ({ name: r.name, code: r.code, color: r.color ?? '' })}
     />
   );
 }
@@ -67,7 +72,7 @@ export interface RoomRow {
   kind: string | null;
 }
 export function RoomsManager({ rows, csrfToken, readOnly }: Common & { rows: RoomRow[] }) {
-  const t = useTranslations('admin.rooms');
+  const t = useT('admin.rooms');
   return (
     <CrudManager<RoomRow>
       resource="rooms"
@@ -106,8 +111,8 @@ export interface PeriodRow {
   blocksDouble: boolean;
 }
 export function PeriodsManager({ rows, csrfToken, readOnly }: Common & { rows: PeriodRow[] }) {
-  const t = useTranslations('admin.periods');
-  const c = useTranslations('common');
+  const t = useT('admin.periods');
+  const c = useT('common');
   return (
     <>
       <CrudManager<PeriodRow>
@@ -168,7 +173,7 @@ export function ClassesManager({
   csrfToken,
   readOnly,
 }: Common & { rows: ClassRow[]; teachers: Option[]; schoolYearId: string }) {
-  const t = useTranslations('admin.classes');
+  const t = useT('admin.classes');
   return (
     <CrudManager<ClassRow>
       resource="classes"
@@ -226,7 +231,7 @@ export function GroupsManager({
   csrfToken,
   readOnly,
 }: Common & { rows: GroupRow[]; schoolYearId: string }) {
-  const t = useTranslations('admin.classes');
+  const t = useT('admin.classes');
   return (
     <CrudManager<GroupRow>
       resource="groups"
@@ -264,8 +269,8 @@ export function YearsManager({
   csrfToken,
   readOnly,
 }: Common & { rows: YearRow[]; selectedId: string | null }) {
-  const t = useTranslations('admin.years');
-  const c = useTranslations('common');
+  const t = useT('admin.years');
+  const c = useT('common');
   return (
     <CrudManager<YearRow>
       resource="school-years"
@@ -329,7 +334,7 @@ export function FreeDaysManager({
   csrfToken,
   readOnly,
 }: Common & { rows: FreeDayRow[]; yearId: string }) {
-  const t = useTranslations('admin.years');
+  const t = useT('admin.years');
   return (
     <CrudManager<FreeDayRow>
       resource={`school-years/${yearId}/free-days`}

@@ -1,10 +1,10 @@
 'use client';
-import { Plus, Redo2, Trash2, Undo2, X } from 'lucide-react';
+import { Check, Plus, Redo2, Trash2, TriangleAlert, Undo2, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  fachColorOf,
   validateTimetable,
   type Conflict,
   type LessonRule,
@@ -14,6 +14,7 @@ import {
 } from '@sp/shared';
 import { Chip, Button, Card, Checkbox, Input, Select, Sheet, cn } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 // ───────────────────────── Typen ─────────────────────────
 type EditorLesson = LessonRule & { version: number };
@@ -84,9 +85,9 @@ export function TimetableEditor({
   canPublish: boolean;
   today: string;
 }) {
-  const t = useTranslations('timetable');
-  const d = useTranslations('days');
-  const c = useTranslations('common');
+  const t = useT('timetable');
+  const d = useT('days');
+  const c = useT('common');
   const router = useRouter();
   const editable = canEdit && initial.version.status === 'DRAFT';
   const { periods, context, subjects, classes, groups, rooms, teachers } = initial;
@@ -119,6 +120,10 @@ export function TimetableEditor({
   // ───────────── Namen ─────────────
   const byId = <T extends { id: string }>(xs: T[]) => new Map(xs.map((x) => [x.id, x]));
   const S = useMemo(() => byId(subjects), [subjects]);
+  const fach = (subjectId: string) => {
+    const sub = S.get(subjectId);
+    return sub ? fachColorOf(sub) : 'sand';
+  };
   const C = useMemo(() => byId(classes), [classes]);
   const G = useMemo(() => byId(groups), [groups]);
   const R = useMemo(() => byId(rooms), [rooms]);
@@ -503,9 +508,7 @@ export function TimetableEditor({
           <Link href="/admin/stundenplan" className="text-body-sm text-brand-text underline">
             {t('back')}
           </Link>
-          <h1 className="text-h1">
-            {initial.version.name ?? initial.version.schoolYear.name}
-          </h1>
+          <h1 className="text-h1">{initial.version.name ?? initial.version.schoolYear.name}</h1>
           <p className="flex flex-wrap items-center gap-2 text-body-sm text-ink-muted">
             <Chip
               tone={
@@ -546,7 +549,10 @@ export function TimetableEditor({
           ) : null}
           <span
             aria-live="polite"
-            className={cn('text-body-sm', status.state === 'error' ? 'text-danger-ink' : 'text-ink-muted')}
+            className={cn(
+              'text-body-sm',
+              status.state === 'error' ? 'text-danger-ink' : 'text-ink-muted',
+            )}
           >
             {status.state === 'saving'
               ? t('saving')
@@ -583,7 +589,9 @@ export function TimetableEditor({
         </div>
       </div>
       {!editable && initial.version.status !== 'DRAFT' ? (
-        <p className="rounded-sm border border-line bg-bg-sunken p-3 text-body-sm">{t('readOnly')}</p>
+        <p className="rounded-sm border border-line bg-bg-sunken p-3 text-body-sm">
+          {t('readOnly')}
+        </p>
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
@@ -641,7 +649,9 @@ export function TimetableEditor({
             ) : null}
           </div>
           {editable ? <p className="text-caption text-ink-muted">{t('poolHelp')}</p> : null}
-          {pool.length === 0 ? <p className="text-body-sm text-ink-muted">{t('poolEmpty')}</p> : null}
+          {pool.length === 0 ? (
+            <p className="text-body-sm text-ink-muted">{t('poolEmpty')}</p>
+          ) : null}
           <ul className="flex flex-col gap-2">
             {pool.map((r) => {
               const done = planned(r);
@@ -662,20 +672,18 @@ export function TimetableEditor({
                     onClick={() => setSelection(active ? null : { type: 'pool', id: r.id })}
                     aria-pressed={active}
                     className={cn(
-                      'flex min-h-11 flex-1 flex-col rounded-sm border px-2 py-1 text-left text-body-sm',
-                      active ? 'border-brand bg-bg-sunken' : 'border-line',
+                      'pf-tt__cell min-h-(--tap-min) flex-1 items-start text-left',
+                      `is-${fach(r.subjectId)}`,
+                      active && 'is-drag',
                       complete && 'opacity-60',
                     )}
-                    style={{
-                      borderLeft: `4px solid ${S.get(r.subjectId)?.color ?? 'var(--brand)'}`,
-                    }}
                   >
-                    <span className="font-medium">
+                    <span>
                       {S.get(r.subjectId)?.name} · {targetName(r)}
                     </span>
-                    <span className="text-caption text-ink-muted">
+                    <small>
                       {teacherShort(r.teacherId)} · {t('progress', { done, total: r.hoursPerWeek })}
-                    </span>
+                    </small>
                   </button>
                   {editable ? (
                     <Button
@@ -695,19 +703,15 @@ export function TimetableEditor({
         {/* Raster */}
         <div className="overflow-x-auto">
           <div
-            className="grid min-w-[40rem] gap-1"
+            className="pf-tt min-w-160"
             style={{
-              gridTemplateColumns: '3.5rem repeat(5, minmax(7rem, 1fr))',
-              gridTemplateRows: `auto repeat(${periods.length}, minmax(4rem, auto))`,
+              gridTemplateColumns: 'var(--space-12) repeat(5, minmax(0, 1fr))',
+              gridTemplateRows: `auto repeat(${periods.length}, minmax(var(--space-16), auto))`,
             }}
           >
             <div />
             {DAYS.map((wd) => (
-              <div
-                key={wd}
-                className="pb-1 text-center text-label"
-                style={{ gridColumn: wd + 1, gridRow: 1 }}
-              >
+              <div key={wd} className="pf-tt__head" style={{ gridColumn: wd + 1, gridRow: 1 }}>
                 {d(`short${wd}`)}
               </div>
             ))}
@@ -715,14 +719,13 @@ export function TimetableEditor({
               <div
                 key={p.number}
                 className={cn(
-                  'pr-1 text-right text-caption text-ink-muted tabular-nums',
+                  'pf-tt__slot flex-col',
                   p.blocksDouble && 'border-b-2 border-dashed border-line',
                 )}
                 style={{ gridColumn: 1, gridRow: i + 2 }}
               >
-                <span className="font-medium text-ink">{p.number}.</span>
-                <br />
-                {p.startTime}
+                <span className="text-ink">{p.number}</span>
+                <span>{p.startTime}</span>
               </div>
             ))}
             {DAYS.flatMap((wd) =>
@@ -736,9 +739,9 @@ export function TimetableEditor({
                   onDrop={onDrop(wd, p.number)}
                   aria-label={`${d(String(wd))}, ${p.number}. ${t('period')}${selection ? ` – ${selection.type === 'pool' ? t('placeHere') : t('moveHere')}` : ''}`}
                   className={cn(
-                    'rounded-sm border border-dashed border-line',
-                    selection ? 'bg-bg-sunken hover:border-brand' : 'hover:bg-bg-sunken',
-                    !editable && 'cursor-default',
+                    'pf-tt__cell pf-tt__cell--empty',
+                    selection && 'bg-brand-soft hover:ring-2 hover:ring-brand',
+                    editable && 'cursor-pointer',
                   )}
                   style={{ gridColumn: wd + 1, gridRow: i + 2 }}
                 />
@@ -783,32 +786,27 @@ export function TimetableEditor({
                           }
                           aria-label={`${S.get(l.subjectId)?.name}, ${targetName(l)}, ${other}${sev === 'hard' ? `, ${t('conflicts')}` : ''}`}
                           className={cn(
-                            'flex min-h-11 flex-1 flex-col overflow-hidden rounded-sm border bg-bg-raised p-1.5 text-left text-caption',
+                            'pf-tt__cell min-w-0 flex-1 overflow-hidden',
                             sev === 'hard'
-                              ? 'border-2 border-danger'
+                              ? 'is-conflict'
                               : sev === 'soft'
-                                ? 'border-2 border-signal'
-                                : 'border-line',
-                            selected && 'ring-2 ring-brand',
+                                ? 'is-subst'
+                                : `is-${fach(l.subjectId)}`,
+                            selected && 'is-drag',
                           )}
-                          style={{
-                            borderLeftWidth: 4,
-                            borderLeftColor: S.get(l.subjectId)?.color ?? 'var(--brand)',
-                          }}
                         >
-                          <span className="text-label">
+                          {sev === 'hard' ? <TriangleAlert aria-hidden="true" /> : null}
+                          <span>
                             {S.get(l.subjectId)?.code}
                             {l.weekPattern !== 'EVERY' ? ` (${l.weekPattern})` : ''}
                           </span>
-                          <span className="truncate text-ink-muted">{other}</span>
+                          <small className="max-w-full truncate">{other}</small>
                           {view.kind !== 'room' ? (
-                            <span className="truncate text-ink-muted">
+                            <small className="max-w-full truncate">
                               {l.roomId ? R.get(l.roomId)?.name : t('noRoom')}
-                            </span>
+                            </small>
                           ) : null}
-                          {sev === 'hard' ? (
-                            <span className="font-medium text-danger-ink">⚠ {t('hard')}</span>
-                          ) : null}
+                          {sev === 'hard' ? <small className="font-text">{t('hard')}</small> : null}
                         </button>
                       );
                     })}
@@ -826,7 +824,10 @@ export function TimetableEditor({
         >
           <h2 className="font-semibold">{t('conflicts')}</h2>
           {conflicts.length === 0 ? (
-            <p className="text-body-sm text-brand-text">✓ {t('noConflicts')}</p>
+            <p className="flex items-center gap-2 text-body-sm text-brand-text">
+              <Check aria-hidden="true" className="size-4" />
+              {t('noConflicts')}
+            </p>
           ) : (
             <p className="text-body-sm">
               <span className="text-danger-ink">{t('hardCount', { n: hardCount })}</span> ·{' '}
@@ -845,9 +846,7 @@ export function TimetableEditor({
                   )}
                 >
                   <p>
-                    <Chip tone={cf.severity === 'hard' ? 'danger' : 'late'}>
-                      {t(cf.severity)}
-                    </Chip>{' '}
+                    <Chip tone={cf.severity === 'hard' ? 'danger' : 'late'}>{t(cf.severity)}</Chip>{' '}
                     {cf.message}
                   </p>
                   {resourceName(cf) ? (

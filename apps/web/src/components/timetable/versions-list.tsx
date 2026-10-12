@@ -2,10 +2,10 @@
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Chip, Button, EmptyState, Input, Select, Sheet } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 export interface VersionRow {
   id: string;
@@ -28,8 +28,8 @@ export function VersionsList({
   csrfToken: string;
   canEdit: boolean;
 }) {
-  const t = useTranslations('timetable');
-  const c = useTranslations('common');
+  const t = useT('timetable');
+  const c = useT('common');
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,11 +102,7 @@ export function VersionsList({
                   <td className="px-4 py-3">
                     <Chip
                       tone={
-                        r.status === 'PUBLISHED'
-                          ? 'ok'
-                          : r.status === 'DRAFT'
-                            ? 'ok'
-                            : 'neutral'
+                        r.status === 'PUBLISHED' ? 'ok' : r.status === 'DRAFT' ? 'ok' : 'neutral'
                       }
                     >
                       {t(`statuses.${r.status}`)}

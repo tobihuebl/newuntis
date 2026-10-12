@@ -3,7 +3,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { Channel, NotificationType, PreferencesResponse } from '@sp/shared';
 import { Button, Card, Input, SegmentedControl, Skeleton, Switch } from '@sp/ui';
@@ -12,6 +11,7 @@ import { useApi, useApiMutation } from '../../lib/use-api';
 import { clearOfflineData } from '../../offline/db';
 import { applyTheme, readTheme, type Theme } from '../../lib/theme';
 import { PushToggle } from './push-toggle';
+import { useT } from '../../lib/i18n';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const id = `s-${title.replace(/\W+/g, '-')}`;
@@ -34,7 +34,7 @@ export interface ProfileProps {
 }
 
 export function ProfileScreen(p: ProfileProps) {
-  const t = useTranslations('profile');
+  const t = useT('profile');
   const [theme, setTheme] = useState<Theme>('system');
   useEffect(() => setTheme(readTheme()), []);
 
@@ -91,7 +91,7 @@ export function ProfileScreen(p: ProfileProps) {
 }
 
 function NotificationSettings() {
-  const t = useTranslations('profile');
+  const t = useT('profile');
   const q = useApi<PreferencesResponse>(['preferences'], '/me/preferences');
   const save = useApiMutation<object, PreferencesResponse>('PATCH', () => '/me/preferences', [
     ['preferences'],
@@ -212,7 +212,7 @@ function NotificationSettings() {
 
 /** Datenauskunft zur Selbstbedienung (Spec Abschnitt 13: GET /me/export als JSON und PDF). */
 function MyData() {
-  const t = useTranslations('profile');
+  const t = useT('profile');
   return (
     <Section title={t('myData')}>
       <p className="text-body-sm">{t('myDataText')}</p>
@@ -269,7 +269,7 @@ function deviceName(ua: string | null, fallback: string): string {
 }
 
 function Devices({ twoFactor }: { twoFactor: boolean }) {
-  const t = useTranslations('profile');
+  const t = useT('profile');
   const router = useRouter();
   const qc = useQueryClient();
   const q = useApi<{ data: SessionRow[] }>(['sessions'], '/me/sessions');

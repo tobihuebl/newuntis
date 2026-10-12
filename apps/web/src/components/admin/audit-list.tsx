@@ -1,8 +1,8 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, EmptyState, Input, Skeleton } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 interface Entry {
   id: string;
@@ -14,8 +14,8 @@ interface Entry {
 }
 
 export function AuditList() {
-  const t = useTranslations('admin.audit');
-  const c = useTranslations('common');
+  const t = useT('admin.audit');
+  const c = useT('common');
   const [filter, setFilter] = useState('');
   const [rows, setRows] = useState<Entry[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);

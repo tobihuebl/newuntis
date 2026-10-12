@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
 import { Logo } from '@sp/ui';
 import { ShowcasePanel } from '../../src/components/showcase/showcase-panel';
+import { getT } from '../../src/lib/nav-server';
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 /** Showcase des Design Systems (ADR 0010): alle Bausteine in allen Zuständen, hell und dunkel nebeneinander. */
 export default async function ShowcasePage() {
-  const t = await getTranslations('showcase');
+  const t = await getT('showcase');
   return (
     <main className="mx-auto flex max-w-(--content-max) flex-col gap-8 px-4 py-8 lg:px-6">
       <header className="flex flex-col gap-3">

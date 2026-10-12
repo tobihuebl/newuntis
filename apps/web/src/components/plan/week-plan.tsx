@@ -1,9 +1,9 @@
-import { getTranslations } from 'next-intl/server';
-import { addDays, type PlanEntry, type PlanResponse } from '@sp/shared';
-import { StatusBadge, cn } from '@sp/ui';
+import { addDays, fachColorOf, type PlanEntry, type PlanResponse } from '@sp/shared';
+import { EmptyState, StatusBadge, TimetableCell, TimetableGrid, cn } from '@sp/ui';
 import { shortDate, todayVienna } from '../../lib/dates';
 import { NowLineSlot } from '../now-line';
 import { PlanNowMarker } from './plan-now-marker';
+import { getT } from '../../lib/nav-server';
 
 /** Was in einer Karte neben dem Fach steht: bei Klassenplänen die Lehrkraft, bei Lehrer- und Raumplänen die Klasse. */
 export type PlanPerspective = 'student' | 'teacher' | 'room';
@@ -20,51 +20,20 @@ function detail(e: PlanEntry, perspective: PlanPerspective): string {
   return parts.filter(Boolean).join(' · ');
 }
 
-async function EntryCard({
-  e,
-  perspective,
-  compact,
-}: {
-  e: PlanEntry;
-  perspective: PlanPerspective;
-  compact?: boolean;
-}) {
-  const t = await getTranslations('plan');
-  const cancelled = e.status === 'CANCELLED';
-  return (
-    <div
-      className={cn(
-        'flex h-full flex-col gap-0.5 rounded-sm border border-line bg-bg-raised p-2 text-body-sm',
-      )}
-      style={{ borderLeft: `4px solid ${e.subject.color ?? 'var(--brand)'}` }}
-    >
-      <p className={cn('font-medium', cancelled && 'line-through')}>
-        {compact ? e.subject.code : e.subject.name}
-      </p>
-      <p className="text-caption text-ink-muted">{detail(e, perspective)}</p>
-      {e.status !== 'SCHEDULED' ? (
-        <StatusBadge
-          status={
-            e.status === 'CANCELLED'
-              ? 'cancelled'
-              : e.status === 'SUBSTITUTED'
-                ? 'substituted'
-                : 'roomChanged'
-          }
-          label={t(
-            e.status === 'CANCELLED'
-              ? 'cancelled'
-              : e.status === 'SUBSTITUTED'
-                ? 'substituted'
-                : 'roomChanged',
-          )}
-          className="self-start"
-        />
-      ) : null}
-    </div>
-  );
-}
+type StatusKey = 'cancelled' | 'substituted' | 'roomChanged';
+const statusOf = (e: PlanEntry): StatusKey | null =>
+  e.status === 'CANCELLED'
+    ? 'cancelled'
+    : e.status === 'SUBSTITUTED'
+      ? 'substituted'
+      : e.status === 'SCHEDULED'
+        ? null
+        : 'roomChanged';
 
+/**
+ * Wochenplan (Design System, Stundenplan): ab Tablet 5-Tage-Raster mit Fächerkacheln (Vertretung als
+ * is-subst, Entfall als leere Kachel mit Wort), mobil eine Tagesliste mit Zeitleiste.
+ */
 export async function WeekPlan({
   plan,
   perspective,
@@ -72,11 +41,11 @@ export async function WeekPlan({
   plan: PlanResponse;
   perspective: PlanPerspective;
 }) {
-  const t = await getTranslations();
+  const t = await getT();
   const days = [0, 1, 2, 3, 4].map((i) => addDays(plan.from, i));
   const today = todayVienna();
   const periods = plan.periods;
-  const rowOf = new Map(periods.map((p, i) => [p.number, i + 2]));
+  const rowOf = new Map(periods.map((p, i) => [p.number, i]));
   const byStart = new Map<string, PlanEntry[]>();
   for (const e of plan.entries) {
     const key = `${e.date}|${e.periodStart}`;
@@ -84,47 +53,60 @@ export async function WeekPlan({
   }
 
   if (plan.entries.length === 0) {
-    return (
-      <p className="rounded-md border border-line bg-bg-raised p-6 text-center text-ink-muted">
-        {t('plan.empty')}
-      </p>
-    );
+    return <EmptyState title={t('plan.empty')} />;
   }
 
   return (
     <>
-      {/* Mobil: Liste je Tag */}
-      <div className="flex flex-col gap-4 md:hidden">
+      {/* Mobil: Tagesliste mit Zeitleiste */}
+      <div className="flex flex-col gap-6 md:hidden">
         {days.map((d, i) => {
           const entries = plan.entries.filter((e) => e.date === d);
           return (
-            <section key={d} aria-labelledby={`day-${d}`}>
+            <section key={d} aria-labelledby={`day-${d}`} className="flex flex-col gap-2">
               <h2
                 id={`day-${d}`}
                 aria-current={d === today ? 'date' : undefined}
-                className={cn('mb-2 font-semibold', d === today && 'text-brand-text')}
+                className={cn('text-overline', d === today ? 'text-brand-text' : 'text-ink-muted')}
               >
                 {t(`days.${i + 1}`)} {shortDate(d)}
               </h2>
               {entries.length === 0 ? <p className="text-body-sm text-ink-muted">–</p> : null}
               <ul className="flex flex-col gap-2">
-                {entries.map((e, ei) => (
-                  <li key={e.id} className="relative flex gap-3">
-                    <NowLineSlot
-                      startsAt={e.startsAt}
-                      endsAt={e.endsAt}
-                      previousEndsAt={ei > 0 ? entries[ei - 1]!.endsAt : null}
-                    />
-                    <span className="w-14 shrink-0 pt-2 text-caption text-ink-muted tabular-nums">
-                      {periods.find((p) => p.number === e.periodStart)?.startTime}
-                      <br />
-                      {t('plan.period', { n: e.periodStart })}
-                    </span>
-                    <div className="flex-1">
-                      <EntryCard e={e} perspective={perspective} />
-                    </div>
-                  </li>
-                ))}
+                {entries.map((e, ei) => {
+                  const st = statusOf(e);
+                  return (
+                    <li key={e.id} className="relative flex gap-3">
+                      <NowLineSlot
+                        startsAt={e.startsAt}
+                        endsAt={e.endsAt}
+                        previousEndsAt={ei > 0 ? entries[ei - 1]!.endsAt : null}
+                      />
+                      <span className="w-12 shrink-0 pt-3 text-mono-sm text-ink-muted">
+                        {periods.find((p) => p.number === e.periodStart)?.startTime}
+                        <span className="sr-only">, {t('plan.period', { n: e.periodStart })}</span>
+                      </span>
+                      <div
+                        className={cn(
+                          'pf-tt__cell flex-1 cursor-default items-start text-left active:scale-100',
+                          st === 'cancelled'
+                            ? 'pf-tt__cell--empty'
+                            : st === 'substituted'
+                              ? 'is-subst'
+                              : `is-${fachColorOf(e.subject)}`,
+                        )}
+                      >
+                        <span className={cn('text-label', st === 'cancelled' && 'line-through')}>
+                          {e.subject.name}
+                        </span>
+                        <small>{detail(e, perspective)}</small>
+                        {st ? (
+                          <StatusBadge status={st} label={t(`plan.${st}`)} className="mt-1" />
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           );
@@ -132,40 +114,20 @@ export async function WeekPlan({
       </div>
 
       {/* Ab Tablet: Raster mit Tagen als Spalten und Stunden als Zeilen */}
-      <div
-        className="hidden gap-1 md:grid"
-        style={{
-          gridTemplateColumns: '4.5rem repeat(5, minmax(0, 1fr))',
-          gridTemplateRows: `auto repeat(${periods.length}, minmax(4.5rem, auto))`,
-        }}
-        aria-label={t('plan.title')}
-        role="region"
+      <TimetableGrid
+        className="relative hidden md:grid"
+        ariaLabel={t('plan.title')}
+        columns={days.map((d, i) => ({
+          key: d,
+          label: `${t(`days.short${i + 1}`)} ${shortDate(d)}`,
+          current: d === today,
+        }))}
+        rows={periods.map((p) => ({
+          key: String(p.number),
+          label: String(p.number),
+          title: `${p.startTime} – ${p.endTime}`,
+        }))}
       >
-        <div aria-hidden="true" />
-        {days.map((d, i) => (
-          <div
-            key={d}
-            aria-current={d === today ? 'date' : undefined}
-            className={cn('px-1 pb-1 text-label', d === today && 'text-brand-text')}
-            style={{ gridColumn: i + 2, gridRow: 1 }}
-          >
-            {t(`days.short${i + 1}`)} {shortDate(d)}
-          </div>
-        ))}
-        {periods.map((p, i) => (
-          <div
-            key={p.number}
-            aria-hidden="true"
-            className="pr-1 text-right text-caption text-ink-muted tabular-nums"
-            style={{ gridColumn: 1, gridRow: i + 2 }}
-          >
-            <span className="font-medium text-ink">{p.number}.</span>
-            <br />
-            {p.startTime}
-            <br />
-            {p.endTime}
-          </div>
-        ))}
         <PlanNowMarker days={days} periods={periods} />
         {days.flatMap((d, di) =>
           periods.map((p) => {
@@ -175,24 +137,44 @@ export async function WeekPlan({
             return (
               <div
                 key={`${d}|${p.number}`}
-                className="flex flex-col gap-1"
-                style={{ gridColumn: di + 2, gridRow: `${rowOf.get(p.number)} / span ${span}` }}
+                className="flex gap-1"
+                style={{
+                  gridColumn: di + 2,
+                  gridRow: `${(rowOf.get(p.number) ?? 0) + 2} / span ${span}`,
+                }}
               >
-                {/* Raster ist nur optisch; Tag und Stunde für Screenreader direkt am Eintrag */}
-                <span className="sr-only">
-                  {t(`days.${di + 1}`)} {shortDate(d)}, {t('plan.period', { n: p.number })},{' '}
-                  {p.startTime}:
-                </span>
-                {entries.map((e) => (
-                  <div key={e.id} className="flex-1">
-                    <EntryCard e={e} perspective={perspective} compact={entries.length > 1} />
-                  </div>
-                ))}
+                {entries.map((e) => {
+                  const st = statusOf(e);
+                  return (
+                    <TimetableCell
+                      key={e.id}
+                      column={0}
+                      row={0}
+                      className="flex-1"
+                      style={{ gridColumn: 'auto', gridRow: 'auto' }}
+                      fach={fachColorOf(e.subject)}
+                      state={
+                        st === 'cancelled' ? 'cancelled' : st === 'substituted' ? 'subst' : 'normal'
+                      }
+                      stateLabel={st ? t(`plan.${st}`) : undefined}
+                    >
+                      {/* Raster ist nur optisch; Tag und Stunde für Screenreader direkt am Eintrag */}
+                      <span className="sr-only">
+                        {t(`days.${di + 1}`)} {shortDate(d)}, {t('plan.period', { n: p.number })},{' '}
+                        {p.startTime}:
+                      </span>
+                      <span className={cn(st === 'cancelled' && 'line-through')}>
+                        {entries.length > 1 ? e.subject.code : e.subject.name}
+                      </span>
+                      <small>{detail(e, perspective)}</small>
+                    </TimetableCell>
+                  );
+                })}
               </div>
             );
           }),
         )}
-      </div>
+      </TimetableGrid>
     </>
   );
 }

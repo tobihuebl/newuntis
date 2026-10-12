@@ -45,7 +45,7 @@ test('Lehrkraft trägt eine Stunde offline ein, danach wird fehlerfrei synchroni
     .getByRole('textbox', { name: 'Stoff', exact: true })
     .fill('Offline eingetragen: Bruchrechnen');
   await page.getByRole('textbox', { name: 'Hausübung', exact: true }).fill('Buch S. 50, Nr. 1');
-  await page.getByRole('button', { name: 'Abschließen' }).click();
+  await page.getByRole('button', { name: 'Stunde abschließen' }).click();
 
   // Abschluss ist lokal vorgemerkt (sichtbar), erst dann neu laden
   await expect(page.getByText(/^Abgeschlossen am/)).toBeVisible();

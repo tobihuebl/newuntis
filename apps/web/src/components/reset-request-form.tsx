@@ -1,13 +1,13 @@
 'use client';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Input } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
 import { FormError, useErrorText } from './form-bits';
+import { useT } from '../lib/i18n';
 
 export function ResetRequestForm() {
-  const t = useTranslations('auth');
+  const t = useT('auth');
   const errorText = useErrorText();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);

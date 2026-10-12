@@ -2,7 +2,6 @@
 import { Ellipsis, Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   moreSections,
@@ -32,6 +31,7 @@ import { CommandPalette } from './command-palette';
 import { MoreContent } from './more-content';
 import { activeHref, allItems } from './nav-model';
 import { useLogout } from './use-logout';
+import { useT } from '../../lib/i18n';
 
 export interface AppShellProps {
   view: Role | null;
@@ -80,8 +80,8 @@ export function AppShell({
   csrfToken,
   children,
 }: AppShellProps) {
-  const t = useTranslations('nav');
-  const to = useTranslations('offline');
+  const t = useT('nav');
+  const to = useT('offline');
   const pathname = usePathname();
   const [more, setMore] = useState(false);
   const [palette, setPalette] = useState(false);

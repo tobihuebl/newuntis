@@ -1,8 +1,8 @@
 'use client';
 import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
 import { useSession } from '../components/providers';
 import { ApiError, apiRequest } from './api-client';
+import { useT } from './i18n';
 
 /** Online-Abfrage (Seiten außerhalb von Heute, Plan und Klassenbuch brauchen Verbindung). */
 export function useApi<T>(key: QueryKey, path: string | null) {
@@ -32,7 +32,7 @@ export function useApiMutation<TBody, TResult = unknown>(
 
 /** Verständlicher Fehlertext aus einer Problem-Antwort der API. */
 export function useProblemText() {
-  const t = useTranslations('common');
+  const t = useT('common');
   return (err: unknown): string | null => {
     if (!err) return null;
     if (err instanceof ApiError) {

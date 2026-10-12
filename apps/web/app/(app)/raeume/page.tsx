@@ -1,9 +1,9 @@
 import { DoorOpen } from 'lucide-react';
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
 import { Card, EmptyState } from '@sp/ui';
 import { apiGet } from '../../../src/lib/api-server';
 import { requireRoute } from '../../../src/lib/route-guard';
+import { getT } from '../../../src/lib/nav-server';
 
 interface Directory {
   rooms: { id: string; name: string }[];
@@ -12,7 +12,7 @@ interface Directory {
 /** Räume (Spec Abschnitt 5): Übersicht mit Belegungsplan je Raum. */
 export default async function RaeumePage() {
   await requireRoute('/raeume');
-  const t = await getTranslations('rooms');
+  const t = await getT('rooms');
   const { rooms } = await apiGet<Directory>('/timetable/directory');
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">

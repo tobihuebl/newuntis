@@ -2,7 +2,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Download } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import {
   PRIVACY_REQUEST_KINDS,
@@ -16,14 +15,15 @@ import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { PersonPicker } from './person-picker';
+import { useT } from '../../lib/i18n';
 
 /**
  * Datenschutz (Spec Abschnitt 13, /admin/datenschutz): Anfragen zu Betroffenenrechten erfassen und erledigen,
  * Datenauskunft herunterladen, Aufbewahrungsfristen einsehen.
  */
 export function PrivacyScreen() {
-  const t = useTranslations('privacy');
-  const tc = useTranslations('common');
+  const t = useT('privacy');
+  const tc = useT('common');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const qc = useQueryClient();
@@ -178,13 +178,7 @@ export function PrivacyScreen() {
                     <span className="flex items-center gap-2">
                       {r.person.restricted ? <Chip tone="late">{t('restricted')}</Chip> : null}
                       <Chip
-                        tone={
-                          r.status === 'OPEN'
-                            ? 'late'
-                            : r.status === 'DONE'
-                              ? 'ok'
-                              : 'neutral'
-                        }
+                        tone={r.status === 'OPEN' ? 'late' : r.status === 'DONE' ? 'ok' : 'neutral'}
                       >
                         {t(`status_${r.status}`)}
                       </Chip>

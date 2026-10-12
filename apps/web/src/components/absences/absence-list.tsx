@@ -1,11 +1,11 @@
 'use client';
 import { Check, Clock, FileCheck, FileWarning, X } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import type { AbsenceItem, AbsenceStatusName } from '@sp/shared';
 import { Chip, Button, cn } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { longDate, timeOf, weekdayDate } from '../../lib/dates';
+import { useT } from '../../lib/i18n';
 
 const TONE: Record<AbsenceStatusName, 'neutral' | 'late' | 'ok' | 'danger' | 'ok'> = {
   OPEN: 'late',
@@ -32,7 +32,7 @@ export function absenceRange(a: Pick<AbsenceItem, 'fromAt' | 'toAt'>): string {
 }
 
 export function AbsenceStatusBadge({ status }: { status: AbsenceStatusName }) {
-  const t = useTranslations('absence');
+  const t = useT('absence');
   const Icon = ICON[status];
   return (
     <Chip tone={TONE[status]}>
@@ -54,8 +54,8 @@ export function AbsenceList({
   onReview?: (a: AbsenceItem) => void;
   onUpload?: (a: AbsenceItem) => void;
 }) {
-  const t = useTranslations('absence');
-  const tk = useTranslations('klasse');
+  const t = useT('absence');
+  const tk = useT('klasse');
   const excuseHref = (a: AbsenceItem) =>
     `/abwesenheit/neu?kind=${a.student.id}&von=${viennaDate(a.fromAt)}&bis=${viennaDate(a.toAt)}`;
   return (

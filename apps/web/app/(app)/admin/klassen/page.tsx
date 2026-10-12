@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server';
 import { Card } from '@sp/ui';
 import {
   ClassesManager,
@@ -8,6 +7,7 @@ import {
 } from '../../../../src/components/admin/managers';
 import { adminPage } from '../../../../src/lib/admin';
 import { apiGet } from '../../../../src/lib/api-server';
+import { getT } from '../../../../src/lib/nav-server';
 
 interface Year {
   id: string;
@@ -21,7 +21,7 @@ interface PersonRow {
 
 export default async function ClassesPage() {
   const { csrfToken, readOnly } = await adminPage('/admin/klassen');
-  const t = await getTranslations('admin.classes');
+  const t = await getT('admin.classes');
   const years = (await apiGet<{ data: Year[] }>('/admin/school-years')).data;
   const current = years.find((y) => y.isCurrent);
   if (!current) {

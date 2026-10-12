@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { releaseLocalReads } from '../offline/cached';
 import { clearOfflineData, getMeta, setMeta } from '../offline/db';
 import { sync } from '../offline/sync';
+import { FormalProvider } from '../lib/i18n';
 
 interface Session {
   csrfToken: string;
@@ -124,12 +125,15 @@ export function AppProviders({
   personId,
   tenantSlug,
   clearAfterIdleDays,
+  formal,
   children,
 }: {
   csrfToken: string;
   personId: string;
   tenantSlug: string;
   clearAfterIdleDays: number;
+  /** Anrede: Sie (Eltern, Direktion, Administration) oder du (src/lib/i18n.tsx). */
+  formal: boolean;
   children: React.ReactNode;
 }) {
   const [client] = useState(
@@ -173,7 +177,7 @@ export function AppProviders({
     <SessionContext.Provider value={{ csrfToken, personId, tenantSlug, offlineReady }}>
       <QueryClientProvider client={client}>
         <EventStream />
-        {children}
+        <FormalProvider formal={formal}>{children}</FormalProvider>
       </QueryClientProvider>
     </SessionContext.Provider>
   );

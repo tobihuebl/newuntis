@@ -105,7 +105,8 @@
     "sick": "Krankmeldung",
     "unreadMessages": "{count, plural, one {# neue Nachricht} other {# neue Nachrichten}}",
     "unreadAnnouncements": "{count, plural, one {# neues Rundschreiben} other {# neue Rundschreiben}}",
-    "confirmRequired": "{count, plural, one {Lesebestätigung ausständig} other {# Lesebestätigungen ausständig}}"
+    "confirmRequired": "{count, plural, one {Lesebestätigung ausständig} other {# Lesebestätigungen ausständig}}",
+    "lessonOpen": "Stunde offen"
   },
   "placeholder": {
     "title": "Kommt bald",
@@ -196,10 +197,21 @@
       "title": "Fächer",
       "name": "Name",
       "code": "Kürzel",
-      "color": "Farbe",
+      "color": "Fächerfarbe",
       "new": "Neues Fach",
       "emptyTitle": "Noch keine Fächer",
-      "emptyDescription": "Lege die Fächer deiner Schule an, bevor du den Stundenplan planst."
+      "emptyDescription": "Lege die Fächer deiner Schule an, bevor du den Stundenplan planst.",
+      "colorEmpty": "Standard nach Fach",
+      "fach": {
+        "kobalt": "Kobalt",
+        "mint": "Mint",
+        "himmel": "Himmel",
+        "flieder": "Flieder",
+        "rosa": "Rosa",
+        "limette": "Limette",
+        "koralle": "Koralle",
+        "sand": "Sand"
+      }
     },
     "rooms": {
       "title": "Räume",
@@ -519,7 +531,7 @@
     "present": "Anwesend",
     "absent": "Abwesend",
     "late": "Verspätet",
-    "lateMinutes": "Verspätet {minutes} Min.",
+    "lateMinutes": "{minutes} Min spät",
     "markLate": "Verspätung eintragen",
     "toggleHint": "Tippen: anwesend oder abwesend. Lange drücken oder Uhr-Symbol: verspätet.",
     "toggleLabel": "{name}: {status}. Tippen zum Ändern.",
@@ -533,7 +545,7 @@
     "homework": "Hausübung",
     "homeworkPlaceholder": "Optional",
     "dueOn": "Fällig am",
-    "close": "Abschließen",
+    "close": "Stunde abschließen",
     "closed": "Abgeschlossen",
     "closedAt": "Abgeschlossen am {time}",
     "closeHint": "Nicht eingetragene Schüler:innen gelten beim Abschließen als anwesend.",

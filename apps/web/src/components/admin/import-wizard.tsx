@@ -1,10 +1,10 @@
 'use client';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Chip, Button, Card, Checkbox, Select } from '@sp/ui';
 import { IMPORT_FIELDS, type ImportField, type ImportPreview } from '@sp/shared';
 import { ApiError, apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 /** Byte-Order-Mark, damit Excel UTF-8 erkennt. */
 const BOM = String.fromCharCode(0xfeff);
@@ -49,8 +49,8 @@ async function readText(file: File): Promise<string> {
 }
 
 export function ImportWizard({ csrfToken }: { csrfToken: string }) {
-  const t = useTranslations('admin.import');
-  const c = useTranslations('common');
+  const t = useT('admin.import');
+  const c = useT('common');
   const [csv, setCsv] = useState<string | null>(null);
   const [fileName, setFileName] = useState('');
   const [mapping, setMapping] = useState<Partial<Record<ImportField, string>>>({});
@@ -296,7 +296,9 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                         {r.messages.map((m) => (
                           <p
                             key={m}
-                            className={m.startsWith('Hinweis') ? 'text-ink-muted' : 'text-danger-ink'}
+                            className={
+                              m.startsWith('Hinweis') ? 'text-ink-muted' : 'text-danger-ink'
+                            }
                           >
                             {m}
                           </p>

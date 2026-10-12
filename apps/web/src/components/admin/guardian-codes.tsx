@@ -1,8 +1,8 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button } from '@sp/ui';
 import { ApiError, apiPost } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 /** Byte-Order-Mark, damit Excel UTF-8 erkennt. */
 const BOM = String.fromCharCode(0xfeff);
@@ -30,8 +30,8 @@ export function GuardianCodes({
   label?: string;
   scope: string;
 }) {
-  const t = useTranslations('admin.classes');
-  const c = useTranslations('common');
+  const t = useT('admin.classes');
+  const c = useT('common');
   const [rows, setRows] = useState<CodeRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

@@ -1,10 +1,10 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { addDays, type TeacherAbsenceItem } from '@sp/shared';
 import { Button, Card, Checkbox, Input, Select, Skeleton, Textarea } from '@sp/ui';
 import { dateTimeOf, todayVienna } from '../../lib/dates';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 const PERIODS = Array.from({ length: 10 }, (_, i) => ({
   value: String(i + 1),
@@ -13,7 +13,7 @@ const PERIODS = Array.from({ length: 10 }, (_, i) => ({
 
 /** Krankmeldung der Lehrkraft (AB-04): löst die Supplierungsplanung aus. */
 export function SickReport() {
-  const t = useTranslations('sick');
+  const t = useT('sick');
   const problem = useProblemText();
   const today = todayVienna();
   const list = useApi<{ data: TeacherAbsenceItem[] }>(

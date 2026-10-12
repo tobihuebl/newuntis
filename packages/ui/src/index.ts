@@ -28,3 +28,20 @@ export {
   type SidebarProps,
   type TabBarProps,
 } from './components/navigation';
+export {
+  TimetableGrid,
+  TimetableCell,
+  FACH_BG,
+  FACH_BORDER,
+  type FachTone,
+  type TimetableColumn,
+  type TimetableRow,
+  type TimetableGridProps,
+  type TimetableCellProps,
+} from './components/timetable-grid';
+export {
+  AttendanceRow,
+  LONG_PRESS_MS,
+  type AttendanceRowProps,
+  type AttendanceState,
+} from './components/attendance-row';

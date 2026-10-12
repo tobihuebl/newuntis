@@ -3,19 +3,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Send, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { ClassAudience, MessageClassOption, Recipient, ThreadCreateInput } from '@sp/shared';
 import { Chip, Button, Card, Input, SegmentedControl, Select, Skeleton, Textarea } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 type Mode = 'persons' | 'class';
 
 /** Neue Nachricht: an einzelne Personen (ein gemeinsames Gespräch) oder an eine Klasse (je Familie eines). */
 export function ComposeScreen() {
-  const t = useTranslations('messages');
+  const t = useT('messages');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const router = useRouter();
@@ -163,7 +163,9 @@ export function ComposeScreen() {
                   </ul>
                 )}
               </Card>
-              {selected.length > 1 ? <p className="text-body-sm text-ink-muted">{t('groupHint')}</p> : null}
+              {selected.length > 1 ? (
+                <p className="text-body-sm text-ink-muted">{t('groupHint')}</p>
+              ) : null}
             </div>
           ) : (
             <div className="flex flex-col gap-3">

@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
 import { Chip, Card, EmptyState } from '@sp/ui';
 import { apiGet } from '../../../src/lib/api-server';
 import { shortDate } from '../../../src/lib/dates';
 import { requireRoute } from '../../../src/lib/route-guard';
+import { getT } from '../../../src/lib/nav-server';
 
 interface Version {
   id: string;
@@ -17,7 +17,7 @@ interface Version {
 /** Freigaben der Direktion: Stundenplan-Entwürfe prüfen und veröffentlichen (Rechte-Matrix "freigeben"). */
 export default async function FreigabenPage() {
   await requireRoute('/freigaben');
-  const t = await getTranslations('approvals');
+  const t = await getT('approvals');
   const { data } = await apiGet<{ data: Version[] }>('/admin/timetable-versions');
   const drafts = data.filter((v) => v.status === 'DRAFT');
   const current = data.find((v) => v.status === 'PUBLISHED');

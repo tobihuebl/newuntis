@@ -1,6 +1,5 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import {
   addDays,
@@ -14,7 +13,8 @@ import {
   type Suggestion,
 } from '@sp/shared';
 import {
-  Chip, Button,
+  Chip,
+  Button,
   Card,
   Checkbox,
   EmptyState,
@@ -28,6 +28,7 @@ import {
 import { dateTimeOf, longDate, timeOf, todayVienna } from '../../lib/dates';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
 import { periodLabel } from '../today/lesson-row';
+import { useT } from '../../lib/i18n';
 
 interface Directory {
   classes: { id: string; name: string }[];
@@ -41,7 +42,7 @@ const PERIODS = Array.from({ length: 10 }, (_, i) => ({
 
 /** Supplierung planen und veröffentlichen (SU-01 bis SU-04, Direktion und Administration). */
 export function SubstitutionScreen() {
-  const t = useTranslations('substitution');
+  const t = useT('substitution');
   const router = useRouter();
   const date = useSearchParams().get('datum') ?? todayVienna();
   const q = useApi<SubstitutionDay>(['substitutions', date], `/substitutions?date=${date}`);
@@ -143,7 +144,7 @@ export function SubstitutionScreen() {
   );
 }
 
-function summary(t: ReturnType<typeof useTranslations>, i: SubstitutionItem): string {
+function summary(t: ReturnType<typeof useT>, i: SubstitutionItem): string {
   const action = t(`actions.${i.kind}`);
   if ((i.kind === 'SUBSTITUTE' || i.kind === 'SUPERVISION') && i.substitute)
     return `${action}: ${i.substitute.name}`;
@@ -162,8 +163,8 @@ function ItemSection({
   onEdit: (i: SubstitutionItem) => void;
   tone: 'danger' | 'late' | 'ok';
 }) {
-  const t = useTranslations('substitution');
-  const tt = useTranslations('today');
+  const t = useT('substitution');
+  const tt = useT('today');
   if (items.length === 0) return null;
   return (
     <section aria-label={title} className="flex flex-col gap-2">
@@ -222,8 +223,8 @@ function ActionSheet({
   rooms: { id: string; name: string }[];
   onClose: () => void;
 }) {
-  const t = useTranslations('substitution');
-  const tc = useTranslations('common');
+  const t = useT('substitution');
+  const tc = useT('common');
   const problem = useProblemText();
   const target = item?.occurrence ?? entry;
   const [kind, setKind] = useState<SubstitutionKindName>('SUBSTITUTE');
@@ -305,9 +306,7 @@ function ActionSheet({
                           {t('fairness', { n: s.count })}
                         </span>
                       </span>
-                      {s.teachesSubject ? (
-                        <Chip tone="ok">{t('teachesSubject')}</Chip>
-                      ) : null}
+                      {s.teachesSubject ? <Chip tone="ok">{t('teachesSubject')}</Chip> : null}
                       {s.knowsClass ? <Chip tone="ok">{t('knowsClass')}</Chip> : null}
                     </label>
                   </li>
@@ -365,7 +364,7 @@ function ActionSheet({
 }
 
 function AbsentTeachers({ day, onAdd }: { day: SubstitutionDay | undefined; onAdd: () => void }) {
-  const t = useTranslations('substitution');
+  const t = useT('substitution');
   const del = useApiMutation<string>('DELETE', (id) => `/teacher-absences/${id}`, [
     ['substitutions'],
   ]);
@@ -423,9 +422,9 @@ function AbsenceSheet({
   teachers: { id: string; name: string }[];
   onClose: () => void;
 }) {
-  const t = useTranslations('substitution');
-  const ts = useTranslations('sick');
-  const tc = useTranslations('common');
+  const t = useT('substitution');
+  const ts = useT('sick');
+  const tc = useT('common');
   const problem = useProblemText();
   const create = useApiMutation<object>('POST', () => '/teacher-absences', [['substitutions']]);
   const [teacherId, setTeacherId] = useState('');
@@ -533,8 +532,8 @@ function ChangeLesson({
   directory: Directory | undefined;
   onPick: (e: PlanEntry) => void;
 }) {
-  const t = useTranslations('substitution');
-  const tt = useTranslations('today');
+  const t = useT('substitution');
+  const tt = useT('today');
   const [classId, setClassId] = useState('');
   const plan = useApi<PlanResponse>(
     ['class-day', classId, date],

@@ -1,12 +1,12 @@
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { TenantSettings, TenantSettingsPatch } from '@sp/shared';
 import { Button, Card, Input, Skeleton } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 type SectionKey = keyof TenantSettingsPatch;
 type FieldKind = 'int' | 'intList' | 'url';
@@ -118,8 +118,8 @@ function fromDraft(
 
 /** Schuleinstellungen: Fristen, Grenzwerte, Aufbewahrung (Administration ändert, Direktion liest). */
 export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
-  const t = useTranslations('settings');
-  const tc = useTranslations('common');
+  const t = useT('settings');
+  const tc = useT('common');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const qc = useQueryClient();

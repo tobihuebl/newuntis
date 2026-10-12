@@ -183,9 +183,14 @@ describe('Stammdaten', () => {
       const s = await admin.admin.post('/admin/subjects', {
         name: 'Mathematik',
         code: 'M',
-        color: '#DC2626',
+        color: 'kobalt',
       });
       expect(s.status).toBe(201);
+      // Nur die acht Fächerfarben des Design Systems, keine Hex-Werte und kein Amber
+      expect(
+        (await admin.admin.post('/admin/subjects', { name: 'Hex', code: 'H', color: '#DC2626' }))
+          .status,
+      ).toBe(400);
       expect((await admin.admin.post('/admin/subjects', { name: 'Musik', code: 'M' })).status).toBe(
         409,
       );

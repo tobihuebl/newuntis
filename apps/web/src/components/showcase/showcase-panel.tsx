@@ -1,6 +1,5 @@
 'use client';
 import { AlertTriangle, CloudOff, Info, RotateCcw, Send, TriangleAlert } from 'lucide-react';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import {
   Banner,
@@ -25,8 +24,17 @@ import {
   ToastProvider,
   useToast,
 } from '@sp/ui';
+import { useT } from '../../lib/i18n';
 
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+function Section({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
       <h3 id={id} className="text-overline text-brand-text">
@@ -38,7 +46,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 function Panel({ theme }: { theme: 'light' | 'dark' }) {
-  const t = useTranslations('showcase');
+  const t = useT('showcase');
   const toast = useToast();
   const [sheet, setSheet] = useState(false);
   const [push, setPush] = useState(true);
@@ -132,7 +140,11 @@ function Panel({ theme }: { theme: 'light' | 'dark' }) {
       </Section>
 
       <Section id={id('fields')} title={t('fields')}>
-        <Input label={t('firstName')} placeholder={t('firstNamePlaceholder')} autoComplete="given-name" />
+        <Input
+          label={t('firstName')}
+          placeholder={t('firstNamePlaceholder')}
+          autoComplete="given-name"
+        />
         <Input label={t('email')} hint={t('emailHint')} type="email" autoComplete="email" />
         <Input
           label={t('code')}

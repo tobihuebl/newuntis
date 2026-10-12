@@ -50,26 +50,21 @@ export function PlanNowMarker({
     >
       <div
         data-now-line=""
-        className="absolute inset-x-0 grid items-center gap-x-1"
+        className="absolute inset-x-0 grid items-center gap-x-2"
         style={{
           top,
           transform: 'translateY(-50%)',
-          gridTemplateColumns: '4.5rem repeat(5, minmax(0, 1fr))',
+          gridTemplateColumns: 'var(--space-8) repeat(5, minmax(0, 1fr))',
         }}
       >
-        <span className="justify-self-end rounded-full bg-brand px-1.5 text-[11px] font-semibold leading-4 text-on-brand tabular-nums">
+        <span className="justify-self-end rounded-pill bg-brand px-1 text-mono-sm text-on-brand">
           {timeFmt.format(new Date(now))}
         </span>
         {days.map((d, i) => (
           <span key={d} className="flex items-center">
-            {i === col ? (
-              <span className="-ml-1 h-2.5 w-2.5 shrink-0 rounded-full bg-brand" />
-            ) : null}
+            {i === col ? <span className="-ml-1 size-2.5 shrink-0 rounded-pill bg-brand" /> : null}
             <span
-              className={cn(
-                'flex-1',
-                i === col ? 'h-0.5 bg-brand' : 'h-px bg-brand opacity-30',
-              )}
+              className={cn('flex-1', i === col ? 'h-0.5 bg-brand' : 'h-px bg-brand opacity-30')}
             />
           </span>
         ))}

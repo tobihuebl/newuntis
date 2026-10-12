@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import { navViews, navigationFor } from '@sp/shared';
 import { AppProviders } from '../../src/components/providers';
 import { AppShell } from '../../src/components/shell/app-shell';
 import { getMe } from '../../src/lib/api-server';
-import { navigationOf } from '../../src/lib/nav-server';
+import { isFormalView } from '../../src/lib/formal';
+import { navigationOf, getT } from '../../src/lib/nav-server';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const r = await getMe();
@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (me.stage === 'NEEDS_2FA_VERIFY') redirect('/2fa');
   if (me.stage === 'NEEDS_2FA_SETUP') redirect('/2fa/einrichten');
   if (me.needsOnboarding) redirect('/willkommen');
-  const t = await getTranslations('roles');
+  const t = await getT('roles');
   const roles = [...new Set(me.user.roles.map((x) => x.role))];
   const nav = await navigationOf(me);
   const views = navViews(roles).map((role) => ({
@@ -27,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       personId={me.user.personId}
       tenantSlug={me.tenant.slug}
       clearAfterIdleDays={me.tenant.offlineClearAfterIdleDays}
+      formal={isFormalView(nav.view)}
     >
       <AppShell
         view={nav.view}

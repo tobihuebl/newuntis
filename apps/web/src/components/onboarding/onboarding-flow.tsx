@@ -1,7 +1,6 @@
 'use client';
 import { BellRing, BookOpenCheck, CheckCircle2, ShieldCheck, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { PRIVACY_NOTICE_VERSION, type PreferencesResponse, type Role } from '@sp/shared';
 import { Button, Checkbox, Skeleton } from '@sp/ui';
@@ -9,6 +8,7 @@ import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { PushToggle } from '../profile/push-toggle';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 type Step = 'privacy' | 'notifications' | 'role';
 
@@ -29,7 +29,7 @@ export function OnboardingFlow({
   home: string;
   noticeUrl: string | null;
 }) {
-  const t = useTranslations('onboarding');
+  const t = useT('onboarding');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const router = useRouter();

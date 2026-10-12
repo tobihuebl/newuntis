@@ -1,8 +1,8 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Select } from '@sp/ui';
+import { useT } from '../../lib/i18n';
 
 interface Directory {
   classes: { id: string; name: string }[];
@@ -20,7 +20,7 @@ export function PlanPicker({
   from: string;
   current: { kind: 'class' | 'teacher' | 'room'; id: string } | null;
 }) {
-  const t = useTranslations('plan');
+  const t = useT('plan');
   const router = useRouter();
   const [kind, setKind] = useState<'class' | 'teacher' | 'room'>(current?.kind ?? 'class');
   const [id, setId] = useState(current?.id ?? '');

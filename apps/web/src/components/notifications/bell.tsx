@@ -1,12 +1,12 @@
 'use client';
 import { Bell } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useApi } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 /** Glocke in der Kopfzeile mit Zahl der ungelesenen Hinweise (aktualisiert über den Echtzeit-Stream). */
 export function NotificationBell() {
-  const t = useTranslations('notifications');
+  const t = useT('notifications');
   const q = useApi<{ unread: number }>(['notifications', 'unread'], '/notifications?limit=1');
   const unread = q.data?.unread ?? 0;
   return (

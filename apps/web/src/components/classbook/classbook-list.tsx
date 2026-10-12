@@ -1,5 +1,4 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import type { OpenEntry, TodayResponse } from '@sp/shared';
 import { Chip, Card, EmptyState } from '@sp/ui';
 import { weekdayDate } from '../../lib/dates';
@@ -7,11 +6,12 @@ import { useCached, useOutbox } from '../../offline/hooks';
 import { SyncStatus } from '../sync-status';
 import { LessonRow } from '../today/lesson-row';
 import { LoadError, TodaySkeleton, previousEnds } from '../today/today-screen';
+import { useT } from '../../lib/i18n';
 
 /** Tab "Klassenbuch" der Lehrkräfte: offene Einträge (KB-04) und die Stunden von heute. */
 export function ClassbookList() {
-  const t = useTranslations('classbook');
-  const tt = useTranslations('today');
+  const t = useT('classbook');
+  const tt = useT('today');
   const open = useCached<{ data: OpenEntry[] }>(
     ['classbook', 'open'],
     'classbook:open',

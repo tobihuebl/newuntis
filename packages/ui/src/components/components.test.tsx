@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Check } from 'lucide-react';
 import { Button } from './button';
 import { Chip } from './chip';
 import { EmptyState } from './empty-state';
@@ -28,6 +29,19 @@ describe('Button', () => {
     expect(b).toBeDisabled();
     expect(b).toHaveAttribute('aria-busy', 'true');
     expect(b).toHaveClass('pf-btn--secondary');
+  });
+});
+
+describe('Button als Link', () => {
+  it('setzt das Icon in das Kind-Element (asChild)', () => {
+    render(
+      <Button asChild iconLeft={Check}>
+        <a href="/klassenbuch">Klassenbuch öffnen</a>
+      </Button>,
+    );
+    const link = screen.getByRole('link', { name: 'Klassenbuch öffnen' });
+    expect(link).toHaveClass('pf-btn');
+    expect(link.querySelector('svg')).not.toBeNull();
   });
 });
 

@@ -1,9 +1,9 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Button } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 type State = 'loading' | 'unsupported' | 'denied' | 'on' | 'off';
 
@@ -22,7 +22,7 @@ const isStandalone = () =>
 
 /** Web-Push für dieses Gerät ein- und ausschalten (Spec Abschnitt 12, iOS nur in der installierten App). */
 export function PushToggle({ vapidPublicKey }: { vapidPublicKey: string | null }) {
-  const t = useTranslations('profile');
+  const t = useT('profile');
   const { csrfToken } = useSession();
   const [state, setState] = useState<State>('loading');
   const [busy, setBusy] = useState(false);
@@ -98,7 +98,9 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey: string | null }
       {state === 'unsupported' ? (
         <p className="text-body-sm text-ink-muted">{t('pushUnsupported')}</p>
       ) : null}
-      {state === 'denied' ? <p className="text-body-sm text-signal-ink">{t('pushDenied')}</p> : null}
+      {state === 'denied' ? (
+        <p className="text-body-sm text-signal-ink">{t('pushDenied')}</p>
+      ) : null}
       {state === 'on' || state === 'off' ? (
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-body-sm">{state === 'on' ? t('pushOn') : t('pushOff')}</p>

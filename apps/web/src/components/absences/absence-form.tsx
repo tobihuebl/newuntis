@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ABSENCE_REASONS, addDays, type AbsenceItem, type TodayChild } from '@sp/shared';
 import { Button, Card, Checkbox, Input, SegmentedControl, Select, Textarea } from '@sp/ui';
@@ -9,6 +8,7 @@ import { ApiError, apiRequest, apiUpload } from '../../lib/api-client';
 import { todayVienna } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 type Span = 'today' | 'yesterday' | 'range';
 const PERIODS = Array.from({ length: 10 }, (_, i) => ({
@@ -27,8 +27,8 @@ export function AbsenceForm({
   mode: 'guardian' | 'student' | 'admin';
   selfId: string;
 }) {
-  const t = useTranslations('absence');
-  const tc = useTranslations('common');
+  const t = useT('absence');
+  const tc = useT('common');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const search = useSearchParams();
@@ -116,7 +116,9 @@ export function AbsenceForm({
       <Card className="flex flex-col gap-3" role="status">
         <p className="font-medium text-brand-text">{t('sent')}</p>
         {result.uploadError ? (
-          <p className="text-body-sm text-danger-ink">{t('uploadFailed', { error: result.uploadError })}</p>
+          <p className="text-body-sm text-danger-ink">
+            {t('uploadFailed', { error: result.uploadError })}
+          </p>
         ) : null}
         {result.item.attachmentRequired && !result.item.hasAttachment ? (
           <p className="text-body-sm text-signal-ink">{t('photoMissing')}</p>

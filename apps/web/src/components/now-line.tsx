@@ -1,7 +1,7 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { cn } from '@sp/ui';
 import { nowPlacement, useNow } from '../lib/now';
+import { useT } from '../lib/i18n';
 
 const timeFmt = new Intl.DateTimeFormat('de-AT', {
   hour: '2-digit',
@@ -11,7 +11,7 @@ const timeFmt = new Intl.DateTimeFormat('de-AT', {
 
 /** Die Linie selbst: Punkt, Strich und Uhrzeit. Liegt absolut im nächsten positionierten Element. */
 export function NowLine({ top, now, className }: { top: string; now: number; className?: string }) {
-  const t = useTranslations('today');
+  const t = useT('today');
   const time = timeFmt.format(new Date(now));
   return (
     <div

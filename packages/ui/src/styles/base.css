@@ -67,3 +67,18 @@
     }
   }
 }
+
+/* Aktuelle Stunde im Stundenplan: Nacht-Rand wie die Konflikt-Kachel (Design System, Screens Abschnitt 4) */
+@utility tt-now {
+  box-shadow: inset 0 0 0 2.5px var(--nacht);
+}
+
+/*
+ * Kontrast (WCAG 2.2 AA geht vor): bundle.css dimmt die Zusatzzeile in Stundenplan-Kacheln mit opacity .8;
+ * axe meldet das bei 11 px als zu schwach. Volle Deckkraft, die Hierarchie trägt die Mono-Schrift.
+ */
+@layer utilities {
+  .pf-tt__cell small {
+    opacity: 1;
+  }
+}

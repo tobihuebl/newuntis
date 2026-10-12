@@ -1,13 +1,13 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Input } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
 import { FormError, useErrorText } from './form-bits';
+import { useT } from '../lib/i18n';
 
 export function TwoFactorForm({ csrfToken }: { csrfToken: string }) {
-  const t = useTranslations('auth');
+  const t = useT('auth');
   const errorText = useErrorText();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);

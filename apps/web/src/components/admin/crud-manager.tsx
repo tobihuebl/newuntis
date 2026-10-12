@@ -1,12 +1,12 @@
 'use client';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Button, Checkbox, EmptyState, Input, Select, Sheet, type SelectOption } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
-export type FieldType = 'text' | 'number' | 'date' | 'time' | 'color' | 'checkbox' | 'select';
+export type FieldType = 'text' | 'number' | 'date' | 'time' | 'checkbox' | 'select';
 
 export interface Field {
   name: string;
@@ -71,7 +71,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
     csrfToken,
     detailHref,
   } = props;
-  const t = useTranslations('common');
+  const t = useT('common');
   const router = useRouter();
   const [editing, setEditing] = useState<{ row: Row | null } | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
@@ -272,21 +272,17 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
                     name={f.name}
                     label={f.label}
                     type={
-                      f.type === 'color'
-                        ? 'color'
-                        : f.type === 'number'
-                          ? 'number'
-                          : f.type === 'date'
-                            ? 'date'
-                            : f.type === 'time'
-                              ? 'time'
-                              : 'text'
+                      f.type === 'number'
+                        ? 'number'
+                        : f.type === 'date'
+                          ? 'date'
+                          : f.type === 'time'
+                            ? 'time'
+                            : 'text'
                     }
                     required={f.required}
                     placeholder={f.placeholder}
-                    defaultValue={
-                      typeof value === 'string' ? value : f.type === 'color' ? '#4f46e5' : ''
-                    }
+                    defaultValue={typeof value === 'string' ? value : ''}
                     error={fieldErrors[f.name]}
                   />
                 );

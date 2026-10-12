@@ -2,10 +2,10 @@
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Chip, Button,
+  Chip,
+  Button,
   Checkbox,
   EmptyState,
   Input,
@@ -16,6 +16,7 @@ import {
   type SelectOption,
 } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 export interface PersonRow {
   id: string;
@@ -44,8 +45,8 @@ export function PersonsList({
   csrfToken: string;
   readOnly: boolean;
 }) {
-  const t = useTranslations('admin.persons');
-  const c = useTranslations('common');
+  const t = useT('admin.persons');
+  const c = useT('common');
   const router = useRouter();
   const [q, setQ] = useState('');
   const [kind, setKind] = useState('');
@@ -178,9 +179,7 @@ export function PersonsList({
               .join(' · ')}
             trailing={
               <Chip
-                tone={
-                  p.account === 'active' ? 'ok' : p.account === 'invited' ? 'ok' : 'neutral'
-                }
+                tone={p.account === 'active' ? 'ok' : p.account === 'invited' ? 'ok' : 'neutral'}
               >
                 {t(`account.${p.account}`)}
               </Chip>

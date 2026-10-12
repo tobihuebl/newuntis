@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
 import { Card, ListRow } from '@sp/ui';
 import { GuardianCodes } from '../../../../../src/components/admin/guardian-codes';
 import { adminPage } from '../../../../../src/lib/admin';
 import { apiGet } from '../../../../../src/lib/api-server';
+import { getT } from '../../../../../src/lib/nav-server';
 
 interface ClassDetail {
   id: string;
@@ -15,7 +15,7 @@ interface ClassDetail {
 export default async function ClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { csrfToken, readOnly } = await adminPage(`/admin/klassen/${id}`);
-  const t = await getTranslations('admin.classes');
+  const t = await getT('admin.classes');
   const c = await apiGet<ClassDetail>(`/admin/classes/${id}`);
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">

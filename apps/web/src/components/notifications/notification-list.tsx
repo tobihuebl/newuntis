@@ -1,12 +1,12 @@
 'use client';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { notificationText, type NotificationItem } from '@sp/shared';
 import { Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 interface Page {
   data: NotificationItem[];
@@ -15,8 +15,8 @@ interface Page {
 }
 
 export function NotificationList() {
-  const t = useTranslations('notifications');
-  const tc = useTranslations('common');
+  const t = useT('notifications');
+  const tc = useT('common');
   const { csrfToken } = useSession();
   const router = useRouter();
   const qc = useQueryClient();

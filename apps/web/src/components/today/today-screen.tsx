@@ -8,16 +8,24 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { addDays, mondayOf, nextWeekday, type TodayLesson, type TodayResponse } from '@sp/shared';
-import { Chip, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
+import {
+  addDays,
+  fachColorOf,
+  mondayOf,
+  nextWeekday,
+  type TodayLesson,
+  type TodayResponse,
+} from '@sp/shared';
+import { Chip, Button, Card, EmptyState, FACH_BORDER, Skeleton, cn } from '@sp/ui';
 import { dateTimeOf, longDate, shortDate, timeOf, weekdayDate } from '../../lib/dates';
 import { OfflineMissError, type Cached } from '../../offline/cached';
 import { useCached, useOutbox } from '../../offline/hooks';
 import { cachePlanPages, prefetchTeacher } from '../../offline/prefetch';
 import { SyncStatus } from '../sync-status';
+import { NowCard } from './now-card';
 import { LessonRow, PlanStatusBadge, lessonDetail, periodLabel } from './lesson-row';
+import { useT } from '../../lib/i18n';
 
 /** Aktuelle Zeit, minütlich aktualisiert ("läuft gerade", "nächste Stunde"). */
 function useNow(): number {
@@ -53,7 +61,7 @@ export function TodaySkeleton() {
 }
 
 export function LoadError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
-  const t = useTranslations();
+  const t = useT();
   return (
     <Card>
       <EmptyState
@@ -70,15 +78,17 @@ export function LoadError({ error, onRetry }: { error: unknown; onRetry: () => v
 }
 
 function CachedHint({ result }: { result: Cached<unknown> }) {
-  const t = useTranslations('today');
+  const t = useT('today');
   if (!result.fromCache) return null;
   return (
-    <p className="text-body-sm text-signal-ink">{t('cachedAt', { time: dateTimeOf(result.savedAt) })}</p>
+    <p className="text-body-sm text-signal-ink">
+      {t('cachedAt', { time: dateTimeOf(result.savedAt) })}
+    </p>
   );
 }
 
 export function TodayScreen() {
-  const t = useTranslations('today');
+  const t = useT('today');
   const child = useSearchParams().get('kind');
   const key = child ?? 'me';
   const q = useCached<TodayResponse>(
@@ -122,7 +132,7 @@ export function TodayScreen() {
 
 /** Ungelesene Nachrichten und Rundschreiben (Spec Abschnitt 5: "ungelesene Mitteilungen"). */
 function InboxHint({ data }: { data: TodayResponse }) {
-  const t = useTranslations('today');
+  const t = useT('today');
   // Ältere Offline-Stände haben noch keine Zähler
   const inbox = data.inbox as TodayResponse['inbox'] | undefined;
   if (!inbox || inbox.messages + inbox.announcements === 0) return null;
@@ -163,7 +173,7 @@ function InboxHint({ data }: { data: TodayResponse }) {
 // ───────────── Lehrkraft ─────────────
 
 function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boolean }) {
-  const t = useTranslations('today');
+  const t = useT('today');
   const now = useNow();
   const outbox = useOutbox();
   useEffect(() => {
@@ -176,6 +186,9 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
       Date.parse(l.startsAt) <= now + 5 * 60_000 &&
       Date.parse(l.endsAt) > now,
   );
+  // Ist gerade keine Stunde, zeigt die Nachtkarte die nächste (Design System, Heute)
+  const hero =
+    current ?? data.lessons.find((l) => l.status !== 'CANCELLED' && Date.parse(l.startsAt) > now);
   const subs = data.teacher?.substitutions ?? [];
   const teacherPrev = previousEnds(data.lessons);
   const progress = (l: TodayLesson) => {
@@ -183,11 +196,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
     if (closing.has(l.id) && l.classbook !== 'closed')
       return <Chip tone="ok">{t('progress_pending')}</Chip>;
     return (
-      <Chip
-        tone={
-          l.classbook === 'closed' ? 'ok' : l.classbook === 'started' ? 'late' : 'neutral'
-        }
-      >
+      <Chip tone={l.classbook === 'closed' ? 'ok' : l.classbook === 'started' ? 'late' : 'neutral'}>
         {t(`progress_${l.classbook}`)}
       </Chip>
     );
@@ -227,26 +236,32 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
         </div>
       ) : null}
 
-      {current ? (
-        <Card className="flex flex-col gap-3 border-brand">
-          <p className="text-label text-brand-text">{t('now')}</p>
-          <div>
-            <p className="text-h3">
-              {current.subject.name} · {current.class?.name ?? current.group?.name}
-            </p>
-            <p className="text-ink-muted">
-              {t('time', { from: timeOf(current.startsAt), to: timeOf(current.endsAt) })} ·{' '}
-              {periodLabel(t, current)}
-              {current.room ? ` · ${current.room.name}` : ''}
-            </p>
-          </div>
-          <Button asChild className="self-start">
-            <Link href={`/klassenbuch/${current.id}`}>
-              <BookOpenCheck aria-hidden="true" size={18} />
-              {t('openClassbook')}
-            </Link>
-          </Button>
-        </Card>
+      {hero ? (
+        <NowCard
+          overline={hero === current ? t('now') : t('next')}
+          title={`${hero.class?.name ?? hero.group?.name ?? ''} · ${hero.subject.name}`}
+          sub={[
+            t('time', { from: timeOf(hero.startsAt), to: timeOf(hero.endsAt) }),
+            periodLabel(t, hero),
+            hero.room?.name,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+          status={
+            hero.classbook === null
+              ? undefined
+              : hero.classbook === 'closed' || closing.has(hero.id)
+                ? { label: t('progress_closed'), open: false }
+                : { label: t('lessonOpen'), open: true }
+          }
+          action={
+            hero.planned ? null : (
+              <Button asChild iconLeft={BookOpenCheck}>
+                <Link href={`/klassenbuch/${hero.id}`}>{t('openClassbook')}</Link>
+              </Button>
+            )
+          }
+        />
       ) : null}
 
       <section aria-labelledby="my-lessons" className="flex flex-col gap-2">
@@ -297,7 +312,9 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
                   entry={s}
                   perspective="teacher"
                   href={`/klassenbuch/${s.id}`}
-                  trailing={<span className="text-caption text-ink-muted">{weekdayDate(s.date)}</span>}
+                  trailing={
+                    <span className="text-caption text-ink-muted">{weekdayDate(s.date)}</span>
+                  }
                 />
               ))}
             </ul>
@@ -311,7 +328,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
 // ───────────── Schüler:innen und Eltern ─────────────
 
 function ChildSwitcher({ data }: { data: TodayResponse }) {
-  const t = useTranslations('today');
+  const t = useT('today');
   const router = useRouter();
   if (data.children.length < 2) return null;
   return (
@@ -332,7 +349,7 @@ function ChildSwitcher({ data }: { data: TodayResponse }) {
 }
 
 function StudentToday({ data }: { data: TodayResponse }) {
-  const t = useTranslations('today');
+  const t = useT('today');
   const now = useNow();
   if (data.view === 'guardian' && data.children.length === 0)
     return (
@@ -392,8 +409,7 @@ function StudentToday({ data }: { data: TodayResponse }) {
         </Card>
       ) : next ? (
         <Card
-          className="flex flex-col gap-2"
-          style={{ borderLeft: `6px solid ${next.subject.color ?? 'var(--brand)'}` }}
+          className={cn('flex flex-col gap-2 border-l-8', FACH_BORDER[fachColorOf(next.subject)])}
         >
           <p className="text-label text-brand-text">{running ? t('now') : t('next')}</p>
           <p className="text-h1">{next.subject.name}</p>
@@ -462,8 +478,10 @@ function StudentToday({ data }: { data: TodayResponse }) {
                   className="flex flex-col gap-0.5 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <p
-                    className="border-l-4 pl-2 text-label"
-                    style={{ borderColor: h.subject.color ?? 'var(--brand)' }}
+                    className={cn(
+                      'border-l-4 pl-2 text-label',
+                      FACH_BORDER[fachColorOf(h.subject)],
+                    )}
                   >
                     {h.subject.name} · {weekdayDate(h.dueOn)}
                   </p>

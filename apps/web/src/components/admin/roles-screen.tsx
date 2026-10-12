@@ -1,9 +1,9 @@
 'use client';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { ACTIONS, PERMISSION_MATRIX, ROLES, type Role } from '@sp/shared';
 import { Card, EmptyState, Skeleton } from '@sp/ui';
 import { useApi } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 interface Holders {
   holders: {
@@ -19,9 +19,9 @@ interface Holders {
  * Die Matrix ist fest im Code (packages/shared/src/permissions.ts), vergeben wird je Person bzw. Klasse.
  */
 export function RolesScreen() {
-  const t = useTranslations('rolesAdmin');
-  const tr = useTranslations('roles');
-  const tc = useTranslations('common');
+  const t = useT('rolesAdmin');
+  const tr = useT('roles');
+  const tc = useT('common');
   const q = useApi<Holders>(['admin', 'roles'], '/admin/roles');
 
   return (
@@ -49,7 +49,9 @@ export function RolesScreen() {
                 <Card key={role} className="flex flex-col gap-2">
                   <h3 className="font-medium">
                     {tr(role)}{' '}
-                    <span className="text-body-sm text-ink-muted tabular-nums">({list.length})</span>
+                    <span className="text-body-sm text-ink-muted tabular-nums">
+                      ({list.length})
+                    </span>
                   </h3>
                   {list.length === 0 ? (
                     <p className="text-body-sm text-ink-muted">{t('nobody')}</p>
@@ -66,7 +68,9 @@ export function RolesScreen() {
                           >
                             {h.person.name}
                           </Link>
-                          {h.class ? <span className="text-ink-muted"> · {h.class.name}</span> : null}
+                          {h.class ? (
+                            <span className="text-ink-muted"> · {h.class.name}</span>
+                          ) : null}
                         </li>
                       ))}
                     </ul>

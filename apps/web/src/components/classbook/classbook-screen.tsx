@@ -1,7 +1,6 @@
 'use client';
-import { ArrowLeft, Check, ChevronUp, Clock, Lock, X } from 'lucide-react';
+import { ArrowLeft, Check, Lock, X } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import {
   nextWeekday,
@@ -9,7 +8,18 @@ import {
   type ClassbookEntryState,
   type OccurrenceDetail,
 } from '@sp/shared';
-import { Chip, Button, Card, EmptyState, Input, Sheet, Skeleton, StatusBadge, cn } from '@sp/ui';
+import {
+  AttendanceRow,
+  Chip,
+  Button,
+  Card,
+  EmptyState,
+  Input,
+  Sheet,
+  Skeleton,
+  StatusBadge,
+  Textarea,
+} from '@sp/ui';
 import { ApiError } from '../../lib/api-client';
 import { dateTimeOf, longDate, timeOf } from '../../lib/dates';
 import { OfflineMissError } from '../../offline/cached';
@@ -18,8 +28,8 @@ import { statusOf, type OutboxItem } from '../../offline/mutations';
 import { sync } from '../../offline/sync';
 import { SyncStatus } from '../sync-status';
 import { periodLabel } from '../today/lesson-row';
+import { useT } from '../../lib/i18n';
 
-const LONG_PRESS_MS = 500;
 const AUTOSAVE_MS = 700;
 const LATE_PRESETS = [5, 10, 15, 20, 30];
 
@@ -33,8 +43,8 @@ const fieldsOf = (e: ClassbookEntryState | null): EntryFields => ({
 });
 
 export function ClassbookScreen({ id, backHref }: { id: string; backHref: string }) {
-  const t = useTranslations('classbook');
-  const tc = useTranslations('common');
+  const t = useT('classbook');
+  const tc = useT('common');
   const { detail, server, outbox, query } = useOccurrence(id);
   // Auch per Client-Navigation geöffnete Stunden sofort offline verfügbar machen
   useEffect(() => {
@@ -85,7 +95,7 @@ export function ClassbookScreen({ id, backHref }: { id: string; backHref: string
 }
 
 function Shell({ backHref, children }: { backHref: string; children: React.ReactNode }) {
-  const t = useTranslations('classbook');
+  const t = useT('classbook');
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <Link
@@ -109,9 +119,9 @@ function Loaded({
   serverVersion: number;
   outbox: OutboxItem[];
 }) {
-  const t = useTranslations('classbook');
-  const tt = useTranslations('today');
-  const tp = useTranslations('plan');
+  const t = useT('classbook');
+  const tt = useT('today');
+  const tp = useT('plan');
   const [lateFor, setLateFor] = useState<Student | null>(null);
   const writable = detail.canWrite;
   const closed = detail.entry?.closedAt ?? null;
@@ -151,7 +161,9 @@ function Loaded({
             </Chip>
           ) : null}
         </div>
-        {detail.substitution ? <p className="text-body-sm text-ink-muted">{t('substitution')}</p> : null}
+        {detail.substitution ? (
+          <p className="text-body-sm text-ink-muted">{t('substitution')}</p>
+        ) : null}
       </header>
 
       {writable ? <SyncStatus /> : null}
@@ -195,21 +207,19 @@ function Loaded({
             <p className="text-ink-muted">{t('noStudents')}</p>
           </Card>
         ) : (
-          <Card className="p-0">
-            <ul>
-              {detail.students.map((s) => (
-                <StudentRow
-                  key={s.id}
-                  student={s}
-                  status={statusOf(detail, s.id)}
-                  lateMinutes={detail.attendance[s.id]?.lateMinutes ?? null}
-                  disabled={!writable}
-                  onToggle={(cur) => setStatus(s, cur === 'PRESENT' ? 'ABSENT' : 'PRESENT')}
-                  onLate={() => setLateFor(s)}
-                />
-              ))}
-            </ul>
-          </Card>
+          <ul className="pf-list">
+            {detail.students.map((s) => (
+              <StudentRow
+                key={s.id}
+                student={s}
+                status={statusOf(detail, s.id)}
+                lateMinutes={detail.attendance[s.id]?.lateMinutes ?? null}
+                disabled={!writable}
+                onToggle={(cur) => setStatus(s, cur === 'PRESENT' ? 'ABSENT' : 'PRESENT')}
+                onLate={() => setLateFor(s)}
+              />
+            ))}
+          </ul>
         )}
       </section>
 
@@ -230,6 +240,7 @@ function Loaded({
   );
 }
 
+/** Zeile der Anwesenheit (Design System, Klassenbuch-Zeile): Tap wechselt, langes Drücken = Verspätung. */
 function StudentRow({
   student,
   status,
@@ -245,9 +256,7 @@ function StudentRow({
   onToggle: (current: AttendanceStatusName) => void;
   onLate: () => void;
 }) {
-  const t = useTranslations('classbook');
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressed = useRef(false);
+  const t = useT('classbook');
   const name = `${student.lastName} ${student.firstName}`;
   const label =
     status === 'LATE'
@@ -255,63 +264,19 @@ function StudentRow({
       : status === 'ABSENT'
         ? t('absent')
         : t('present');
-  const badge = status === 'LATE' ? 'late' : status === 'ABSENT' ? 'absent' : 'present';
-  const cancel = () => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-  };
   return (
-    <li
-      className={cn(
-        'flex items-center border-b border-l-4 border-b-line last:border-b-0',
-        status === 'ABSENT'
-          ? 'border-l-danger'
-          : status === 'LATE'
-            ? 'border-l-signal'
-            : 'border-l-transparent',
-      )}
-      data-student={student.id}
-      data-status={status}
-    >
-      <button
-        type="button"
-        disabled={disabled}
-        aria-label={t('toggleLabel', { name, status: label })}
-        className="flex min-h-14 flex-1 select-none items-center justify-between gap-3 px-4 py-2 text-left hover:bg-bg-sunken disabled:cursor-default disabled:hover:bg-transparent"
-        onPointerDown={() => {
-          longPressed.current = false;
-          cancel();
-          timer.current = setTimeout(() => {
-            longPressed.current = true;
-            onLate();
-          }, LONG_PRESS_MS);
-        }}
-        onPointerUp={cancel}
-        onPointerLeave={cancel}
-        onPointerCancel={cancel}
-        onContextMenu={(e) => e.preventDefault()}
-        onClick={() => {
-          if (longPressed.current) {
-            longPressed.current = false;
-            return;
-          }
-          onToggle(status);
-        }}
-      >
-        <span className="min-w-0 truncate font-medium">{name}</span>
-        <StatusBadge status={badge} label={label} className="shrink-0" />
-      </button>
-      {disabled ? null : (
-        <button
-          type="button"
-          onClick={onLate}
-          aria-label={`${t('markLate')}: ${name}`}
-          className="inline-flex min-h-14 min-w-14 items-center justify-center border-l border-line text-ink-muted hover:bg-bg-sunken hover:text-ink"
-        >
-          <Clock aria-hidden="true" size={20} />
-        </button>
-      )}
-    </li>
+    <AttendanceRow
+      name={name}
+      initial={(student.firstName || student.lastName).slice(0, 1)}
+      status={status === 'LATE' ? 'late' : status === 'ABSENT' ? 'absent' : 'present'}
+      statusLabel={label}
+      toggleLabel={t('toggleLabel', { name, status: label })}
+      lateLabel={`${t('markLate')}: ${name}`}
+      disabled={disabled}
+      onToggle={() => onToggle(status)}
+      onLate={onLate}
+      data={{ 'data-student': student.id, 'data-status': status }}
+    />
   );
 }
 
@@ -326,8 +291,8 @@ function LateSheet({
   onClose: () => void;
   onSave: (minutes: number | null) => void;
 }) {
-  const t = useTranslations('classbook');
-  const tc = useTranslations('common');
+  const t = useT('classbook');
+  const tc = useT('common');
   const [minutes, setMinutes] = useState<string>('');
   useEffect(() => setMinutes(current ? String(current) : ''), [student, current]);
   const value = Number.parseInt(minutes, 10);
@@ -382,9 +347,8 @@ function EntryBar({
   serverVersion: number;
   outbox: OutboxItem[];
 }) {
-  const t = useTranslations('classbook');
+  const t = useT('classbook');
   const [fields, setFields] = useState<EntryFields>(() => fieldsOf(detail.entry));
-  const [expanded, setExpanded] = useState(false);
   const latest = useRef(fields);
   const dirty = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -448,54 +412,29 @@ function EntryBar({
   }, []);
 
   return (
-    <div className="sticky bottom-16 z-30 -mx-4 flex flex-col gap-3 border-t border-line bg-bg-raised p-4 md:bottom-0 md:mx-0 md:rounded-md md:border">
-      {/* Mobil eingeklappt, damit die Schülerliste sichtbar bleibt; ab Tablet immer offen */}
-      <button
-        type="button"
-        aria-expanded={expanded}
-        aria-controls={`entry-${detail.id}`}
-        onClick={() => setExpanded((v) => !v)}
-        className="flex min-h-11 items-center gap-2 rounded-sm text-left text-body-sm md:hidden"
-      >
-        <ChevronUp
-          aria-hidden="true"
-          size={18}
-          className={cn('shrink-0 transition-transform', expanded && 'rotate-180')}
+    <>
+      <section aria-label={t('entryToggle')} className="grid gap-4 md:grid-cols-2">
+        <Textarea
+          label={t('topic')}
+          rows={2}
+          disabled={!writable}
+          value={fields.topic}
+          placeholder={t('topicPlaceholder')}
+          onChange={(e) => change({ topic: e.target.value })}
+          onBlur={() => flush(fields)}
+          className="min-h-20"
         />
-        <span className="font-medium">{t('entryToggle')}</span>
-        <span className="min-w-0 flex-1 truncate text-ink-muted">
-          {fields.topic.trim() || t('entryEmpty')}
-        </span>
-      </button>
-      <div
-        id={`entry-${detail.id}`}
-        className={cn('gap-3 md:grid md:grid-cols-2', expanded ? 'grid' : 'hidden')}
-      >
-        <label className="flex flex-col gap-1 text-label">
-          {t('topic')}
-          <textarea
+        <div className="flex flex-col gap-3">
+          <Textarea
+            label={t('homework')}
             rows={2}
             disabled={!writable}
-            value={fields.topic}
-            placeholder={t('topicPlaceholder')}
-            onChange={(e) => change({ topic: e.target.value })}
+            value={fields.homework}
+            placeholder={t('homeworkPlaceholder')}
+            onChange={(e) => change({ homework: e.target.value })}
             onBlur={() => flush(fields)}
-            className="min-h-11 rounded-sm border border-line bg-bg-sunken px-3 py-2 text-body font-normal text-ink disabled:opacity-60"
+            className="min-h-20"
           />
-        </label>
-        <div className="flex flex-col gap-1">
-          <label className="flex flex-col gap-1 text-label">
-            {t('homework')}
-            <textarea
-              rows={2}
-              disabled={!writable}
-              value={fields.homework}
-              placeholder={t('homeworkPlaceholder')}
-              onChange={(e) => change({ homework: e.target.value })}
-              onBlur={() => flush(fields)}
-              className="min-h-11 rounded-sm border border-line bg-bg-sunken px-3 py-2 text-body font-normal text-ink disabled:opacity-60"
-            />
-          </label>
           {fields.homework.trim() ? (
             <Input
               label={t('dueOn')}
@@ -505,29 +444,35 @@ function EntryBar({
               min={detail.date}
               onChange={(e) => change({ homeworkDueOn: e.target.value })}
               onBlur={() => flush(fields)}
-              className="w-auto self-start"
+              fieldClassName="self-start"
             />
           ) : null}
         </div>
-      </div>
+      </section>
       {writable ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            disabled={!detail.canClose || Boolean(closed) || closing}
-            onClick={() => {
-              flush(fields);
-              void sync.enqueue({ kind: 'close', occurrenceId: detail.id }, serverVersion);
-            }}
-          >
-            <Check aria-hidden="true" size={18} />
-            {closed ? t('closed') : t('close')}
-          </Button>
-          <p className={cn('text-body-sm text-ink-muted md:block', !expanded && 'hidden')}>
-            {!detail.canClose ? t('futureHint') : closed ? null : t('closeHint')}
-          </p>
-        </div>
+        <>
+          {!detail.canClose || !closed ? (
+            <p className="text-body-sm text-ink-muted">
+              {!detail.canClose ? t('futureHint') : t('closeHint')}
+            </p>
+          ) : null}
+          {/* Hauptaktion unten angeheftet, über der Tab-Leiste und mit Safe-Area (Design System, Klassenbuch) */}
+          <div className="sticky bottom-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))] z-nav -mx-4 bg-bg px-4 py-3 lg:bottom-0 lg:mx-0 lg:px-0">
+            <Button
+              block
+              iconLeft={Check}
+              disabled={!detail.canClose || Boolean(closed) || closing}
+              onClick={() => {
+                flush(fields);
+                void sync.enqueue({ kind: 'close', occurrenceId: detail.id }, serverVersion);
+              }}
+            >
+              {closed ? t('closed') : t('close')}
+            </Button>
+          </div>
+        </>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -538,7 +483,7 @@ function ConflictPanel({
   detail: OccurrenceDetail;
   conflicts: Extract<OutboxItem, { kind: 'entry' }>[];
 }) {
-  const t = useTranslations('classbook');
+  const t = useT('classbook');
   const theirs = conflicts.map((c) => c.conflict).find(Boolean) ?? null;
   const mine = {
     topic: detail.entry?.topic ?? null,

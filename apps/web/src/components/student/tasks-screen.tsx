@@ -1,15 +1,15 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import type { ExamItem, TodayChild, TodayHomework } from '@sp/shared';
-import { Button, Card, EmptyState, Skeleton } from '@sp/ui';
+import { fachColorOf, type ExamItem, type TodayChild, type TodayHomework } from '@sp/shared';
+import { Button, Card, EmptyState, FACH_BORDER, Skeleton, cn } from '@sp/ui';
 import { weekdayDate } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
 import { ExamRows } from '../teacher/exams-screen';
+import { useT } from '../../lib/i18n';
 
 /** Schüler:innen "Aufgaben" und Eltern "Termine": Hausübungen und Prüfungen der nächsten Wochen. */
 export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
-  const t = useTranslations('tasks');
+  const t = useT('tasks');
   const router = useRouter();
   const children = useApi<{ data: TodayChild[] }>(
     ['children'],
@@ -62,8 +62,10 @@ export function TasksScreen({ mode }: { mode: 'student' | 'guardian' }) {
                   className="flex flex-col gap-0.5 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <p
-                    className="border-l-4 pl-2 text-label"
-                    style={{ borderColor: h.subject.color ?? 'var(--brand)' }}
+                    className={cn(
+                      'border-l-4 pl-2 text-label',
+                      FACH_BORDER[fachColorOf(h.subject)],
+                    )}
                   >
                     {h.subject.name} · {t('due', { date: weekdayDate(h.dueOn) })}
                   </p>

@@ -3,11 +3,11 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, BellRing, Megaphone, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { AnnouncementDetail, AnnouncementItem, Audience, AudienceRole } from '@sp/shared';
 import {
-  Chip, Button,
+  Chip,
+  Button,
   Card,
   Checkbox,
   EmptyState,
@@ -21,6 +21,7 @@ import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 function Progress({ read, total, label }: { read: number; total: number; label: string }) {
   const pct = total ? Math.round((read / total) * 100) : 0;
@@ -43,8 +44,8 @@ function Progress({ read, total, label }: { read: number; total: number; label: 
 
 /** Rundschreiben der Schule (Direktion, Administration): Liste mit Lesestand. */
 export function AnnouncementsAdmin() {
-  const t = useTranslations('announcements');
-  const tc = useTranslations('common');
+  const t = useT('announcements');
+  const tc = useT('common');
   const q = useInfiniteQuery({
     queryKey: ['announcements', 'sent'],
     queryFn: ({ pageParam }) =>
@@ -82,7 +83,11 @@ export function AnnouncementsAdmin() {
                   href={`/rundschreiben/${a.id}`}
                   className="flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-bg-sunken"
                 >
-                  <Megaphone aria-hidden="true" size={18} className="mt-1 shrink-0 text-ink-muted" />
+                  <Megaphone
+                    aria-hidden="true"
+                    size={18}
+                    className="mt-1 shrink-0 text-ink-muted"
+                  />
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="truncate font-medium">{a.title}</span>
                     <span className="text-body-sm text-ink-muted">
@@ -119,7 +124,7 @@ interface Option {
 
 /** Neues Rundschreiben: Zielgruppe (Rollen, ganze Schule oder Klassen/Gruppen), Lesebestätigung. */
 export function AnnouncementForm() {
-  const t = useTranslations('announcements');
+  const t = useT('announcements');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const router = useRouter();
@@ -283,8 +288,8 @@ export function AnnouncementForm() {
 
 /** Lesestand eines Rundschreibens mit Liste der Ausstehenden und Erinnerung. */
 export function AnnouncementStats({ id }: { id: string }) {
-  const t = useTranslations('announcements');
-  const tc = useTranslations('common');
+  const t = useT('announcements');
+  const tc = useT('common');
   const problem = useProblemText();
   const { csrfToken } = useSession();
   const qc = useQueryClient();

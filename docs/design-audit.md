@@ -135,6 +135,8 @@ Weitere Unterschiede:
 - **E7 E-Mails, PDF, Push:** Marke und Farben aus `tokens.json` (importiert, keine Hex-Werte im Code).
 - **E8 shadcn-Zuordnung entfällt:** Das System ordnet shadcn-Variablen zu (`--primary`, `--border` …). Die App nutzt keine shadcn-Komponenten, nur Radix und eigene `cva`-Bausteine; die Variablen würden nur alte Namen am Leben halten.
 - **E9 Splash unter iOS:** Android erzeugt den Splash aus Manifest (Nacht) und Icon. iOS braucht je Gerätegröße ein eigenes Startbild; das folgt bei Bedarf, bis dahin zeigt iOS die Nachtfläche aus `background_color` nicht, sondern Weiß.
+- **E11 Kontrast vor Referenz-CSS:** `bundle.css` dimmt die Zusatzzeile der Stundenplan-Kacheln (`opacity: .8`); axe meldet das als zu schwachen Kontrast. In `base.css` volle Deckkraft (Vorschlag zur Korrektur im Design System).
+- **E12 Klassenbuch-Felder sichtbar:** Stoff und Hausübung stehen ohne Aufklappen unter der Liste, "Stunde abschließen" ist unten angeheftet; so bleibt der Ablauf bei vier Taps (Playwright-Messung `classbook-speed.spec.ts`).
 - **E10 Wortmarke als Pfade:** bis zur Umwandlung (fonttools) ist die Wortmarke Live-Text in Bricolage Grotesque in der Komponente `Logo`; E-Mails und PDF nennen den Namen als Text.
 
 ### Entscheidungen der Produktverantwortung (am 12. Okt. 2026 bestätigt)
@@ -170,7 +172,7 @@ apps/web/public/icons/         erzeugte PWA-Icons
 - [x] **D1 Fundament:** Design-System-Dateien ins Repo, `gen-theme.mjs`, Tokens/Theme/Base, Schriften, Theme-Cookie, `theme-color`, Logo-Assets, PWA-Icons, Manifest, Name (F1), Spec Abschnitt 6 → Verweis auf `docs/design-system/`.
 - [x] **D2 Bausteine:** Komponenten aus Abschnitt 2 inkl. Toast-Provider, Showcase `/komponenten`, Tests.
 - [x] **D3 Shell:** Sidebar ab 1024px, Topbar mit Befehlspalette (nur Seiten der Rolle; Personensuche bleibt V1), Tab-Leiste mit erhobener Hauptaktion, Mehr-Sheet (Profil, Rolle wechseln, Theme, Abmelden), Navigation nach F2, Admin-Übersicht.
-- [ ] **D4 Fachkomponenten:** `TimetableGrid`, `AttendanceRow`, Heute-Nachtkarte; Fächerfarben (F3); Playwright-Zeitmessung „Stunde abschließen“ (≤ 4 Taps, < 10 s).
+- [x] **D4 Fachkomponenten:** `TimetableGrid`, `AttendanceRow`, Heute-Nachtkarte; Fächerfarben (F3); Playwright-Zeitmessung „Stunde abschließen“ (≤ 4 Taps, < 10 s).
 - [ ] **D5 Seiten:** in der Reihenfolge Anmeldung, Heute, Klassenbuch, Abwesenheit melden, Stundenplan, Lagebild, Supplierung, Editor, Admin, Nachrichten, Prüfungen, danach die übrigen; Anrede (F4), Texte ohne Ausrufezeichen, Leer-/Lade-/Fehler-/Offline-Zustände.
 - [ ] **D6 Härtung:** Token-Lint und Kontrast-Skript in CI, Screenshots hell/dunkel × 390/1280, axe, Tastatur, Reduced Motion, PWA-Test, LCP, Aufräumen (alte Tokens, `Badge`, Inter, alte Klassen), dieses Audit abhaken.
 

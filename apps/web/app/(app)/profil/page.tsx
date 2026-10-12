@@ -1,11 +1,11 @@
-import { getTranslations } from 'next-intl/server';
 import { ProfileScreen } from '../../../src/components/profile/profile-screen';
 import { requireRoute } from '../../../src/lib/route-guard';
+import { getT } from '../../../src/lib/nav-server';
 
 /** Profil (PL-03): Benachrichtigungen, Darstellung, Sprache, Sicherheit und Geräte. */
 export default async function ProfilPage() {
   const me = await requireRoute('/profil');
-  const t = await getTranslations('roles');
+  const t = await getT('roles');
   const roles = [...new Set(me.user.roles.map((r) => r.role))];
   return (
     <ProfileScreen

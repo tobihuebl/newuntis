@@ -2,7 +2,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Send } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import type { ThreadDetail } from '@sp/shared';
 import { Button, Card, EmptyState, Skeleton, Textarea, cn } from '@sp/ui';
@@ -10,11 +9,12 @@ import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
+import { useT } from '../../lib/i18n';
 
 /** Ein Gespräch: Verlauf, Antworten; beim Öffnen und bei neuen Nachrichten als gelesen markiert. */
 export function ThreadScreen({ id }: { id: string }) {
-  const t = useTranslations('messages');
-  const tc = useTranslations('common');
+  const t = useT('messages');
+  const tc = useT('common');
   const problem = useProblemText();
   const { csrfToken, personId } = useSession();
   const qc = useQueryClient();

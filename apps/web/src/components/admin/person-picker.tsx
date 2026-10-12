@@ -1,8 +1,8 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Input, ListRow } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
+import { useT } from '../../lib/i18n';
 
 interface Hit {
   id: string;
@@ -22,7 +22,7 @@ export function PersonPicker({
   label: string;
   onPick: (id: string, name: string) => void;
 }) {
-  const c = useTranslations('common');
+  const c = useT('common');
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
 

@@ -1,16 +1,16 @@
 'use client';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
-import type { PlanEntry } from '@sp/shared';
-import { StatusBadge, cn } from '@sp/ui';
+import { fachColorOf, type PlanEntry } from '@sp/shared';
+import { FACH_BG, StatusBadge, cn } from '@sp/ui';
 import { timeOf } from '../../lib/dates';
 import { NowLineSlot } from '../now-line';
+import { useT } from '../../lib/i18n';
 
 /** Wer neben dem Fach steht: für Schüler:innen Raum und Lehrkraft, für Lehrkräfte Klasse und Raum. */
 export type Perspective = 'student' | 'teacher';
 
 export function PlanStatusBadge({ entry }: { entry: PlanEntry }) {
-  const t = useTranslations('plan');
+  const t = useT('plan');
   if (entry.status === 'SCHEDULED') return null;
   const status =
     entry.status === 'CANCELLED'
@@ -56,7 +56,7 @@ export function LessonRow({
   /** Zeitlinie zeigen; Wert = Ende der vorigen Stunde (null bei der ersten). */
   timeline?: { previousEndsAt: string | null };
 }) {
-  const t = useTranslations('today');
+  const t = useT('today');
   const cancelled = entry.status === 'CANCELLED';
   const body = (
     <>
@@ -66,8 +66,7 @@ export function LessonRow({
       </div>
       <div
         aria-hidden="true"
-        className="h-10 w-1 shrink-0 rounded-full"
-        style={{ background: entry.subject.color ?? 'var(--brand)' }}
+        className={cn('h-10 w-1.5 shrink-0 rounded-pill', FACH_BG[fachColorOf(entry.subject)])}
       />
       <div className="min-w-0 flex-1">
         <p className={cn('truncate font-medium', cancelled && 'line-through')}>

@@ -3,12 +3,12 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Megaphone, PenSquare } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import type { AnnouncementItem, ThreadSummary } from '@sp/shared';
 import { Chip, Button, Card, EmptyState, SegmentedControl, Skeleton, cn } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 interface Page<T> {
   data: T[];
@@ -45,7 +45,7 @@ function ListState({
   emptyText?: string;
   action?: React.ReactNode;
 }) {
-  const tc = useTranslations('common');
+  const tc = useT('common');
   if (pending) return <Skeleton className="h-40 w-full" />;
   if (error)
     return (
@@ -71,7 +71,7 @@ function ListState({
 
 /** Nachrichten (KO-01) und Rundschreiben (KO-02) in einem Posteingang. */
 export function InboxScreen({ canSend, canAnnounce }: { canSend: boolean; canAnnounce: boolean }) {
-  const t = useTranslations('messages');
+  const t = useT('messages');
   const search = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -136,8 +136,8 @@ export function InboxScreen({ canSend, canAnnounce }: { canSend: boolean; canAnn
 }
 
 function ThreadList({ canSend }: { canSend: boolean }) {
-  const t = useTranslations('messages');
-  const tc = useTranslations('common');
+  const t = useT('messages');
+  const tc = useT('common');
   const q = usePaged<ThreadSummary>(['threads'], '/threads');
   const items = q.data?.pages.flatMap((p) => p.data) ?? [];
   const state = (
@@ -227,8 +227,8 @@ function ThreadList({ canSend }: { canSend: boolean }) {
 }
 
 function AnnouncementList() {
-  const t = useTranslations('messages');
-  const tc = useTranslations('common');
+  const t = useT('messages');
+  const tc = useT('common');
   const q = usePaged<AnnouncementItem>(['announcements', 'inbox'], '/announcements');
   const items = q.data?.pages.flatMap((p) => p.data) ?? [];
   if (q.isPending || q.isError || items.length === 0)

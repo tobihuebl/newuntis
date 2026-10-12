@@ -1,11 +1,11 @@
 'use client';
-import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { EXAM_KINDS, addDays, type ExamItem, type ExamWarning } from '@sp/shared';
 import { Button, Card, EmptyState, Input, Select, Skeleton } from '@sp/ui';
 import { ApiError } from '../../lib/api-client';
 import { todayVienna, weekdayDate } from '../../lib/dates';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
+import { useT } from '../../lib/i18n';
 
 interface Options {
   classes: { id: string; name: string; subjects: { id: string; name: string }[] }[];
@@ -13,7 +13,7 @@ interface Options {
 
 /** Prüfungskalender (PN-01) mit Kollisionswarnung: bewusst "trotzdem eintragen". */
 export function ExamsScreen() {
-  const t = useTranslations('exams');
+  const t = useT('exams');
   const problem = useProblemText();
   const today = todayVienna();
   const options = useApi<Options>(['exams', 'options'], '/exams/options');
@@ -171,7 +171,7 @@ export function ExamRows({
   items: ExamItem[];
   onDelete?: (id: string) => void;
 }) {
-  const t = useTranslations('exams');
+  const t = useT('exams');
   return (
     <ul>
       {items.map((x) => (

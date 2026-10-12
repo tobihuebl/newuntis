@@ -2,13 +2,13 @@
 import { ChevronRight, LogOut, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import type { NavSection, Role } from '@sp/shared';
 import { Button, SegmentedControl } from '@sp/ui';
 import { applyTheme, readTheme, type Theme } from '../../lib/theme';
 import { setRoleView } from '../../lib/role-view';
 import { NAV_ICONS } from '../nav-icons';
+import { useT } from '../../lib/i18n';
 
 export interface MoreContentProps {
   /** Seiten der Rolle, die nicht in der Tab-Leiste stehen. */
@@ -37,8 +37,8 @@ export function MoreContent({
   onNavigate,
   onLogout,
 }: MoreContentProps) {
-  const t = useTranslations('nav');
-  const tp = useTranslations('profile');
+  const t = useT('nav');
+  const tp = useT('profile');
   const router = useRouter();
   const [theme, setTheme] = useState<Theme>('system');
   useEffect(() => setTheme(readTheme()), []);
