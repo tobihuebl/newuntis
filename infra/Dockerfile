@@ -3,7 +3,7 @@
 #   docker build -f infra/Dockerfile --target api -t schulplattform-api .
 #   docker build -f infra/Dockerfile --target web -t schulplattform-web .
 #   docker build -f infra/Dockerfile --target migrate -t schulplattform-migrate .
-FROM node:22-bookworm-slim AS base
+FROM node:26-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH NEXT_TELEMETRY_DISABLED=1 CI=true
 RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
@@ -48,7 +48,7 @@ HEALTHCHECK --interval=30s --timeout=5s CMD node -e "fetch('http://127.0.0.1:400
 CMD ["node", "dist/main.js"]
 
 # Web: Next.js standalone (nur die nötigen Abhängigkeiten)
-FROM node:22-bookworm-slim AS web
+FROM node:26-bookworm-slim AS web
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 WORKDIR /app
 COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
