@@ -9,6 +9,6 @@ import { VersionsController } from './versions.controller';
   imports: [AuthModule],
   controllers: [VersionsController, PlansController],
   providers: [OccurrencesService, PlansService],
-  exports: [OccurrencesService],
+  exports: [OccurrencesService, PlansService],
 })
 export class TimetableModule {}

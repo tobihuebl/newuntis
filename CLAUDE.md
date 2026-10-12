@@ -5,7 +5,7 @@ die Spezifikation anpassen, dann bauen.
 
 ## Befehle
 
-- pnpm install, pnpm dev, pnpm lint, pnpm typecheck, pnpm test
+- pnpm install, pnpm dev, pnpm lint, pnpm typecheck, pnpm test, pnpm e2e (ab M4)
 - pnpm db:migrate, pnpm db:seed, pnpm db:reset, pnpm tenant:create (ab M1)
 - Schule anlegen: pnpm tenant:create --name "…" --slug … --admin-email … --admin-first … --admin-last …
 - Lokale Dienste: docker compose up -d (Postgres, Mailpit, S3-kompatibler Speicher)
@@ -46,6 +46,14 @@ die Spezifikation anpassen, dann bauen.
 - Termine mit Klassenbuch/Anwesenheit/Supplierung nie anfassen; OccurrencesService.generate ist idempotent.
 - Datumslogik: Kalendertage als "YYYY-MM-DD" (UTC-Mitternacht in @db.Date), "heute" immer in Europe/Vienna (todayIn).
 - Jobs über pg-boss (JobsService); in Tests aus.
+
+## Heute und Klassenbuch (M4, siehe ADR 0007)
+
+- Schreibrecht im Klassenbuch hängt an den wirksamen Lehrern des Termins (OccurrenceTeacher), nicht an der Regel.
+- Schreibende Klassenbuch-Aufrufe sind idempotent (clientMutationId); Eintrag mit baseVersion, Anwesenheit "letzte Änderung gewinnt".
+- Offline-Logik in apps/web/src/offline: reine Funktionen in mutations.ts (mit Tests), Dexie-Zugriff in db.ts/sync.ts.
+- Echtzeit: EventsService.emit innerhalb der Transaktion (pg_notify), Ereignisse nur mit Ids.
+- E2E: pnpm e2e (Docker nötig, eigene Ports 3100/4100). Service Worker nur im Produktions-Build.
 
 ## Hinweise zur Umgebung
 

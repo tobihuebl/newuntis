@@ -480,18 +480,20 @@ model OccurrenceTeacher {
 // ───────────────────────── Klassenbuch, Anwesenheit ─────────────────────────
 
 model ClassbookEntry {
-  id            String    @id @default(cuid())
-  tenantId      String
-  occurrenceId  String    @unique
-  topic         String?
-  homework      String?
-  homeworkDueOn DateTime? @db.Date
-  note          String? // nur Lehrer und Klassenvorstand
-  closedAt      DateTime? @db.Timestamptz(3)
-  closedById    String?
-  version       Int       @default(1) // optimistische Sperre
-  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
+  id             String    @id @default(cuid())
+  tenantId       String
+  occurrenceId   String    @unique
+  topic          String?
+  homework       String?
+  homeworkDueOn  DateTime? @db.Date
+  note           String? // nur Lehrer und Klassenvorstand
+  closedAt       DateTime? @db.Timestamptz(3)
+  closedById     String?
+  version        Int       @default(1) // optimistische Sperre
+  updatedById    String? // zuletzt bearbeitet von (Person)
+  lastMutationId String? // Idempotenz: clientMutationId der letzten angewandten Änderung (Offline-Outbox)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(3)
 
   occurrence Occurrence @relation(fields: [occurrenceId], references: [id])
 
@@ -507,6 +509,7 @@ model Attendance {
   lateMinutes      Int?
   recordedById     String
   clientMutationId String? // Idempotenz bei Offline-Sync
+  clientUpdatedAt  DateTime?        @db.Timestamptz(3) // Zeitstempel des Geräts: "letzte Änderung gewinnt"
   createdAt        DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt        DateTime         @updatedAt @db.Timestamptz(3)
 

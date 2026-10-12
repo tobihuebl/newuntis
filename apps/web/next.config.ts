@@ -10,6 +10,8 @@ try {
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@sp/ui', '@sp/shared'],
+  // E2E-Tests bauen in ein eigenes Verzeichnis, damit ein laufendes `pnpm dev` unberührt bleibt
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   poweredByHeader: false,
   // Browser sprechen nur mit der Web-App (gleicher Origin); die API ist nicht öffentlich erreichbar.
   async rewrites() {
@@ -25,6 +27,11 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'X-Frame-Options', value: 'DENY' },
         ],
+      },
+      {
+        // Neue Versionen des Service Workers sofort erkennen
+        source: '/sw.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
       },
     ];
   },

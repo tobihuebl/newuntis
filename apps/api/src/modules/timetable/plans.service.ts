@@ -7,6 +7,52 @@ import { PolicyService } from '../policy/policy.service';
 import { asDate, iso, loadPeriods, todayIn } from './data';
 import { OccurrencesService, WINDOW_DAYS } from './occurrences.service';
 
+/** Termin oder geplanter Termin, bevor Namen ergänzt werden. */
+export interface RawEntry {
+  id: string;
+  planned: boolean;
+  date: string;
+  periodStart: number;
+  periodCount: number;
+  startsAt: Date;
+  endsAt: Date;
+  status: PlanEntry['status'];
+  subjectId: string;
+  classId: string | null;
+  groupId: string | null;
+  roomId: string | null;
+  teacherIds: string[];
+}
+
+export const rawFromOccurrence = (o: {
+  id: string;
+  date: Date;
+  periodStart: number;
+  periodCount: number;
+  startsAt: Date;
+  endsAt: Date;
+  status: PlanEntry['status'];
+  subjectId: string;
+  classId: string | null;
+  groupId: string | null;
+  roomId: string | null;
+  teachers: { teacherId: string }[];
+}): RawEntry => ({
+  id: o.id,
+  planned: false,
+  date: iso(o.date),
+  periodStart: o.periodStart,
+  periodCount: o.periodCount,
+  startsAt: o.startsAt,
+  endsAt: o.endsAt,
+  status: o.status,
+  subjectId: o.subjectId,
+  classId: o.classId,
+  groupId: o.groupId,
+  roomId: o.roomId,
+  teacherIds: o.teachers.map((t) => t.teacherId),
+});
+
 /** Welche Termine gehören in einen Plan (ODER-verknüpft). */
 export interface PlanFilter {
   classIds: string[];
@@ -167,45 +213,14 @@ export class PlansService {
       or.push({ teachers: { some: { teacherId: { in: filter.teacherIds } } } });
     if (filter.roomIds.length) or.push({ roomId: { in: filter.roomIds } });
 
-    type Raw = {
-      id: string;
-      planned: boolean;
-      date: string;
-      periodStart: number;
-      periodCount: number;
-      startsAt: Date;
-      endsAt: Date;
-      status: PlanEntry['status'];
-      subjectId: string;
-      classId: string | null;
-      groupId: string | null;
-      roomId: string | null;
-      teacherIds: string[];
-    };
-    const raw: Raw[] = [];
+    const raw: RawEntry[] = [];
     const dbTo = to < windowEnd ? to : windowEnd;
     if (from <= dbTo) {
       const rows = await tx.occurrence.findMany({
         where: { date: { gte: asDate(from), lte: asDate(dbTo) }, OR: or },
         include: { teachers: { select: { teacherId: true } } },
       });
-      raw.push(
-        ...rows.map((o) => ({
-          id: o.id,
-          planned: false,
-          date: iso(o.date),
-          periodStart: o.periodStart,
-          periodCount: o.periodCount,
-          startsAt: o.startsAt,
-          endsAt: o.endsAt,
-          status: o.status,
-          subjectId: o.subjectId,
-          classId: o.classId,
-          groupId: o.groupId,
-          roomId: o.roomId,
-          teacherIds: o.teachers.map((t) => t.teacherId),
-        })),
-      );
+      raw.push(...rows.map(rawFromOccurrence));
     }
     const planFrom = from > windowEnd ? from : addDays(windowEnd, 1);
     if (planFrom <= to) {
@@ -230,7 +245,13 @@ export class PlansService {
       }
     }
 
-    const ids = (pick: (r: Raw) => (string | null)[]) => [
+    const entries = await this.toEntries(tx, raw);
+    return { from, to, periods, entries };
+  }
+
+  /** Ergänzt Fach, Klasse, Gruppe, Raum und Lehrkräfte und sortiert nach Beginn. */
+  async toEntries(tx: Tx, raw: RawEntry[]): Promise<PlanEntry[]> {
+    const ids = (pick: (r: RawEntry) => (string | null)[]) => [
       ...new Set(raw.flatMap(pick).filter((x): x is string => x !== null)),
     ];
     const [subjects, classes, groups, rooms, teachers] = await Promise.all([
@@ -261,7 +282,7 @@ export class PlansService {
     const G = byId(groups);
     const R = byId(rooms);
     const T = byId(teachers);
-    const entries: PlanEntry[] = raw
+    return raw
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime() || a.periodStart - b.periodStart)
       .map((r) => ({
         id: r.id,
@@ -281,6 +302,5 @@ export class PlansService {
           .filter((t) => t !== undefined)
           .map((t) => ({ id: t.id, name: `${t.firstName} ${t.lastName}` })),
       }));
-    return { from, to, periods, entries };
   }
 }

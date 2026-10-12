@@ -9,6 +9,7 @@ import { addDays, DEFAULT_PERIODS, planDay, tenantSettingsSchema } from '@sp/sha
 import { DateTime } from 'luxon';
 import { createPrisma } from '../src/index';
 import type { Prisma } from '@prisma/client';
+import { seedClassbookDemo } from './seed-classbook';
 
 export const DEMO_PASSWORD = 'demo-passwort-1';
 const SLUG = 'demo';
@@ -131,8 +132,14 @@ const CLASS_NAMES = ['1A', '1B', '2A', '2B', '3A', '4A'];
 
 async function main() {
   const prisma = createPrisma();
-  if (await prisma.tenant.findUnique({ where: { slug: SLUG } })) {
-    console.log(`Mandant "${SLUG}" existiert bereits. Zum Neuaufbau: pnpm db:reset`);
+  const existing = await prisma.tenant.findUnique({ where: { slug: SLUG } });
+  if (existing) {
+    const kv = await seedClassbookDemo(prisma, existing.id);
+    console.log(
+      kv
+        ? `Klassenbuch-Demodaten ergänzt. Klassenvorstand 3A: ${kv} / ${DEMO_PASSWORD}`
+        : `Mandant "${SLUG}" existiert bereits. Zum Neuaufbau: pnpm db:reset`,
+    );
     await prisma.$disconnect();
     return;
   }
@@ -479,7 +486,9 @@ async function main() {
   console.log(
     `Demoschule angelegt: ${people.length} Personen, ${userPeople.length} Konten, ${lessons.length} Unterrichtseinheiten, ${occurrences.length} Termine.`,
   );
+  const kv = await seedClassbookDemo(prisma, tenantId);
   console.log(`Login (lokal): z. B. ${email(admin, userPeople.indexOf(admin))} / ${DEMO_PASSWORD}`);
+  if (kv) console.log(`Klassenvorstand 3A (Klassenbuch): ${kv} / ${DEMO_PASSWORD}`);
   await prisma.$disconnect();
 }
 

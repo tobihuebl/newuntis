@@ -3,10 +3,13 @@ import { LogOut, Ellipsis } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { cn } from '@sp/ui';
+import { useState } from 'react';
+import { Button, Sheet, cn } from '@sp/ui';
 import type { NavItem } from '@sp/shared';
 import { apiPost } from '../lib/api-client';
+import { clearOfflineData, db } from '../offline/db';
 import { NAV_ICONS } from './nav-icons';
+import { OfflineBanner } from './sync-status';
 
 export interface AppShellProps {
   tabs: NavItem[];
@@ -18,11 +21,25 @@ export interface AppShellProps {
 
 export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: AppShellProps) {
   const t = useTranslations('nav');
+  const to = useTranslations('offline');
   const pathname = usePathname();
   const router = useRouter();
+  const [unsynced, setUnsynced] = useState(0);
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
-  async function logout() {
+  /** Abmelden leert den lokalen Speicher (Spec Abschnitt 12); offene Änderungen vorher ansagen. */
+  async function logout(force = false) {
+    if (!force) {
+      const pending = await db()
+        .outbox.count()
+        .catch(() => 0);
+      if (pending > 0) {
+        setUnsynced(pending);
+        return;
+      }
+    }
+    setUnsynced(0);
+    await clearOfflineData().catch(() => undefined);
     await apiPost('/auth/logout', undefined, csrfToken).catch(() => undefined);
     router.replace('/login');
     router.refresh();
@@ -71,7 +88,7 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
           </div>
           <button
             type="button"
-            onClick={logout}
+            onClick={() => void logout()}
             className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-3 text-sm text-muted hover:bg-surface-2 hover:text-text"
           >
             <LogOut aria-hidden="true" size={18} />
@@ -79,10 +96,27 @@ export function AppShell({ tabs, userName, roleLabels, csrfToken, children }: Ap
             <span className="sr-only sm:hidden">{t('logout')}</span>
           </button>
         </header>
+        <OfflineBanner />
         <div id="main" tabIndex={-1} className="min-w-0 flex-1">
           {children}
         </div>
       </div>
+      <Sheet
+        open={unsynced > 0}
+        onOpenChange={(o) => (o ? undefined : setUnsynced(0))}
+        title={to('logoutPendingTitle')}
+        description={to('logoutPendingText', { count: unsynced })}
+        closeLabel={to('stay')}
+      >
+        <div className="flex flex-wrap gap-2">
+          <Button variant="destructive" onClick={() => void logout(true)}>
+            {to('logoutAnyway')}
+          </Button>
+          <Button variant="secondary" onClick={() => setUnsynced(0)}>
+            {to('stay')}
+          </Button>
+        </div>
+      </Sheet>
       <nav
         aria-label={t('main')}
         className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-surface md:hidden"

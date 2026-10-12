@@ -30,6 +30,10 @@ export const tenantSettingsSchema = z.object({
       seeGradesFrom: z.number().int().min(0).default(14),
     })
     .default({ studentLoginFrom: 10, selfExcuseFrom: 14, seeGradesFrom: 14 }),
+  /** Offline-Speicher auf Geräten (Spec Abschnitt 12): wird nach so vielen Tagen ohne Nutzung geleert. */
+  offline: z
+    .object({ clearAfterIdleDays: z.number().int().min(1).max(60).default(14) })
+    .default({ clearAfterIdleDays: 14 }),
   retention: z
     .object({
       messagesDays: z.number().int().min(1).default(365),

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { navigationFor } from '@sp/shared';
 import { AppShell } from '../../src/components/app-shell';
+import { AppProviders } from '../../src/components/providers';
 import { getMe } from '../../src/lib/api-server';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -14,13 +15,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const roles = [...new Set(me.user.roles.map((x) => x.role))];
   const nav = navigationFor(roles);
   return (
-    <AppShell
-      tabs={nav.tabs}
-      userName={`${me.user.firstName} ${me.user.lastName}`}
-      roleLabels={roles.map((role) => t(role))}
+    <AppProviders
       csrfToken={me.csrfToken}
+      personId={me.user.personId}
+      tenantSlug={me.tenant.slug}
+      clearAfterIdleDays={me.tenant.offlineClearAfterIdleDays}
     >
-      {children}
-    </AppShell>
+      <AppShell
+        tabs={nav.tabs}
+        userName={`${me.user.firstName} ${me.user.lastName}`}
+        roleLabels={roles.map((role) => t(role))}
+        csrfToken={me.csrfToken}
+      >
+        {children}
+      </AppShell>
+    </AppProviders>
   );
 }

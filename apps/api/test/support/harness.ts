@@ -50,7 +50,7 @@ export class Client {
   ) {}
 
   async request(
-    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+    method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
     url: string,
     payload?: unknown,
     extra: Record<string, string> = {},
@@ -86,6 +86,8 @@ export class Client {
     this.request('DELETE', url, undefined, extra);
   post = (url: string, payload?: unknown, extra?: Record<string, string>) =>
     this.request('POST', url, payload, extra);
+  put = (url: string, payload?: unknown, extra?: Record<string, string>) =>
+    this.request('PUT', url, payload, extra);
 }
 
 export function totpCode(secret: string): string {

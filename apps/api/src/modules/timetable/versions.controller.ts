@@ -41,6 +41,7 @@ import {
   toRule,
   todayIn,
 } from './data';
+import { EventsService } from '../events/events.service';
 import { OccurrencesService } from './occurrences.service';
 
 const validateInput = z.object({
@@ -71,6 +72,7 @@ export class VersionsController {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly occurrences: OccurrencesService,
+    private readonly events: EventsService,
   ) {}
 
   private log(
@@ -516,6 +518,7 @@ export class VersionsController {
       },
     });
     const generated = await this.occurrences.generateWindow(tx, tenantId);
+    await this.events.emit(tx, tenantId, 'timetable.published', [id]);
     // Benachrichtigung "Stundenplan geändert ab <Datum>" folgt mit dem Benachrichtigungsdienst (M5).
     await this.log(tenantId, actor, 'timetableVersion.publish', id, {
       validFrom: body.validFrom,

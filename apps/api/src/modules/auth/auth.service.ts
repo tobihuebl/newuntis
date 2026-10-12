@@ -390,7 +390,11 @@ export class AuthService {
         roles: p.roles,
         twoFactorEnabled: p.totpEnabled,
       },
-      tenant: { slug: tenant.slug, name: tenant.name },
+      tenant: {
+        slug: tenant.slug,
+        name: tenant.name,
+        offlineClearAfterIdleDays: tenant.settings.offline.clearAfterIdleDays,
+      },
     };
   }
 

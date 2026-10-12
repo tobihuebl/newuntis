@@ -58,7 +58,12 @@ export class SessionService {
   }
 
   /** Liefert die Sitzung samt Person und Rollen, oder null bei unbekannt/abgelaufen (Inaktivität oder absolut). */
-  async resolve(tenant: TenantInfo, token: string): Promise<Principal | null> {
+  /** `touch: false` prüft nur (z. B. für den Echtzeit-Stream), ohne die Sitzung als aktiv zu markieren. */
+  async resolve(
+    tenant: TenantInfo,
+    token: string,
+    { touch = true }: { touch?: boolean } = {},
+  ): Promise<Principal | null> {
     const now = new Date();
     return this.prisma.runAsTenant(tenant.id, async (tx) => {
       const s = await tx.session.findUnique({
@@ -75,7 +80,7 @@ export class SessionService {
         await tx.session.delete({ where: { id: s.id } });
         return null;
       }
-      if (now.getTime() - s.lastSeenAt.getTime() > TOUCH_AFTER_MS) {
+      if (touch && now.getTime() - s.lastSeenAt.getTime() > TOUCH_AFTER_MS) {
         await tx.session.update({ where: { id: s.id }, data: { lastSeenAt: now } });
       }
       return {

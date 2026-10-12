@@ -77,6 +77,8 @@ const NAV: Record<Role, RoleNav> = {
       profil,
     ],
     routes: [
+      '/klassenbuch/[occurrenceId]',
+      '/plan',
       '/klasse/[id]/uebersicht',
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
@@ -97,6 +99,7 @@ const NAV: Record<Role, RoleNav> = {
       '/freigaben',
       '/rundschreiben',
       '/profil',
+      '/klassenbuch/[occurrenceId]', // Korrektur durch die Direktion
       '/plan',
       '/admin/protokoll',
       // Stammdaten: Direktion darf lesen

@@ -49,7 +49,11 @@ export const meResponseSchema = z.object({
     roles: z.array(z.object({ role: z.enum(ROLES), classId: z.string().nullable() })),
     twoFactorEnabled: z.boolean(),
   }),
-  tenant: z.object({ slug: z.string(), name: z.string() }),
+  tenant: z.object({
+    slug: z.string(),
+    name: z.string(),
+    offlineClearAfterIdleDays: z.number().int().default(14),
+  }),
 });
 export type MeResponse = z.infer<typeof meResponseSchema>;
 
