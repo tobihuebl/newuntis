@@ -39,7 +39,16 @@ die Spezifikation anpassen, dann bauen.
 - CSV-Import: reine Logik in apps/api/src/modules/admin/csv.ts und import.service.ts, Vorschau und Übernehmen teilen dieselbe Prüfung.
 - Server-Komponenten können keine Funktionen an Client-Komponenten geben: Spalten-/Felddefinitionen leben in src/components/admin/managers.tsx.
 
+## Stundenplan (M3, siehe ADR 0006)
+
+- Konfliktprüfung und Terminplanung sind reine Funktionen in packages/shared/src/timetable.ts (Editor nutzt sie live).
+- Klassenbuch, Anwesenheit und Supplierung hängen immer am Termin (Occurrence), nie an der Regel (Lesson).
+- Termine mit Klassenbuch/Anwesenheit/Supplierung nie anfassen; OccurrencesService.generate ist idempotent.
+- Datumslogik: Kalendertage als "YYYY-MM-DD" (UTC-Mitternacht in @db.Date), "heute" immer in Europe/Vienna (todayIn).
+- Jobs über pg-boss (JobsService); in Tests aus.
+
 ## Hinweise zur Umgebung
 
 - pnpm liegt ggf. in ~/.local/bin (corepack); PATH entsprechend setzen.
+- Achtung beim Schreiben über die Shell: die Zeichenfolge Backslash-Backslash-Strichpunkt kommt verfälscht an; solche Stellen mit dem Edit-Werkzeug schreiben.
 - `prisma migrate reset` verweigert die Ausführung durch KI-Agenten; Reset (pnpm db:reset) startet der Mensch.

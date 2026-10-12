@@ -2,6 +2,7 @@ import { Inject, Injectable, UnauthorizedException, BadRequestException } from '
 import type { SessionStage } from '@sp/db';
 import { TWO_FACTOR_REQUIRED_ROLES, type MeResponse, type Role } from '@sp/shared';
 import { ENV, type Env } from '../../config/env';
+import { tenantAppUrl } from '../../common/urls';
 import type { Principal, TenantInfo } from '../../common/request';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -394,7 +395,6 @@ export class AuthService {
   }
 
   private appUrl(tenant: TenantInfo, path: string): string {
-    const base = new URL(this.env.APP_URL);
-    return `${base.protocol}//${tenant.slug}.${this.env.BASE_DOMAIN}${base.port ? `:${base.port}` : ''}${path}`;
+    return tenantAppUrl(this.env, tenant.slug, path);
   }
 }

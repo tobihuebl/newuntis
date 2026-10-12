@@ -3,6 +3,8 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ProblemFilter } from './common/problem.filter';
 import { RateLimitGuard } from './common/rate-limit.guard';
 import { AdminModule } from './modules/admin/admin.module';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { TimetableModule } from './modules/timetable/timetable.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
@@ -21,6 +23,8 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     PolicyModule,
     AuthModule,
     AdminModule,
+    TimetableModule,
+    JobsModule,
     HealthModule,
   ],
   providers: [

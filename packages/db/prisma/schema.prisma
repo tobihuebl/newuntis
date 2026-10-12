@@ -92,8 +92,8 @@ model Tenant {
   slug      String   @unique
   timezone  String   @default("Europe/Vienna")
   settings  Json     @default("{}") // Fristen, Grenzwerte, Altersgrenzen
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model Person {
@@ -105,9 +105,9 @@ model Person {
   birthDate    DateTime?  @db.Date
   externalId   String? // z. B. Schülernummer aus CSV
   email        String? // Kontakt- und Einladungsadresse (Konto-E-Mail steht in User)
-  anonymizedAt DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  anonymizedAt DateTime?  @db.Timestamptz(3)
+  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime   @updatedAt @db.Timestamptz(3)
 
   user                    User?
   roles                   RoleAssignment[]
@@ -146,11 +146,11 @@ model User {
   passwordHash     String?
   totpSecret       String? // verschlüsselt gespeichert
   totpEnabled      Boolean   @default(false)
-  lastLoginAt      DateTime?
+  lastLoginAt      DateTime? @db.Timestamptz(3)
   failedLoginCount Int       @default(0)
-  lockedUntil      DateTime? // temporäre Sperre nach wiederholten Fehlversuchen
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  lockedUntil      DateTime? @db.Timestamptz(3) // temporäre Sperre nach wiederholten Fehlversuchen
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
 
   person        Person               @relation(fields: [personId], references: [id])
   sessions      Session[]
@@ -167,8 +167,8 @@ model RoleAssignment {
   personId  String
   role      Role
   classId   String? // nur bei HOMEROOM (Klassenvorstand)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   person Person       @relation(fields: [personId], references: [id])
   class  SchoolClass? @relation(fields: [classId], references: [id])
@@ -185,8 +185,8 @@ model GuardianLink {
   canExcuse  Boolean   @default(true)
   validFrom  DateTime  @db.Date
   validTo    DateTime? @db.Date
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
 
   guardian Person @relation("LinkGuardian", fields: [guardianId], references: [id])
   student  Person @relation("LinkStudent", fields: [studentId], references: [id])
@@ -204,8 +204,8 @@ model SchoolYear {
   startsOn  DateTime @db.Date
   endsOn    DateTime @db.Date
   isCurrent Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   freeDays   SchoolFreeDay[]
   classes    SchoolClass[]
@@ -223,8 +223,8 @@ model SchoolFreeDay {
   fromDate     DateTime @db.Date
   toDate       DateTime @db.Date
   label        String // Ferien, Feiertag, schulautonom frei
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 
   schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id])
 
@@ -237,8 +237,8 @@ model SchoolClass {
   schoolYearId      String
   name              String // "3A"
   homeroomTeacherId String? // Person
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @db.Timestamptz(3)
 
   schoolYear      SchoolYear          @relation(fields: [schoolYearId], references: [id])
   homeroomTeacher Person?             @relation("Homeroom", fields: [homeroomTeacherId], references: [id])
@@ -260,8 +260,8 @@ model Enrollment {
   classId   String
   fromDate  DateTime  @db.Date
   toDate    DateTime? @db.Date
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
 
   student Person      @relation(fields: [studentId], references: [id])
   class   SchoolClass @relation(fields: [classId], references: [id])
@@ -275,8 +275,8 @@ model Group {
   tenantId     String
   schoolYearId String
   name         String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 
   schoolYear   SchoolYear          @relation(fields: [schoolYearId], references: [id])
   members      GroupMember[]
@@ -293,8 +293,8 @@ model GroupMember {
   tenantId  String
   groupId   String
   studentId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   group   Group  @relation(fields: [groupId], references: [id])
   student Person @relation(fields: [studentId], references: [id])
@@ -309,8 +309,8 @@ model Subject {
   name      String
   code      String
   color     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   lessons      Lesson[]
   requirements LessonRequirement[]
@@ -326,8 +326,8 @@ model Room {
   name      String
   capacity  Int?
   kind      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   lessons       Lesson[]
   occurrences   Occurrence[]
@@ -343,8 +343,8 @@ model Period {
   startTime    String // "08:00" lokal
   endTime      String // "08:50"
   blocksDouble Boolean  @default(false) // Doppelstunde über diese Grenze nicht erlaubt
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 
   @@unique([tenantId, number])
 }
@@ -355,12 +355,13 @@ model TimetableVersion {
   id            String          @id @default(cuid())
   tenantId      String
   schoolYearId  String
+  name          String? // Bezeichnung des Entwurfs, z. B. "Ab Semesterbeginn"
   status        TimetableStatus @default(DRAFT)
   validFrom     DateTime        @db.Date
-  publishedAt   DateTime?
+  publishedAt   DateTime?       @db.Timestamptz(3)
   publishedById String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt     DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime        @updatedAt @db.Timestamptz(3)
 
   schoolYear   SchoolYear          @relation(fields: [schoolYearId], references: [id])
   lessons      Lesson[]
@@ -382,8 +383,8 @@ model Lesson {
   periodCount Int         @default(1) // 2 = Doppelstunde
   weekPattern WeekPattern @default(EVERY)
   version     Int         @default(1) // optimistische Sperre im Editor
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime    @updatedAt @db.Timestamptz(3)
 
   timetable   TimetableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
   subject     Subject          @relation(fields: [subjectId], references: [id])
@@ -420,8 +421,8 @@ model LessonRequirement {
   teacherId    String
   hoursPerWeek Int
   preferDouble Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 
   timetable TimetableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
   subject   Subject          @relation(fields: [subjectId], references: [id])
@@ -439,15 +440,15 @@ model Occurrence {
   date        DateTime         @db.Date
   periodStart Int
   periodCount Int
-  startsAt    DateTime
-  endsAt      DateTime
+  startsAt    DateTime         @db.Timestamptz(3)
+  endsAt      DateTime         @db.Timestamptz(3)
   classId     String?
   groupId     String?
   subjectId   String
   roomId      String? // wirksamer Raum nach Änderungen
   status      OccurrenceStatus @default(SCHEDULED)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
 
   lesson       Lesson?             @relation(fields: [lessonId], references: [id])
   class        SchoolClass?        @relation(fields: [classId], references: [id])
@@ -486,11 +487,11 @@ model ClassbookEntry {
   homework      String?
   homeworkDueOn DateTime? @db.Date
   note          String? // nur Lehrer und Klassenvorstand
-  closedAt      DateTime?
+  closedAt      DateTime? @db.Timestamptz(3)
   closedById    String?
   version       Int       @default(1) // optimistische Sperre
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @db.Timestamptz(3)
 
   occurrence Occurrence @relation(fields: [occurrenceId], references: [id])
 
@@ -506,8 +507,8 @@ model Attendance {
   lateMinutes      Int?
   recordedById     String
   clientMutationId String? // Idempotenz bei Offline-Sync
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  createdAt        DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime         @updatedAt @db.Timestamptz(3)
 
   occurrence Occurrence @relation(fields: [occurrenceId], references: [id])
   student    Person     @relation(fields: [studentId], references: [id])
@@ -523,17 +524,17 @@ model Absence {
   id            String        @id @default(cuid())
   tenantId      String
   studentId     String
-  fromAt        DateTime
-  toAt          DateTime
+  fromAt        DateTime      @db.Timestamptz(3)
+  toAt          DateTime      @db.Timestamptz(3)
   reason        String?
   status        AbsenceStatus @default(REPORTED)
   reportedById  String
   reviewedById  String?
-  reviewedAt    DateTime?
+  reviewedAt    DateTime?     @db.Timestamptz(3)
   reviewComment String?
   attachmentId  String? // FileAsset
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
 
   student    Person     @relation(fields: [studentId], references: [id])
   attachment FileAsset? @relation(fields: [attachmentId], references: [id])
@@ -546,12 +547,12 @@ model TeacherAbsence {
   id           String             @id @default(cuid())
   tenantId     String
   teacherId    String
-  fromAt       DateTime
-  toAt         DateTime
+  fromAt       DateTime           @db.Timestamptz(3)
+  toAt         DateTime           @db.Timestamptz(3)
   kind         TeacherAbsenceKind
   approvedById String?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  createdAt    DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime           @updatedAt @db.Timestamptz(3)
 
   teacher Person @relation(fields: [teacherId], references: [id])
 
@@ -567,9 +568,9 @@ model Substitution {
   newRoomId           String?
   note                String?
   status              SubstitutionStatus @default(OPEN)
-  publishedAt         DateTime?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  publishedAt         DateTime?          @db.Timestamptz(3)
+  createdAt           DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime           @updatedAt @db.Timestamptz(3)
 
   occurrence        Occurrence @relation(fields: [occurrenceId], references: [id])
   substituteTeacher Person?    @relation(fields: [substituteTeacherId], references: [id])
@@ -588,8 +589,8 @@ model Exam {
   title       String
   kind        String // Schularbeit, Test, Mündlich
   createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
 
   class   SchoolClass? @relation(fields: [classId], references: [id])
   group   Group?       @relation(fields: [groupId], references: [id])
@@ -606,8 +607,8 @@ model Thread {
   tenantId    String
   subject     String
   createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
 
   messages     Message[]
   participants ThreadParticipant[]
@@ -621,8 +622,8 @@ model Message {
   threadId  String
   senderId  String
   body      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
@@ -633,9 +634,9 @@ model ThreadParticipant {
   threadId   String
   personId   String
   tenantId   String
-  lastReadAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  lastReadAt DateTime? @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
 
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   person Person @relation(fields: [personId], references: [id])
@@ -651,9 +652,9 @@ model Announcement {
   body         String
   audience     Json // Rollen, Klassen, Gruppen
   requiresRead Boolean   @default(false)
-  publishedAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  publishedAt  DateTime? @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(3)
 
   reads AnnouncementRead[]
 
@@ -664,9 +665,9 @@ model AnnouncementRead {
   announcementId String
   personId       String
   tenantId       String
-  readAt         DateTime
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  readAt         DateTime @db.Timestamptz(3)
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
 
   announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   person       Person       @relation(fields: [personId], references: [id])
@@ -683,9 +684,9 @@ model Notification {
   personId  String
   type      String
   payload   Json
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  readAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
 
   person Person @relation(fields: [personId], references: [id])
 
@@ -701,8 +702,8 @@ model NotificationPreference {
   enabled   Boolean
   quietFrom String?
   quietTo   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   person Person @relation(fields: [personId], references: [id])
 
@@ -717,8 +718,8 @@ model PushSubscription {
   endpoint  String   @unique
   keys      Json
   userAgent String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   person Person @relation(fields: [personId], references: [id])
 
@@ -730,8 +731,8 @@ model CalendarToken {
   tenantId  String
   personId  String
   tokenHash String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   person Person @relation(fields: [personId], references: [id])
 
@@ -745,8 +746,8 @@ model FileAsset {
   mime      String
   size      Int
   ownerId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   absences Absence[]
 
@@ -761,8 +762,8 @@ model AuditLog {
   entity    String
   entityId  String?
   meta      Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @db.Timestamptz(3)
 
   @@index([tenantId, createdAt])
 }
@@ -777,10 +778,10 @@ model Session {
   csrfToken         String
   stage             SessionStage @default(ACTIVE)
   userAgent         String?
-  lastSeenAt        DateTime     @default(now())
-  absoluteExpiresAt DateTime
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  lastSeenAt        DateTime     @default(now()) @db.Timestamptz(3)
+  absoluteExpiresAt DateTime     @db.Timestamptz(3)
+  createdAt         DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime     @updatedAt @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -792,9 +793,9 @@ model RecoveryCode {
   tenantId  String
   userId    String
   codeHash  String
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  usedAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -807,11 +808,11 @@ model Invitation {
   personId    String
   email       String
   tokenHash   String    @unique
-  expiresAt   DateTime
-  usedAt      DateTime?
+  expiresAt   DateTime  @db.Timestamptz(3)
+  usedAt      DateTime? @db.Timestamptz(3)
   createdById String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
 
   person Person @relation(fields: [personId], references: [id])
 
@@ -823,10 +824,10 @@ model PasswordResetToken {
   tenantId  String
   userId    String
   tokenHash String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -842,10 +843,10 @@ model GuardianCode {
   codeHash    String   @unique
   maxUses     Int      @default(2) // meist zwei Erziehungsberechtigte
   uses        Int      @default(0)
-  expiresAt   DateTime
+  expiresAt   DateTime @db.Timestamptz(3)
   createdById String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
 
   student Person @relation(fields: [studentId], references: [id])
 

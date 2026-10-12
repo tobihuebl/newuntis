@@ -27,7 +27,7 @@ describe('Demoschule (Seed)', () => {
       'TEACHER',
     ]);
     const version = await prisma.timetableVersion.findFirstOrThrow({
-      where: { tenantId: tenant.id },
+      where: { tenantId: tenant.id, status: 'PUBLISHED' },
     });
     expect(version.status).toBe('PUBLISHED');
   });
@@ -35,7 +35,8 @@ describe('Demoschule (Seed)', () => {
   it('hat einen konfliktfreien Stundenplan (Lehrer, Raum, Klasse)', async () => {
     const tenant = await prisma.tenant.findUniqueOrThrow({ where: { slug: 'demo' } });
     const lessons = await prisma.lesson.findMany({
-      where: { tenantId: tenant.id },
+      // nur die gültige Version: archivierte und Entwürfe enthalten dieselben Stunden noch einmal
+      where: { tenantId: tenant.id, timetable: { status: 'PUBLISHED' } },
       include: { teachers: true },
     });
     expect(lessons.length).toBeGreaterThan(100);

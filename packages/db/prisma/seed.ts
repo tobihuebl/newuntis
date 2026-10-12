@@ -5,7 +5,8 @@
  */
 import { randomUUID } from 'node:crypto';
 import { hash } from '@node-rs/argon2';
-import { DEFAULT_PERIODS, tenantSettingsSchema } from '@sp/shared';
+import { addDays, DEFAULT_PERIODS, planDay, tenantSettingsSchema } from '@sp/shared';
+import { DateTime } from 'luxon';
 import { createPrisma } from '../src/index';
 import type { Prisma } from '@prisma/client';
 
@@ -421,8 +422,62 @@ async function main() {
   await prisma.lesson.createMany({ data: lessons });
   await prisma.lessonTeacher.createMany({ data: lessonTeachers });
 
+  // Termine für das gleitende Fenster (heute bis heute + 28 Tage), wie es der Job generate-occurrences täte
+  const freeDays = await prisma.schoolFreeDay.findMany({ where: { tenantId } });
+  const today = DateTime.now().setZone('Europe/Vienna').toISODate()!;
+  const rules = lessons.map((l) => ({
+    id: l.id!,
+    weekday: l.weekday,
+    periodStart: l.periodStart,
+    periodCount: l.periodCount ?? 1,
+    weekPattern: l.weekPattern ?? ('EVERY' as const),
+    subjectId: l.subjectId,
+    classId: l.classId ?? null,
+    groupId: null,
+    roomId: l.roomId ?? null,
+    teacherIds: lessonTeachers.filter((t) => t.lessonId === l.id).map((t) => t.teacherId),
+  }));
+  const occurrences: Prisma.OccurrenceCreateManyInput[] = [];
+  const occurrenceTeachers: Prisma.OccurrenceTeacherCreateManyInput[] = [];
+  for (
+    let d = today < '2026-09-07' ? '2026-09-07' : today;
+    d <= addDays(today, 28);
+    d = addDays(d, 1)
+  ) {
+    for (const o of planDay(d, {
+      lessons: rules,
+      periods: [...DEFAULT_PERIODS],
+      freeDays: freeDays.map((f) => ({
+        fromDate: f.fromDate.toISOString().slice(0, 10),
+        toDate: f.toDate.toISOString().slice(0, 10),
+      })),
+      referenceMonday: '2026-09-07',
+      timezone: 'Europe/Vienna',
+    })) {
+      const occId = id();
+      occurrences.push({
+        id: occId,
+        tenantId,
+        lessonId: o.lessonId,
+        date: date(o.date),
+        periodStart: o.periodStart,
+        periodCount: o.periodCount,
+        startsAt: o.startsAt,
+        endsAt: o.endsAt,
+        subjectId: o.subjectId,
+        classId: o.classId,
+        roomId: o.roomId,
+      });
+      occurrenceTeachers.push(
+        ...o.teacherIds.map((teacherId) => ({ tenantId, occurrenceId: occId, teacherId })),
+      );
+    }
+  }
+  await prisma.occurrence.createMany({ data: occurrences });
+  await prisma.occurrenceTeacher.createMany({ data: occurrenceTeachers });
+
   console.log(
-    `Demoschule angelegt: ${people.length} Personen, ${userPeople.length} Konten, ${lessons.length} Unterrichtseinheiten.`,
+    `Demoschule angelegt: ${people.length} Personen, ${userPeople.length} Konten, ${lessons.length} Unterrichtseinheiten, ${occurrences.length} Termine.`,
   );
   console.log(`Login (lokal): z. B. ${email(admin, userPeople.indexOf(admin))} / ${DEMO_PASSWORD}`);
   await prisma.$disconnect();

@@ -134,12 +134,17 @@ export class Harness {
   }
 
   /** Legt Person, Benutzer (mit Passwort) und Rollen an. */
-  async createUser(tenantId: string, roles: { role: Role; classId?: string }[], email?: string) {
+  async createUser(
+    tenantId: string,
+    roles: { role: Role; classId?: string }[],
+    email?: string,
+    kind: 'STUDENT' | 'TEACHER' | 'GUARDIAN' | 'STAFF' = 'TEACHER',
+  ) {
     this.passwordHash ??= await hash(PASSWORD, { algorithm: 2 });
     const n = this.counter++;
     const address = email ?? `user${n}@example.test`;
     const person = await this.owner.person.create({
-      data: { tenantId, kind: 'TEACHER', firstName: 'Test', lastName: `Person${n}` },
+      data: { tenantId, kind, firstName: 'Test', lastName: `Person${n}` },
     });
     await this.owner.user.create({
       data: { tenantId, personId: person.id, email: address, passwordHash: this.passwordHash },

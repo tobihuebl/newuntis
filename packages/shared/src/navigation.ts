@@ -108,6 +108,8 @@ const NAV: Record<Role, RoleNav> = {
       '/admin/raster',
       '/admin/faecher',
       '/admin/raeume',
+      '/admin/stundenplan',
+      '/admin/stundenplan/[id]',
     ],
   },
   ADMIN: {
@@ -124,6 +126,8 @@ const NAV: Record<Role, RoleNav> = {
       '/admin/klassen/[id]',
       '/admin/faecher',
       '/admin/raeume',
+      '/admin/stundenplan/[id]',
+      '/plan',
       '/admin/raster',
       '/admin/rollen',
       '/admin/schuljahr',
@@ -140,6 +144,8 @@ const NAV: Record<Role, RoleNav> = {
 /** Einträge der Seite "Mehr" (Direktion und Administration): alles, was nicht in der Tab-Leiste steht. */
 const MORE: Partial<Record<Role, NavItem[]>> = {
   PRINCIPAL: [
+    { labelKey: 'stundenplaene', href: '/admin/stundenplan', icon: 'calendar-days' },
+    { labelKey: 'plan', href: '/plan', icon: 'calendar-range' },
     { labelKey: 'freigaben', href: '/freigaben', icon: 'circle-check' },
     { labelKey: 'rundschreiben', href: '/rundschreiben', icon: 'megaphone' },
     { labelKey: 'personen', href: '/admin/personen', icon: 'users' },
@@ -151,6 +157,7 @@ const MORE: Partial<Record<Role, NavItem[]>> = {
     { labelKey: 'protokoll', href: '/admin/protokoll', icon: 'scroll-text' },
   ],
   ADMIN: [
+    { labelKey: 'plan', href: '/plan', icon: 'calendar-range' },
     { labelKey: 'schuljahr', href: '/admin/schuljahr', icon: 'calendar-range' },
     { labelKey: 'raster', href: '/admin/raster', icon: 'clock' },
     { labelKey: 'faecher', href: '/admin/faecher', icon: 'book-open' },
