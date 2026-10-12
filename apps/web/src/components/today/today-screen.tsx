@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { nextWeekday, type TodayLesson, type TodayResponse } from '@sp/shared';
+import { addDays, mondayOf, nextWeekday, type TodayLesson, type TodayResponse } from '@sp/shared';
 import { Badge, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
 import { dateTimeOf, longDate, shortDate, timeOf, weekdayDate } from '../../lib/dates';
 import { OfflineMissError, type Cached } from '../../offline/cached';
 import { useCached, useOutbox } from '../../offline/hooks';
-import { prefetchTeacher } from '../../offline/prefetch';
+import { cachePlanPages, prefetchTeacher } from '../../offline/prefetch';
 import { SyncStatus } from '../sync-status';
 import { LessonRow, PlanStatusBadge, lessonDetail, periodLabel } from './lesson-row';
 
@@ -80,6 +80,11 @@ export function TodayScreen() {
     `today:${key}`,
     `/today${child ? `?studentId=${encodeURIComponent(child)}` : ''}`,
   );
+  const online = q.data && !q.data.fromCache;
+  const day = q.data?.data.date;
+  useEffect(() => {
+    if (online && day) void cachePlanPages(addDays(mondayOf(day), 7));
+  }, [online, day]);
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
       <div>
@@ -400,8 +405,8 @@ function StudentToday({ data }: { data: TodayResponse }) {
                   className="flex flex-col gap-0.5 border-b border-border px-4 py-3 last:border-b-0"
                 >
                   <p
-                    className="text-sm font-medium"
-                    style={{ color: h.subject.color ?? undefined }}
+                    className="border-l-4 pl-2 text-sm font-medium"
+                    style={{ borderColor: h.subject.color ?? 'var(--primary)' }}
                   >
                     {h.subject.name} · {weekdayDate(h.dueOn)}
                   </p>

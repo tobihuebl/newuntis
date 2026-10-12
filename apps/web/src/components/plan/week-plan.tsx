@@ -35,7 +35,6 @@ async function EntryCard({
     <div
       className={cn(
         'flex h-full flex-col gap-0.5 rounded-sm border border-border bg-surface p-2 text-sm',
-        cancelled && 'opacity-80',
       )}
       style={{ borderLeft: `4px solid ${e.subject.color ?? 'var(--primary)'}` }}
     >
@@ -139,14 +138,13 @@ export async function WeekPlan({
           gridTemplateColumns: '4.5rem repeat(5, minmax(0, 1fr))',
           gridTemplateRows: `auto repeat(${periods.length}, minmax(4.5rem, auto))`,
         }}
-        role="table"
         aria-label={t('plan.title')}
+        role="region"
       >
-        <div role="columnheader" />
+        <div aria-hidden="true" />
         {days.map((d, i) => (
           <div
             key={d}
-            role="columnheader"
             aria-current={d === today ? 'date' : undefined}
             className={cn('px-1 pb-1 text-sm font-semibold', d === today && 'text-primary')}
             style={{ gridColumn: i + 2, gridRow: 1 }}
@@ -157,7 +155,7 @@ export async function WeekPlan({
         {periods.map((p, i) => (
           <div
             key={p.number}
-            role="rowheader"
+            aria-hidden="true"
             className="pr-1 text-right text-xs text-muted tabular-nums"
             style={{ gridColumn: 1, gridRow: i + 2 }}
           >
@@ -177,10 +175,14 @@ export async function WeekPlan({
             return (
               <div
                 key={`${d}|${p.number}`}
-                role="cell"
                 className="flex flex-col gap-1"
                 style={{ gridColumn: di + 2, gridRow: `${rowOf.get(p.number)} / span ${span}` }}
               >
+                {/* Raster ist nur optisch; Tag und Stunde für Screenreader direkt am Eintrag */}
+                <span className="sr-only">
+                  {t(`days.${di + 1}`)} {shortDate(d)}, {t('plan.period', { n: p.number })},{' '}
+                  {p.startTime}:
+                </span>
                 {entries.map((e) => (
                   <div key={e.id} className="flex-1">
                     <EntryCard e={e} perspective={perspective} compact={entries.length > 1} />

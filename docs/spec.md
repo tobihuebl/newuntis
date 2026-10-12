@@ -210,19 +210,19 @@ Mobil: Tab-Leiste unten mit höchstens 5 Einträgen. Desktop: Seitenleiste links
 | `--text-muted` | #6B7280 | #9CA3AF | Nebentext |
 | `--primary` | #4F46E5 | #818CF8 | Hauptaktionen, aktive Tabs |
 | `--on-primary` | #FFFFFF | #0B0D10 | Text auf Primärfarbe |
-| `--success` | #16A34A | #4ADE80 | anwesend, erledigt |
-| `--warning` | #D97706 | #FBBF24 | verspätet, Supplierung |
+| `--success` | #15803D | #4ADE80 | anwesend, erledigt |
+| `--warning` | #B45309 | #FBBF24 | verspätet, Supplierung |
 | `--danger` | #DC2626 | #F87171 | abwesend, Entfall, Konflikt |
-| `--info` | #0284C7 | #38BDF8 | entschuldigt, Raumwechsel, Hinweise |
+| `--info` | #0369A1 | #38BDF8 | entschuldigt, Raumwechsel, Hinweise |
 
-Alle Werte sind Vorschläge. Vor dem Merge Kontraste mit einem Tool prüfen (mindestens 4,5:1 für Text, 3:1 für Bedienelemente).
+Alle Werte sind Vorschläge. Vor dem Merge Kontraste mit einem Tool prüfen (mindestens 4,5:1 für Text, 3:1 für Bedienelemente). Geprüft in M4 mit axe: Erfolg, Warnung und Info im hellen Modus auf die 700er-Töne abgedunkelt, weil sie als Textfarbe sonst unter 4,5:1 liegen.
 
 ```css
 :root {
   --bg: #FAFAF9; --surface: #FFFFFF; --surface-2: #F3F4F6; --border: #E5E7EB;
   --text: #111827; --text-muted: #6B7280;
   --primary: #4F46E5; --on-primary: #FFFFFF;
-  --success: #16A34A; --warning: #D97706; --danger: #DC2626; --info: #0284C7;
+  --success: #15803D; --warning: #B45309; --danger: #DC2626; --info: #0369A1;
   --radius-sm: 8px; --radius-md: 12px; --radius-pill: 999px;
 }
 :root[data-theme="dark"] {

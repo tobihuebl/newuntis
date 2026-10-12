@@ -85,7 +85,7 @@ export function LessonRow({
   );
   const cls = cn(
     'flex min-h-16 items-center gap-3 px-4 py-2',
-    past && 'opacity-70',
+    past && 'bg-surface-2/40',
     highlight && 'bg-surface-2',
   );
   return (

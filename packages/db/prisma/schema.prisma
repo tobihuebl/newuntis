@@ -146,6 +146,7 @@ model User {
   passwordHash     String?
   totpSecret       String? // verschlüsselt gespeichert
   totpEnabled      Boolean   @default(false)
+  totpLastCounter  Int? // zuletzt benutzte TOTP-Zeitscheibe: Schutz gegen Wiederverwendung eines Codes
   lastLoginAt      DateTime? @db.Timestamptz(3)
   failedLoginCount Int       @default(0)
   lockedUntil      DateTime? @db.Timestamptz(3) // temporäre Sperre nach wiederholten Fehlversuchen

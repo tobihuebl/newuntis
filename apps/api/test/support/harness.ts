@@ -90,13 +90,25 @@ export class Client {
     this.request('PUT', url, payload, extra);
 }
 
+const usedSteps = new Map<string, number>();
+
+/**
+ * Gültiger, noch nicht benutzter Code: Der Server lässt jede 30-s-Scheibe nur einmal zu und akzeptiert
+ * eine Scheibe Abweichung. Daher die kleinste noch freie Scheibe aus jetzt-1 bis jetzt+1 nehmen.
+ */
 export function totpCode(secret: string): string {
-  return new OTPAuth.TOTP({
+  const totp = new OTPAuth.TOTP({
     algorithm: 'SHA1',
     digits: 6,
     period: 30,
     secret: OTPAuth.Secret.fromBase32(secret),
-  }).generate();
+  });
+  const now = Math.floor(Date.now() / 30_000);
+  const last = usedSteps.get(secret) ?? -Infinity;
+  const step = [now - 1, now, now + 1].find((s) => s > last);
+  if (step === undefined) throw new Error('Alle TOTP-Scheiben verbraucht; im Test kurz warten');
+  usedSteps.set(secret, step);
+  return totp.generate({ timestamp: step * 30_000 + 1 });
 }
 
 export class Harness {

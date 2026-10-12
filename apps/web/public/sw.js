@@ -1,7 +1,7 @@
 /* Service Worker der Schulplattform (Spec Abschnitt 12): App-Hülle und Seiten für Heute, Plan und Klassenbuch.
  * Daten (Termine, Schülerlisten, Outbox) liegen in IndexedDB und werden von der App selbst verwaltet;
  * API-Aufrufe gehen nie durch einen Cache. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const STATIC = `sp-static-${VERSION}`;
 const PAGES = `sp-pages-${VERSION}`;
 const OFFLINE = '/offline';
@@ -79,12 +79,12 @@ self.addEventListener('fetch', (event) => {
 });
 
 /** Seiten samt ihrer Skripte und Styles vorab in den Cache legen (von der App nach dem Vorabladen geschickt). */
-async function cachePages(urls) {
+async function cachePages(urls, refresh) {
   const pages = await caches.open(PAGES);
   const statics = await caches.open(STATIC);
   for (const path of urls) {
     try {
-      if (await pages.match(path)) continue;
+      if (!refresh && (await pages.match(path))) continue;
       const res = await fetch(path, { credentials: 'same-origin' });
       if (!res.ok || res.redirected) continue;
       const html = await res.clone().text();

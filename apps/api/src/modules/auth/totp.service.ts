@@ -11,11 +11,17 @@ export class TotpService {
     return this.totp(secret, accountEmail, issuer).toString();
   }
 
-  /** Erlaubt eine Zeitscheibe Abweichung (30 s) in beide Richtungen. */
-  verify(secret: string, code: string): boolean {
-    return (
-      this.totp(secret, 'konto', 'Schulplattform').validate({ token: code, window: 1 }) !== null
-    );
+  /**
+   * Zeitscheibe (30 s) des Codes oder null; erlaubt eine Scheibe Abweichung in beide Richtungen.
+   * Der Aufrufer speichert die Scheibe, damit ein Code nicht zweimal gilt (Schutz gegen Wiederverwendung).
+   */
+  counter(secret: string, code: string, now = Date.now()): number | null {
+    const delta = this.totp(secret, 'konto', 'Schulplattform').validate({
+      token: code,
+      window: 1,
+      timestamp: now,
+    });
+    return delta === null ? null : Math.floor(now / 1000 / 30) + delta;
   }
 
   private totp(secret: string, label: string, issuer: string): OTPAuth.TOTP {

@@ -36,3 +36,26 @@ export async function prefetchTeacher(force = false): Promise<void> {
     running = false;
   }
 }
+
+const PLAN_EVERY_MS = 30 * 60_000;
+
+/**
+ * Stundenplan offline (Spec Abschnitt 12, alle Rollen): diese und nächste Woche als Seiten im
+ * Service-Worker-Cache, damit die nächsten 7 Tage ohne Verbindung sichtbar sind. Höchstens alle 30 Minuten.
+ */
+export async function cachePlanPages(nextMonday: string): Promise<void> {
+  try {
+    const sw = navigator.serviceWorker?.controller;
+    if (!sw || !navigator.onLine) return;
+    const last = await getMeta<number>('planCachedAt');
+    if (last && Date.now() - last < PLAN_EVERY_MS) return;
+    sw.postMessage({
+      type: 'cache-pages',
+      refresh: true,
+      urls: ['/plan', `/plan?from=${nextMonday}`],
+    });
+    await setMeta('planCachedAt', Date.now());
+  } catch {
+    // kein Service Worker oder kein lokaler Speicher: nur online
+  }
+}

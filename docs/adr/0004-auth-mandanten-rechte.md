@@ -36,3 +36,7 @@ Status: akzeptiert (M1)
 ## Sonstiges
 
 - E-Mails sind schlichte Texte; React-Email-Vorlagen folgen mit den Benachrichtigungen (M5). Versand direkt über SMTP, noch nicht über pg-boss.
+
+## Nachtrag (vor M5): Schutz gegen Wiederverwendung von TOTP-Codes
+
+`User.totpLastCounter` speichert die zuletzt benutzte 30-s-Zeitscheibe. Ein Code gilt nur, wenn seine Scheibe größer ist (atomares bedingtes Update). Damit kann ein mitgelesener Code nicht ein zweites Mal verwendet werden; erlaubt bleibt eine Scheibe Abweichung für ungenaue Uhren.

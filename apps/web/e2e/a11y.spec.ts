@@ -1,0 +1,49 @@
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Page } from '@playwright/test';
+import { accounts, login } from './helpers';
+
+/** Barrierefreiheit (Spec Abschnitt 13): Kernseiten ohne Verstöße gegen WCAG 2.2 AA (axe). */
+async function check(page: Page, path: string) {
+  await page.goto(path);
+  await page.waitForLoadState('networkidle');
+  const result = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  const summary = result.violations.map(
+    (v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(' ')).join(', ')})`,
+  );
+  expect(summary, `${path}`).toEqual([]);
+}
+
+for (const scheme of ['light', 'dark'] as const) {
+  test.describe(`Barrierefreiheit (${scheme})`, () => {
+    test.use({ colorScheme: scheme });
+
+    test('öffentliche Seiten', async ({ page }) => {
+      await check(page, '/login');
+      await check(page, '/passwort-vergessen');
+    });
+
+    test('Lehrkraft: Heute, Klassenbuch, Plan', async ({ page }) => {
+      await login(page, accounts().teacherEmail, /\/heute$/);
+      await check(page, '/heute');
+      await check(page, '/klassenbuch');
+      const first = page.locator('section[aria-labelledby="open"] a').first();
+      const href = await first.getAttribute('href');
+      await check(page, href!);
+      await check(page, '/plan');
+    });
+
+    test('Schüler:in: Heute und Plan', async ({ page }) => {
+      await login(page, accounts().studentEmail, /\/heute$/);
+      await check(page, '/heute');
+      await check(page, '/plan');
+    });
+
+    test('Administration: Personen und Stundenplan', async ({ page }) => {
+      await login(page, accounts().adminEmail, /\/admin\/personen$/);
+      await check(page, '/admin/personen');
+      await check(page, '/admin/stundenplan');
+    });
+  });
+}

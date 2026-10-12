@@ -69,14 +69,22 @@ export default async function globalSetup() {
   run('pnpm --filter @sp/api exec tsc -p tsconfig.json --outDir dist-e2e');
   if (!process.env.E2E_SKIP_WEB_BUILD) run('pnpm --filter @sp/web exec next build');
 
-  // Lehrkraft für den Test: Klassenvorstand der 3A (hat offene Klassenbuch-Einträge aus dem Seed)
+  // Demo-Konten für die Tests: Klassenvorstand der 3A (offene Klassenbuch-Einträge), Administration, Schüler:in 3A
   const db = new pg.Client({ connectionString: owner });
   await db.connect();
-  const { rows } = await db.query<{ email: string }>(
+  const one = async (sql: string) => (await db.query<{ email: string }>(sql)).rows[0]!.email;
+  const teacherEmail = await one(
     `SELECT u.email FROM "User" u
        JOIN "RoleAssignment" r ON r."personId" = u."personId" AND r.role = 'HOMEROOM'
-       JOIN "SchoolClass" c ON c.id = r."classId" AND c.name = '3A'
-     LIMIT 1`,
+       JOIN "SchoolClass" c ON c.id = r."classId" AND c.name = '3A' LIMIT 1`,
+  );
+  const adminEmail = await one(
+    `SELECT u.email FROM "User" u JOIN "RoleAssignment" r ON r."personId" = u."personId" AND r.role = 'ADMIN' LIMIT 1`,
+  );
+  const studentEmail = await one(
+    `SELECT u.email FROM "User" u
+       JOIN "Enrollment" e ON e."studentId" = u."personId"
+       JOIN "SchoolClass" c ON c.id = e."classId" AND c.name = '3A' ORDER BY u.email LIMIT 1`,
   );
   await db.end();
 
@@ -98,8 +106,11 @@ export default async function globalSetup() {
   ];
   await waitFor(`http://127.0.0.1:${API_PORT}/healthz`);
   await waitFor(`http://127.0.0.1:${WEB_PORT}/offline`);
-  rmSync(resolve(__dirname, '.state-totp'), { force: true }); // frische Datenbank: 2FA neu einrichten
-  writeFileSync(STATE_FILE, JSON.stringify({ teacherEmail: rows[0]!.email, databaseUrl: owner }));
+  rmSync(resolve(__dirname, '.state-totp.json'), { force: true }); // frische Datenbank: 2FA neu einrichten
+  writeFileSync(
+    STATE_FILE,
+    JSON.stringify({ teacherEmail, adminEmail, studentEmail, databaseUrl: owner }),
+  );
 
   return async () => {
     for (const p of procs) {

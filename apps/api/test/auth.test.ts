@@ -124,10 +124,14 @@ describe('Anmeldung, Sitzung, Zwei-Faktor', () => {
     ).toBe('NEEDS_2FA_VERIFY');
     expect((await again.get('/t/classbook.write')).status).toBe(403);
     expect((await again.post('/auth/2fa/verify', { code: '123456' })).status).toBe(401);
-    expect(
-      (await again.post('/auth/2fa/verify', { code: totpCode(setup.json.secret) })).status,
-    ).toBe(200);
+    const fresh = totpCode(setup.json.secret);
+    expect((await again.post('/auth/2fa/verify', { code: fresh })).status).toBe(200);
     expect((await again.get('/t/classbook.write')).status).toBe(200);
+
+    // derselbe Code gilt kein zweites Mal (abgefangen oder mitgelesen)
+    const replay = h.client(slug);
+    await replay.post('/auth/login', { email: u.email, password: PASSWORD });
+    expect((await replay.post('/auth/2fa/verify', { code: fresh })).status).toBe(401);
 
     // Wiederherstellungscode gilt genau einmal
     const code: string = enable.json.recoveryCodes[0];

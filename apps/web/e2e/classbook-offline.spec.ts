@@ -1,51 +1,11 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { expect, test, type Page } from '@playwright/test';
-import * as OTPAuth from 'otpauth';
-
-const state = () =>
-  JSON.parse(readFileSync(resolve(__dirname, '.state.json'), 'utf8')) as {
-    teacherEmail: string;
-  };
-const PASSWORD = 'demo-passwort-1';
-
-const totp = (secret: string) =>
-  new OTPAuth.TOTP({
-    algorithm: 'SHA1',
-    digits: 6,
-    period: 30,
-    secret: OTPAuth.Secret.fromBase32(secret),
-  }).generate();
-
-const SECRET_FILE = resolve(__dirname, '.state-totp');
-
-/** Anmeldung mit zweitem Faktor (Pflicht für Lehrkräfte): beim ersten Mal einrichten, danach bestätigen. */
-async function loginTeacher(page: Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-Mail').fill(state().teacherEmail);
-  await page.getByLabel('Passwort').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Anmelden' }).click();
-  await page.waitForURL(/\/2fa/);
-  if (page.url().includes('/2fa/einrichten')) {
-    await page.getByRole('button', { name: 'Einrichtung starten' }).click();
-    const secret = (await page.locator('code').textContent())!.trim();
-    writeFileSync(SECRET_FILE, secret);
-    await page.getByLabel('Code').fill(totp(secret));
-    await page.getByRole('button', { name: 'Aktivieren' }).click();
-    await page.getByRole('button', { name: 'Ich habe die Codes gespeichert' }).click();
-  } else {
-    expect(existsSync(SECRET_FILE)).toBe(true);
-    await page.getByLabel('Code').fill(totp(readFileSync(SECRET_FILE, 'utf8')));
-    await page.getByLabel('Code').press('Enter');
-  }
-  await expect(page).toHaveURL(/\/heute$/);
-}
+import { expect, test } from '@playwright/test';
+import { accounts, login } from './helpers';
 
 test('Lehrkraft trägt eine Stunde offline ein, danach wird fehlerfrei synchronisiert', async ({
   page,
   context,
 }) => {
-  await loginTeacher(page);
+  await login(page, accounts().teacherEmail, /\/heute$/);
   await expect(page.getByRole('heading', { name: 'Meine Stunden heute' })).toBeVisible();
   // Service Worker steuert die Seite (App-Hülle offline verfügbar)
   await page.waitForFunction(() => navigator.serviceWorker?.controller !== null, undefined, {

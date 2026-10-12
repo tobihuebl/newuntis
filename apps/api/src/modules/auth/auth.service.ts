@@ -1,5 +1,5 @@
 import { Inject, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import type { SessionStage } from '@sp/db';
+import type { SessionStage, Tx } from '@sp/db';
 import { TWO_FACTOR_REQUIRED_ROLES, type MeResponse, type Role } from '@sp/shared';
 import { ENV, type Env } from '../../config/env';
 import { tenantAppUrl } from '../../common/urls';
@@ -143,9 +143,8 @@ export class AuthService {
       const user = await tx.user.findUniqueOrThrow({ where: { id: principal.userId } });
       if (user.lockedUntil && user.lockedUntil > new Date()) return false;
       if (/^\d{6}$/.test(code)) {
-        return (
-          user.totpSecret !== null && this.totp.verify(this.crypto.decrypt(user.totpSecret), code)
-        );
+        if (user.totpSecret === null) return false;
+        return this.useTotp(tx, user.id, this.crypto.decrypt(user.totpSecret), code);
       }
       const hash = this.crypto.sha256(this.crypto.normalizeRecoveryCode(code));
       const rc = await tx.recoveryCode.findFirst({
@@ -170,6 +169,20 @@ export class AuthService {
     return this.sessions.rotate(tenant.id, principal.sessionId, 'ACTIVE');
   }
 
+  /** Prüft den Code und verbraucht seine Zeitscheibe (atomar): derselbe Code gilt kein zweites Mal. */
+  private async useTotp(tx: Tx, userId: string, secret: string, code: string): Promise<boolean> {
+    const counter = this.totp.counter(secret, code);
+    if (counter === null) return false;
+    const r = await tx.user.updateMany({
+      where: {
+        id: userId,
+        OR: [{ totpLastCounter: null }, { totpLastCounter: { lt: counter } }],
+      },
+      data: { totpLastCounter: counter },
+    });
+    return r.count === 1;
+  }
+
   /** Beginnt die Einrichtung: erzeugt ein Geheimnis (verschlüsselt gespeichert, noch nicht aktiv). */
   async beginTwoFactorSetup(
     tenant: TenantInfo,
@@ -181,7 +194,11 @@ export class AuthService {
     await this.prisma.runAsTenant(tenant.id, (tx) =>
       tx.user.update({
         where: { id: principal.userId },
-        data: { totpSecret: this.crypto.encrypt(secret), totpEnabled: false },
+        data: {
+          totpSecret: this.crypto.encrypt(secret),
+          totpEnabled: false,
+          totpLastCounter: null,
+        },
       }),
     );
     return { secret, otpauthUri: this.totp.uri(secret, principal.email, tenant.name) };
@@ -199,7 +216,7 @@ export class AuthService {
       if (
         !user.totpSecret ||
         user.totpEnabled ||
-        !this.totp.verify(this.crypto.decrypt(user.totpSecret), code)
+        !(await this.useTotp(tx, user.id, this.crypto.decrypt(user.totpSecret), code))
       )
         return false;
       await tx.user.update({ where: { id: user.id }, data: { totpEnabled: true } });
