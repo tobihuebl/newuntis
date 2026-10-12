@@ -1,10 +1,11 @@
 // Lasttest (Spec Abschnitt 13): Stundenbeginn – viele Lehrkräfte speichern Anwesenheit, viele Schüler:innen
 // und Eltern öffnen "Heute". Ziele: Lesen p95 < 200 ms, Klassenbuch speichern p95 < 300 ms.
 //
-//   k6 run -e BASE_URL=http://demo.localhost:3000 -e SESSIONS=loadtest/sessions.json loadtest/stundenbeginn.js
-//   (ohne lokales k6: docker run --rm -i --network host -v "$PWD":/w -w /w grafana/k6 run …)
+//   k6 run -e BASE_URL=http://demo.localhost:3000 -e SESSIONS=sessions.json loadtest/stundenbeginn.js
+//   (ohne lokales k6: docker run --rm -i -v "$PWD":/w -w /w grafana/k6 run -e BASE_URL=http://host.docker.internal:3000
+//    -e HOST_HEADER=demo.localhost:3000 …)
 //
-// sessions.json erzeugt `node loadtest/sessions.mjs` (meldet Testkonten an, siehe dort). Nur gegen Test- oder
+// SESSIONS ist relativ zu diesem Skript. sessions.json erzeugt `node loadtest/sessions.mjs` (meldet Testkonten an, siehe dort). Nur gegen Test- oder
 // Staging-Umgebungen mit Demo-Daten laufen lassen: die Anwesenheit wird mit dem aktuellen Stand neu gespeichert.
 import http from 'k6/http';
 import { check, sleep } from 'k6';
@@ -45,7 +46,10 @@ export const options = {
   },
 };
 
+// Optional: Host-Header (Schule aus der Subdomain), wenn BASE_URL eine IP oder host.docker.internal ist
+const HOST = __ENV.HOST_HEADER;
 const headers = (s, write) => ({
+  ...(HOST ? { Host: HOST } : {}),
   cookie: `sp_session=${s.cookie}`,
   ...(write ? { 'content-type': 'application/json', 'x-csrf-token': s.csrf } : {}),
 });

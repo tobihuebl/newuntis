@@ -100,3 +100,35 @@ for (const scheme of ['light', 'dark'] as const) {
     });
   });
 }
+
+/** WCAG 1.4.10 (Umbruch): bei 320 CSS-Pixel Breite kein waagrechtes Scrollen der Seite (Tabellen scrollen in sich). */
+test.describe('Umbruch bei 320 px', () => {
+  test.use({ viewport: { width: 320, height: 720 } });
+
+  async function noHorizontalScroll(page: Page, path: string) {
+    await page.goto(path);
+    await page.waitForLoadState('networkidle');
+    const overflow = await page.evaluate(
+      () => document.scrollingElement!.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow, path).toBeLessThanOrEqual(1);
+  }
+
+  test('Eltern', async ({ page }) => {
+    await login(page, accounts().guardianEmail, /\/heute(\?.*)?$/);
+    for (const p of ['/heute', '/nachrichten', '/abwesenheit/neu', '/profil'])
+      await noHorizontalScroll(page, p);
+  });
+
+  test('Direktion', async ({ page }) => {
+    await login(page, accounts().principalEmail, /\/lagebild$/);
+    for (const p of [
+      '/lagebild',
+      '/auswertung',
+      '/rundschreiben/neu',
+      '/supplierung',
+      '/nachrichten/neu',
+    ])
+      await noHorizontalScroll(page, p);
+  });
+});

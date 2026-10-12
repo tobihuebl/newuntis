@@ -20,7 +20,6 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm db:generate \
   && pnpm --filter @sp/shared build \
   && pnpm --filter @sp/db build \
-  && pnpm --filter @sp/ui build \
   && pnpm --filter @sp/api build \
   && NEXT_STANDALONE=1 pnpm --filter @sp/web exec next build
 

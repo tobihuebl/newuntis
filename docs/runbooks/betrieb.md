@@ -55,10 +55,15 @@ Gegen Staging mit Demo-Daten (nie gegen Produktion), siehe `loadtest/`:
 
 ```bash
 LOAD_BASE_URL=https://demo.staging.beispiel.at LOAD_PASSWORD=… LOAD_READERS="…" LOAD_TEACHERS="mail:SECRET,…" node loadtest/sessions.mjs
-docker run --rm -i --network host -v "$PWD":/w -w /w grafana/k6 run -e BASE_URL=https://demo.staging.beispiel.at -e SESSIONS=loadtest/sessions.json loadtest/stundenbeginn.js
+docker run --rm -i --network host -v "$PWD":/w -w /w grafana/k6 run -e BASE_URL=https://demo.staging.beispiel.at -e SESSIONS=sessions.json loadtest/stundenbeginn.js
 ```
 
-Ziele: Lesen p95 < 200 ms, Klassenbuch speichern p95 < 300 ms, Fehlerrate < 1 %.
+Ziele: Lesen p95 < 200 ms, Klassenbuch speichern p95 < 300 ms, Fehlerrate < 1 %. Zum Anlegen vieler Sitzungen
+von einer IP die API vorübergehend mit `SP_E2E_NO_RATELIMIT=true` starten (nie in Produktion).
+
+Erster Lauf (12.10.2026, Produktions-Images lokal auf einem Mac, frische Demo-Datenbank, 60 Lesende und
+20 Lehrkräfte gleichzeitig, 90 s): Lesen p95 43 ms, Speichern p95 55 ms, 0 Fehler bei 3113 Anfragen. Auf dem
+Zielserver wiederholen.
 
 ## Wartung
 

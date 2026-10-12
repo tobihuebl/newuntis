@@ -18,3 +18,10 @@ Die Schule wird aus der Subdomain bestimmt: Demoschule unter <http://demo.localh
 Eigene Schule: `pnpm tenant:create --name "Mittelschule X" --slug mittelschule-x --admin-email a@b.at --admin-first Anna --admin-last Muster` gibt einen Einladungslink für die Administration aus.
 
 Prüfen: `pnpm lint && pnpm typecheck && pnpm test`.
+
+## Betrieb und Datenschutz
+
+- Betrieb (Server, Images, Überwachung, Lasttest): [docs/runbooks/betrieb.md](docs/runbooks/betrieb.md), weitere Runbooks in [docs/runbooks/](docs/runbooks/)
+- Images: `docker build -f infra/Dockerfile --target api|web|migrate .`, Server-Setup mit [infra/docker-compose.prod.yml](infra/docker-compose.prod.yml)
+- Datenschutz-Unterlagen (Entwürfe, vor dem Pilotstart prüfen lassen): [docs/datenschutz/](docs/datenschutz/)
+- End-to-End-Tests: `pnpm e2e` (Docker nötig)
