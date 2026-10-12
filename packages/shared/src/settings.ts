@@ -41,8 +41,38 @@ export const tenantSettingsSchema = z.object({
       messagesDays: z.number().int().min(1).default(365),
       absencesDays: z.number().int().min(1).default(1825),
       attachmentsDays: z.number().int().min(1).default(365),
-      auditLogDays: z.number().int().min(1).default(1095),
+      auditLogDays: z.number().int().min(90).default(1095),
+      notificationsDays: z.number().int().min(7).default(180),
     })
-    .default({ messagesDays: 365, absencesDays: 1825, attachmentsDays: 365, auditLogDays: 1095 }),
+    .default({
+      messagesDays: 365,
+      absencesDays: 1825,
+      attachmentsDays: 365,
+      auditLogDays: 1095,
+      notificationsDays: 180,
+    }),
+  /** Rundschreiben: einmalige Erinnerung an fehlende Lesebestätigungen nach so vielen Tagen (0 = aus). */
+  communication: z
+    .object({ announcementReminderAfterDays: z.number().int().min(0).max(30).default(2) })
+    .default({ announcementReminderAfterDays: 2 }),
+  /** Link auf den vollständigen Datenschutzhinweis der Schule (in der Einführung angezeigt). */
+  privacy: z.object({ noticeUrl: z.url().optional() }).default({}),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
+
+/**
+ * Änderung der Schuleinstellungen durch die Administration: ganze Abschnitte, fehlende bleiben unverändert.
+ * Ohne die Standardwerte der Abschnitte, sonst würde ein fehlender Abschnitt auf den Standard zurückgesetzt.
+ */
+const sections = tenantSettingsSchema.shape;
+export const tenantSettingsPatch = z.object({
+  absence: sections.absence.unwrap().optional(),
+  exams: sections.exams.unwrap().optional(),
+  ageLimits: sections.ageLimits.unwrap().optional(),
+  offline: sections.offline.unwrap().optional(),
+  retention: sections.retention.unwrap().optional(),
+  communication: sections.communication.unwrap().optional(),
+  privacy: sections.privacy.unwrap().optional(),
+  security: sections.security.unwrap().optional(),
+});
+export type TenantSettingsPatch = z.infer<typeof tenantSettingsPatch>;

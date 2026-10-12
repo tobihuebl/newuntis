@@ -4,6 +4,7 @@
  */
 import { z } from 'zod';
 import { dateSchema } from './masterdata';
+import type { InboxCounts } from './messages';
 import type { PlanEntry } from './timetable-api';
 
 export const ATTENDANCE_STATUSES = ['PRESENT', 'LATE', 'ABSENT'] as const;
@@ -131,6 +132,8 @@ export interface TodayResponse {
   /** Eltern: Kinder zum Umschalten (PL-04) und das gewählte Kind. */
   children: TodayChild[];
   studentId: string | null;
+  /** Ungelesene Nachrichten und Rundschreiben (alle Rollen). */
+  inbox: InboxCounts;
 }
 
 /** Offener Klassenbuch-Eintrag (KB-04): vergangene eigene Stunde ohne Abschluss. */
@@ -143,6 +146,7 @@ export const EVENT_TYPES = [
   'substitution.published',
   'absence.reviewed',
   'message.new',
+  'announcement.published',
   'notification.new',
   'resync',
 ] as const;

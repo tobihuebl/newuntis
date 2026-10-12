@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   CreateBucketCommand,
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
   PutObjectCommand,
@@ -74,6 +75,10 @@ export class ObjectStore implements OnModuleInit {
     await this.s3.send(
       new PutObjectCommand({ Bucket: this.bucket, Key: key, Body: body, ContentType: mime }),
     );
+  }
+
+  async remove(key: string): Promise<void> {
+    await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
 
   /** Kurzlebiger, signierter Link (kein öffentlicher Speicher). */
@@ -148,6 +153,8 @@ export class VirusScanner {
 /** Uploads (Spec Abschnitt 13): Typ- und Größenprüfung, Virenscan, nur signierte Links, Metadaten in FileAsset. */
 @Injectable()
 export class FilesService {
+  private readonly logger = new Logger(FilesService.name);
+
   constructor(
     private readonly store: ObjectStore,
     private readonly scanner: VirusScanner,
@@ -179,6 +186,17 @@ export class FilesService {
       },
       select: { id: true },
     });
+  }
+
+  /** Datei im Speicher löschen (Aufbewahrungsfrist); Fehler nur melden, der nächste Lauf versucht es nicht erneut. */
+  async removeObject(key: string): Promise<void> {
+    try {
+      await this.store.remove(key);
+    } catch (err) {
+      this.logger.warn(
+        `Datei konnte nicht gelöscht werden: ${err instanceof Error ? err.message : ''}`,
+      );
+    }
   }
 
   async link(tx: Tx, fileId: string): Promise<string | null> {

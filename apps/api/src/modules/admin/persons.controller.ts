@@ -17,6 +17,7 @@ import { Actor, TenantId } from '../../common/params';
 import type { Principal } from '../../common/request';
 import { ZodPipe } from '../../common/zod.pipe';
 import { AuditService } from '../audit/audit.service';
+import { anonymizePerson, assertCanAnonymize } from '../privacy/anonymize';
 import { PrismaService } from '../prisma/prisma.service';
 import { bad, isoDate, toDate, today, yesterday } from './util';
 
@@ -276,37 +277,8 @@ export class PersonsController {
     @Param('id') id: string,
   ) {
     const tx = this.prisma.tx;
-    if (id === actor.personId) bad('Das eigene Konto kann nicht anonymisiert werden');
-    const p = await tx.person.findUnique({ where: { id }, include: { roles: true } });
-    if (!p) throw new NotFoundException({ title: 'Person nicht gefunden' });
-    if (
-      p.roles.some((r) => r.role === 'ADMIN') &&
-      (await tx.roleAssignment.count({ where: { role: 'ADMIN', NOT: { personId: id } } })) === 0
-    ) {
-      bad('Die letzte Administration kann nicht anonymisiert werden');
-    }
-    await tx.user.deleteMany({ where: { personId: id } }); // Sitzungen, Wiederherstellungs- und Reset-Codes folgen per Cascade
-    await tx.invitation.deleteMany({ where: { personId: id } });
-    await tx.guardianCode.deleteMany({ where: { studentId: id } });
-    await tx.pushSubscription.deleteMany({ where: { personId: id } });
-    await tx.calendarToken.deleteMany({ where: { personId: id } });
-    await tx.notificationPreference.deleteMany({ where: { personId: id } });
-    await tx.roleAssignment.deleteMany({ where: { personId: id } });
-    await tx.schoolClass.updateMany({
-      where: { homeroomTeacherId: id },
-      data: { homeroomTeacherId: null },
-    });
-    await tx.person.update({
-      where: { id },
-      data: {
-        firstName: 'Anonymisiert',
-        lastName: '',
-        birthDate: null,
-        externalId: null,
-        email: null,
-        anonymizedAt: new Date(),
-      },
-    });
+    await assertCanAnonymize(tx, actor.personId, id);
+    await anonymizePerson(tx, id);
     await this.audit.record({
       tenantId,
       actorId: actor.personId,

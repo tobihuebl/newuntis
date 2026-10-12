@@ -16,6 +16,7 @@ import {
   loginSchema,
   passwordResetRequestSchema,
   passwordResetSchema,
+  PRIVACY_NOTICE_VERSION,
   SESSION_COOKIE,
   twoFactorEnableSchema,
   twoFactorVerifySchema,
@@ -212,7 +213,25 @@ export class MeController {
   @AllowStages('ACTIVE', 'NEEDS_2FA_VERIFY', 'NEEDS_2FA_SETUP')
   @Authenticated()
   @Get()
-  me(@Req() req: FastifyRequest) {
-    return this.auth.me(req.tenant!, req.principal!);
+  async me(@Req() req: FastifyRequest) {
+    const p = req.principal!;
+    let needsOnboarding = false;
+    if (p.stage === 'ACTIVE') {
+      const [user, consent] = await Promise.all([
+        this.prisma.tx.user.findUnique({ where: { id: p.userId }, select: { onboardedAt: true } }),
+        this.prisma.tx.consent.findUnique({
+          where: {
+            personId_kind_version: {
+              personId: p.personId,
+              kind: 'privacy-notice',
+              version: PRIVACY_NOTICE_VERSION,
+            },
+          },
+          select: { id: true },
+        }),
+      ]);
+      needsOnboarding = !user?.onboardedAt || !consent;
+    }
+    return this.auth.me(req.tenant!, p, needsOnboarding);
   }
 }

@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -13,6 +14,7 @@ import {
 import {
   CHANNELS,
   DEFAULT_CHANNELS,
+  MANDATORY_CHANNELS,
   NOTIFICATION_TYPES,
   TYPES_FOR_ROLE,
   preferencesInput,
@@ -109,15 +111,22 @@ export class NotificationsController {
       where: { personId: me.personId },
     });
     const quiet = rows.find((r) => r.type === QUIET);
+    const mandatory = types.flatMap((type) =>
+      (MANDATORY_CHANNELS[type] ?? []).map((channel) => ({ type, channel })),
+    );
+    const isMandatory = (type: string, channel: string) =>
+      mandatory.some((m) => m.type === type && m.channel === channel);
     return {
       types,
+      mandatory,
       channels: types.flatMap((type) =>
         CHANNELS.map((channel) => ({
           type,
           channel,
           enabled:
-            rows.find((r) => r.type === type && r.channel === channel)?.enabled ??
-            DEFAULT_CHANNELS[type][channel],
+            isMandatory(type, channel) ||
+            (rows.find((r) => r.type === type && r.channel === channel)?.enabled ??
+              DEFAULT_CHANNELS[type][channel]),
         })),
       ),
       quiet:
@@ -137,7 +146,11 @@ export class NotificationsController {
     @Body(new ZodPipe(preferencesInput)) body: z.infer<typeof preferencesInput>,
   ): Promise<PreferencesResponse> {
     const tx = this.prisma.tx;
-    for (const c of body.channels)
+    for (const c of body.channels) {
+      if (MANDATORY_CHANNELS[c.type]?.includes(c.channel)) {
+        if (c.enabled) continue;
+        throw new ConflictException({ title: 'Pflichtmitteilungen lassen sich nicht abschalten' });
+      }
       await tx.notificationPreference.upsert({
         where: {
           personId_type_channel: { personId: me.personId, type: c.type, channel: c.channel },
@@ -151,6 +164,7 @@ export class NotificationsController {
         },
         update: { enabled: c.enabled },
       });
+    }
     if (body.quiet !== undefined)
       await tx.notificationPreference.upsert({
         where: { personId_type_channel: { personId: me.personId, type: QUIET, channel: '*' } },

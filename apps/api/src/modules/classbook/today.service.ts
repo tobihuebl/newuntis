@@ -11,6 +11,7 @@ import {
 import type { Principal } from '../../common/request';
 import { asDate, iso, todayIn } from '../timetable/data';
 import { PlansService, rawFromOccurrence, type PlanFilter } from '../timetable/plans.service';
+import { MessagesService } from '../messages/messages.service';
 import { ClassbookService, progressOf } from './classbook.service';
 
 const TEACHING: Role[] = ['TEACHER', 'HOMEROOM', 'PRINCIPAL', 'ADMIN'];
@@ -23,6 +24,7 @@ export class TodayService {
   constructor(
     private readonly plans: PlansService,
     private readonly classbook: ClassbookService,
+    private readonly messages: MessagesService,
   ) {}
 
   async today(
@@ -45,6 +47,7 @@ export class TodayService {
       teacher: null,
       children: [],
       studentId: null,
+      inbox: await this.messages.inboxCounts(tx, me.personId),
     };
 
     // Wessen Tag? Ein ausgewähltes Kind, sonst nach Vorrang: Lehrkraft, Elternteil, Schüler:in.

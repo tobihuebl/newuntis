@@ -53,7 +53,11 @@ export const meResponseSchema = z.object({
     slug: z.string(),
     name: z.string(),
     offlineClearAfterIdleDays: z.number().int().default(14),
+    /** Link auf den vollständigen Datenschutzhinweis der Schule (optional). */
+    privacyNoticeUrl: z.string().nullable().default(null),
   }),
+  /** Einführung (Datenschutzhinweis, Benachrichtigungen) noch nicht abgeschlossen. */
+  needsOnboarding: z.boolean().default(false),
 });
 export type MeResponse = z.infer<typeof meResponseSchema>;
 

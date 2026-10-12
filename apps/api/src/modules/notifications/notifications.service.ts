@@ -4,6 +4,7 @@ import {
   BUNDLE_SECONDS,
   CHANNELS,
   DEFAULT_CHANNELS,
+  MANDATORY_CHANNELS,
   minutesUntilQuietEnds,
   notificationText,
   type Channel,
@@ -73,7 +74,15 @@ export class NotificationsService implements OnModuleInit {
     personIds: string[],
     payload: NotifyPayload = {},
   ): Promise<number> {
-    const ids = [...new Set(personIds)];
+    const wanted = [...new Set(personIds)];
+    if (wanted.length === 0) return 0;
+    // Anonymisierte Personen und eingeschränkte Verarbeitung (DSGVO Art. 18): keine Benachrichtigungen
+    const ids = (
+      await tx.person.findMany({
+        where: { id: { in: wanted }, anonymizedAt: null, restrictedAt: null },
+        select: { id: true },
+      })
+    ).map((p) => p.id);
     if (ids.length === 0) return 0;
     const data = { params: payload.params ?? {}, url: payload.url ?? null };
     await tx.notification.createMany({
@@ -119,6 +128,9 @@ export class NotificationsService implements OnModuleInit {
     for (const p of personIds)
       for (const c of CHANNELS) out.set(`${p}|${c}`, DEFAULT_CHANNELS[type][c]);
     for (const r of rows) out.set(`${r.personId}|${r.channel}`, r.enabled);
+    // Pflichtmitteilungen lassen sich nicht abschalten
+    for (const c of MANDATORY_CHANNELS[type] ?? [])
+      for (const p of personIds) out.set(`${p}|${c}`, true);
     return out;
   }
 

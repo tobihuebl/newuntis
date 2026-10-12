@@ -112,6 +112,7 @@ model Person {
   externalId   String? // z. B. Schülernummer aus CSV
   email        String? // Kontakt- und Einladungsadresse (Konto-E-Mail steht in User)
   anonymizedAt DateTime?  @db.Timestamptz(3)
+  restrictedAt DateTime?  @db.Timestamptz(3) // Einschränkung der Verarbeitung (DSGVO Art. 18): keine Nachrichten, Rundschreiben, Benachrichtigungen
   createdAt    DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime   @updatedAt @db.Timestamptz(3)
 
@@ -137,6 +138,11 @@ model Person {
   calendarTokens          CalendarToken[]
   invitations             Invitation[]
   guardianCodes           GuardianCode[]
+  messages                Message[]
+  threadsAbout            Thread[]                 @relation("ThreadAbout")
+  announcements           Announcement[]
+  consents                Consent[]
+  privacyRequests         PrivacyRequest[]         @relation("PrivacySubject")
 
   @@unique([tenantId, externalId])
   @@index([tenantId, kind])
@@ -156,6 +162,7 @@ model User {
   lastLoginAt      DateTime? @db.Timestamptz(3)
   failedLoginCount Int       @default(0)
   lockedUntil      DateTime? @db.Timestamptz(3) // temporäre Sperre nach wiederholten Fehlversuchen
+  onboardedAt      DateTime? @db.Timestamptz(3) // Einführung nach dem ersten Login abgeschlossen
   createdAt        DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
 
@@ -623,17 +630,22 @@ model Exam {
 // ───────────────────────── Kommunikation ─────────────────────────
 
 model Thread {
-  id          String   @id @default(cuid())
-  tenantId    String
-  subject     String
-  createdById String
-  createdAt   DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+  id             String   @id @default(cuid())
+  tenantId       String
+  subject        String
+  createdById    String
+  aboutStudentId String? // Gespräch mit den Eltern bzw. der Schülerin/dem Schüler über dieses Kind
+  classId        String? // Anlass: Nachricht an eine Klasse (je Familie ein eigenes Gespräch)
+  lastMessageAt  DateTime @default(now()) @db.Timestamptz(3)
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
 
   messages     Message[]
   participants ThreadParticipant[]
+  aboutStudent Person?             @relation("ThreadAbout", fields: [aboutStudentId], references: [id])
 
   @@index([tenantId, createdAt])
+  @@index([tenantId, lastMessageAt])
 }
 
 model Message {
@@ -646,8 +658,10 @@ model Message {
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender Person @relation(fields: [senderId], references: [id])
 
   @@index([tenantId, threadId, createdAt])
+  @@index([tenantId, createdAt])
 }
 
 model ThreadParticipant {
@@ -670,24 +684,28 @@ model Announcement {
   tenantId     String
   title        String
   body         String
-  audience     Json // Rollen, Klassen, Gruppen
+  audience     Json // { roles, classIds, groupIds } (Schema in @sp/shared/messages.ts)
   requiresRead Boolean   @default(false)
+  createdById  String
   publishedAt  DateTime? @db.Timestamptz(3)
+  remindedAt   DateTime? @db.Timestamptz(3) // letzte Erinnerung an fehlende Lesebestätigungen
   createdAt    DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime  @updatedAt @db.Timestamptz(3)
 
-  reads AnnouncementRead[]
+  reads     AnnouncementRead[]
+  createdBy Person             @relation(fields: [createdById], references: [id])
 
   @@index([tenantId, publishedAt])
 }
 
+/// Eine Zeile je Empfänger:in (Schnappschuss bei Veröffentlichung); readAt leer = noch nicht gelesen.
 model AnnouncementRead {
   announcementId String
   personId       String
   tenantId       String
-  readAt         DateTime @db.Timestamptz(3)
-  createdAt      DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
+  readAt         DateTime? @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(3)
 
   announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   person       Person       @relation(fields: [personId], references: [id])
@@ -695,8 +713,6 @@ model AnnouncementRead {
   @@id([announcementId, personId])
   @@index([tenantId, personId])
 }
-
-// ───────────────────────── Benachrichtigungen, Dateien, Audit ─────────────────────────
 
 model Notification {
   id        String    @id @default(cuid())
@@ -876,4 +892,53 @@ model GuardianCode {
   student Person @relation(fields: [studentId], references: [id])
 
   @@index([tenantId, studentId])
+}
+
+enum PrivacyRequestKind {
+  ACCESS // Auskunft (Export)
+  RECTIFICATION // Berichtigung
+  ERASURE // Löschung (= Anonymisierung)
+  RESTRICTION // Einschränkung der Verarbeitung
+}
+
+enum PrivacyRequestStatus {
+  OPEN
+  DONE
+  REJECTED
+}
+
+/// Datenschutz-Anfragen (Betroffenenrechte), bearbeitet von der Administration unter /admin/datenschutz.
+model PrivacyRequest {
+  id           String               @id @default(cuid())
+  tenantId     String
+  personId     String
+  kind         PrivacyRequestKind
+  status       PrivacyRequestStatus @default(OPEN)
+  note         String?
+  createdById  String
+  resolvedById String?
+  resolvedAt   DateTime?            @db.Timestamptz(3)
+  createdAt    DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime             @updatedAt @db.Timestamptz(3)
+
+  person Person @relation("PrivacySubject", fields: [personId], references: [id])
+
+  @@index([tenantId, status, createdAt])
+}
+
+/// Einwilligungen und Kenntnisnahmen mit Zeitstempel und Version des Textes (Spec Abschnitt 13).
+model Consent {
+  id         String   @id @default(cuid())
+  tenantId   String
+  personId   String
+  kind       String // z. B. "privacy-notice"
+  version    String
+  acceptedAt DateTime @default(now()) @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@unique([personId, kind, version])
+  @@index([tenantId, personId])
 }

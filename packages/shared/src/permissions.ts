@@ -171,6 +171,11 @@ export function can(user: PolicyUser, action: Action, resource?: PolicyResource)
   });
 }
 
+/** Hat eine der Rollen für die Aktion genau diesen Geltungsbereich (z. B. schulweit "ALL")? */
+export function hasScope(user: PolicyUser, action: Action, scope: Scope): boolean {
+  return user.roles.some((role) => PERMISSION_MATRIX[action][role] === scope);
+}
+
 export function rolesAllowing(action: Action): Role[] {
   return Object.keys(PERMISSION_MATRIX[action]) as Role[];
 }

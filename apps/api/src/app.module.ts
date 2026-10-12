@@ -6,6 +6,9 @@ import { AdminModule } from './modules/admin/admin.module';
 import { AbsencesModule } from './modules/absences/absences.module';
 import { SubstitutionsModule } from './modules/substitutions/substitutions.module';
 import { ExamsModule } from './modules/exams/exams.module';
+import { MessagesModule } from './modules/messages/messages.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { PrivacyModule } from './modules/privacy/privacy.module';
 import { ClassbookModule } from './modules/classbook/classbook.module';
 import { EventsModule } from './modules/events/events.module';
 import { JobsModule } from './modules/jobs/jobs.module';
@@ -41,6 +44,9 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     AbsencesModule,
     SubstitutionsModule,
     ExamsModule,
+    MessagesModule,
+    ReportsModule,
+    PrivacyModule,
     ClassbookModule,
     JobsModule,
     HealthModule,

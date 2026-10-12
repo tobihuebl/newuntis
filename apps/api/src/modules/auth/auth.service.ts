@@ -396,8 +396,9 @@ export class AuthService {
 
   // ───────────────────────── Profil ─────────────────────────
 
-  me(tenant: TenantInfo, p: Principal): MeResponse {
+  me(tenant: TenantInfo, p: Principal, needsOnboarding = false): MeResponse {
     return {
+      needsOnboarding,
       stage: p.stage,
       csrfToken: p.csrfToken,
       user: {
@@ -413,6 +414,7 @@ export class AuthService {
         slug: tenant.slug,
         name: tenant.name,
         offlineClearAfterIdleDays: tenant.settings.offline.clearAfterIdleDays,
+        privacyNoticeUrl: tenant.settings.privacy.noticeUrl ?? null,
       },
     };
   }

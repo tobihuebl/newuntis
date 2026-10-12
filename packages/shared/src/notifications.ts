@@ -12,6 +12,9 @@ export const NOTIFICATION_TYPES = [
   'absence.reviewed',
   'classbook.open',
   'exam.created',
+  'message.new',
+  'announcement.published',
+  'announcement.required',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -28,22 +31,39 @@ export const DEFAULT_CHANNELS: Record<NotificationType, Record<Channel, boolean>
   'absence.reviewed': { push: true, email: false },
   'classbook.open': { push: false, email: false },
   'exam.created': { push: false, email: false },
+  'message.new': { push: true, email: false },
+  'announcement.published': { push: true, email: false },
+  'announcement.required': { push: true, email: true },
+};
+
+/**
+ * Pflichtmitteilungen (Spec Abschnitt 12): Rundschreiben mit Lesebestätigung sind nicht abschaltbar.
+ * E-Mail dient als Rückfall für Geräte ohne Push (z. B. iOS ohne installierte App). Ruhezeiten gelten trotzdem.
+ */
+export const MANDATORY_CHANNELS: Partial<Record<NotificationType, readonly Channel[]>> = {
+  'announcement.required': ['push', 'email'],
 };
 
 /** Wer welche Typen überhaupt bekommen kann (für die Einstellungsseite). */
+const COMMUNICATION: NotificationType[] = [
+  'message.new',
+  'announcement.published',
+  'announcement.required',
+];
 export const TYPES_FOR_ROLE: Record<string, NotificationType[]> = {
-  STUDENT: ['substitution.published', 'timetable.published', 'exam.created'],
+  STUDENT: ['substitution.published', 'timetable.published', 'exam.created', ...COMMUNICATION],
   GUARDIAN: [
     'substitution.published',
     'timetable.published',
     'absence.reminder',
     'absence.reviewed',
     'exam.created',
+    ...COMMUNICATION,
   ],
-  TEACHER: ['substitution.published', 'timetable.published', 'classbook.open'],
+  TEACHER: ['substitution.published', 'timetable.published', 'classbook.open', ...COMMUNICATION],
   HOMEROOM: ['absence.reported'],
-  PRINCIPAL: ['timetable.published'],
-  ADMIN: ['timetable.published'],
+  PRINCIPAL: ['timetable.published', 'message.new'],
+  ADMIN: ['timetable.published', 'message.new'],
 };
 
 /** Mehrere gleichartige Ereignisse innerhalb dieser Zeit werden zu einer Push-Nachricht gebündelt. */
@@ -69,6 +89,8 @@ export type PreferencesInput = z.infer<typeof preferencesInput>;
 
 export interface PreferencesResponse {
   types: NotificationType[];
+  /** Nicht abschaltbare Kanäle je Typ (Pflichtmitteilungen). */
+  mandatory: { type: NotificationType; channel: Channel }[];
   channels: { type: NotificationType; channel: Channel; enabled: boolean }[];
   quiet: { from: string; to: string } | null;
   pushAvailable: boolean;
@@ -129,6 +151,21 @@ export const NOTIFICATION_TEXTS: Record<
     title: 'Neue Prüfung',
     one: 'Eine Prüfung wurde eingetragen.',
     many: '{n} Prüfungen wurden eingetragen.',
+  },
+  'message.new': {
+    title: 'Neue Nachricht',
+    one: 'Eine neue Nachricht ist eingegangen.',
+    many: '{n} neue Nachrichten sind eingegangen.',
+  },
+  'announcement.published': {
+    title: 'Neues Rundschreiben',
+    one: 'Ein neues Rundschreiben ist erschienen.',
+    many: '{n} neue Rundschreiben sind erschienen.',
+  },
+  'announcement.required': {
+    title: 'Lesebestätigung erbeten',
+    one: 'Bitte ein Rundschreiben lesen und bestätigen.',
+    many: 'Bitte {n} Rundschreiben lesen und bestätigen.',
   },
 };
 

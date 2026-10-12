@@ -22,6 +22,7 @@
     "@node-rs/argon2": "^2.2.2",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.1.0",
+    "@react-pdf/renderer": "^4.9.0",
     "@sp/db": "workspace:*",
     "@sp/shared": "workspace:*",
     "csv-parse": "^7.0.3",

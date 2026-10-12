@@ -24,6 +24,11 @@ export class TenantService {
     return /^[a-z0-9][a-z0-9-]{0,62}$/.test(slug) ? slug : null;
   }
 
+  /** Nach einer Änderung der Einstellungen: nächste Anfrage liest neu (andere Instanzen nach spätestens 60 s). */
+  invalidate(slug: string): void {
+    this.cache.delete(slug);
+  }
+
   async resolve(hostname: string): Promise<TenantInfo | null> {
     const slug = this.slugFromHost(hostname);
     if (!slug) return null;

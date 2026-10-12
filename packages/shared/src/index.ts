@@ -11,3 +11,6 @@ export * from './classbook';
 export * from './notifications';
 export * from './absences';
 export * from './substitutions';
+export * from './messages';
+export * from './reports';
+export * from './privacy';

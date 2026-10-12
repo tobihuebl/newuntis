@@ -39,6 +39,10 @@ export interface Response {
   status: number;
   json: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- Testhilfe: beliebige JSON-Antwort
   headers: Record<string, unknown>;
+  /** Rohtext (z. B. CSV, iCal). */
+  text: string;
+  /** Rohdaten (z. B. PDF). */
+  raw: Buffer;
 }
 
 export class Client {
@@ -76,7 +80,13 @@ export class Client {
     }
     const body = json as { csrfToken?: string } | undefined;
     if (body && typeof body.csrfToken === 'string') this.csrf = body.csrfToken;
-    return { status: res.statusCode, json, headers: res.headers };
+    return {
+      status: res.statusCode,
+      json,
+      headers: res.headers,
+      text: res.body,
+      raw: res.rawPayload,
+    };
   }
 
   get = (url: string, extra?: Record<string, string>) => this.request('GET', url, undefined, extra);
