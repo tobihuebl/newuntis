@@ -13,6 +13,7 @@ import { ENV, type Env } from '../../config/env';
 const CHANNEL = 'sp_events';
 const BUFFER_SIZE = 2000;
 const RECONNECT_MS = 5000;
+const MAX_PAYLOAD = 7500;
 
 /** Was über NOTIFY läuft: Mandant, Typ, Ids und optional die Empfänger (sonst die ganze Schule). */
 interface Envelope {
@@ -70,7 +71,12 @@ export class EventsService implements OnApplicationBootstrap, OnModuleDestroy {
     ids: string[],
     personIds?: string[],
   ): Promise<void> {
-    const envelope: Envelope = { tenantId, type, ids, ...(personIds ? { personIds } : {}) };
+    let envelope: Envelope = { tenantId, type, ids, ...(personIds ? { personIds } : {}) };
+    // NOTIFY-Nutzlast ist auf 8000 Byte begrenzt: bei großen Empfängerkreisen an die ganze Schule
+    // (nur Ids, kein Inhalt), bei sehr vielen Ids als "resync"
+    if (JSON.stringify(envelope).length > MAX_PAYLOAD) envelope = { tenantId, type, ids };
+    if (JSON.stringify(envelope).length > MAX_PAYLOAD)
+      envelope = { tenantId, type: 'resync', ids: [] };
     await tx.$executeRaw`SELECT pg_notify(${CHANNEL}, ${JSON.stringify(envelope)})`;
   }
 

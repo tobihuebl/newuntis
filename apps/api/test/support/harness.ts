@@ -10,7 +10,7 @@ import * as OTPAuth from 'otpauth';
 import { AppModule } from '../../src/app.module';
 import { configureApp, createAdapter } from '../../src/app.factory';
 import { Can } from '../../src/common/decorators';
-import { MailService, type Mail } from '../../src/modules/auth/mail.service';
+import { MailService, type Mail } from '../../src/modules/mail/mail.service';
 
 export const PASSWORD = 'Test-Passwort-12345';
 
@@ -121,15 +121,20 @@ export class Harness {
     readonly mails: Mail[],
   ) {}
 
-  static async create(): Promise<Harness> {
+  /** `overrides`: weitere Dienste durch Testdoubles ersetzen (z. B. Web-Push). */
+  static async create(
+    options: { overrides?: [abstract new (...args: never[]) => unknown, unknown][] } = {},
+  ): Promise<Harness> {
     const mails: Mail[] = [];
-    const moduleRef = await Test.createTestingModule({
+    let builder = Test.createTestingModule({
       imports: [AppModule, DiscoveryModule],
       controllers: [buildMatrixController()],
     })
       .overrideProvider(MailService)
-      .useValue({ send: async (m: Mail) => void mails.push(m) })
-      .compile();
+      .useValue({ send: async (m: Mail) => void mails.push(m) });
+    for (const [token, value] of options.overrides ?? [])
+      builder = builder.overrideProvider(token).useValue(value);
+    const moduleRef = await builder.compile();
     const app = moduleRef.createNestApplication<NestFastifyApplication>(createAdapter());
     await configureApp(app);
     await app.init();

@@ -3,9 +3,16 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ProblemFilter } from './common/problem.filter';
 import { RateLimitGuard } from './common/rate-limit.guard';
 import { AdminModule } from './modules/admin/admin.module';
+import { AbsencesModule } from './modules/absences/absences.module';
+import { SubstitutionsModule } from './modules/substitutions/substitutions.module';
+import { ExamsModule } from './modules/exams/exams.module';
 import { ClassbookModule } from './modules/classbook/classbook.module';
 import { EventsModule } from './modules/events/events.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { QueueModule } from './modules/jobs/queue.module';
+import { MailModule } from './modules/mail/mail.module';
+import { FilesModule } from './modules/files/files.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TimetableModule } from './modules/timetable/timetable.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthGuard } from './modules/auth/auth.guard';
@@ -20,6 +27,9 @@ import { TenantsModule } from './modules/tenants/tenants.module';
 @Module({
   imports: [
     PrismaModule,
+    QueueModule,
+    MailModule,
+    FilesModule,
     TenantsModule,
     AuditModule,
     PolicyModule,
@@ -27,6 +37,10 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     AdminModule,
     TimetableModule,
     EventsModule,
+    NotificationsModule,
+    AbsencesModule,
+    SubstitutionsModule,
+    ExamsModule,
     ClassbookModule,
     JobsModule,
     HealthModule,

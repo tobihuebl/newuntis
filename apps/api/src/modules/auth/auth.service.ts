@@ -7,7 +7,7 @@ import type { Principal, TenantInfo } from '../../common/request';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CryptoService } from './crypto.service';
-import { MailService } from './mail.service';
+import { MailQueue } from '../mail/mail-queue.service';
 import { SessionService, type IssuedSession } from './session.service';
 import { TotpService } from './totp.service';
 
@@ -31,7 +31,7 @@ export class AuthService {
     private readonly crypto: CryptoService,
     private readonly sessions: SessionService,
     private readonly totp: TotpService,
-    private readonly mail: MailService,
+    private readonly mail: MailQueue,
     private readonly audit: AuditService,
     @Inject(ENV) private readonly env: Env,
   ) {}
@@ -291,10 +291,11 @@ export class AuthService {
         },
       }),
     );
-    await this.mail.send({
-      to: email,
-      subject: `Einladung zur Schulplattform (${tenant.name})`,
-      text: `Du wurdest eingeladen. Lege dein Passwort fest:\n\n${this.appUrl(tenant, `/einladung?token=${token}`)}\n\nDer Link ist ${INVITE_VALID_DAYS} Tage gültig.`,
+    await this.mail.send(email, {
+      kind: 'invitation',
+      school: tenant.name,
+      url: this.appUrl(tenant, `/einladung?token=${token}`),
+      validDays: INVITE_VALID_DAYS,
     });
     return token;
   }
@@ -361,10 +362,11 @@ export class AuthService {
       entity: 'user',
       entityId: user.id,
     });
-    await this.mail.send({
-      to: email,
-      subject: 'Passwort zurücksetzen',
-      text: `Setze dein Passwort zurück:\n\n${this.appUrl(tenant, `/passwort-zuruecksetzen?token=${token}`)}\n\nDer Link ist ${RESET_VALID_MINUTES} Minuten gültig. Wenn du das nicht angefordert hast, ignoriere diese E-Mail.`,
+    await this.mail.send(email, {
+      kind: 'passwordReset',
+      school: tenant.name,
+      url: this.appUrl(tenant, `/passwort-zuruecksetzen?token=${token}`),
+      validMinutes: RESET_VALID_MINUTES,
     });
   }
 

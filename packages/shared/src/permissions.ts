@@ -28,6 +28,8 @@ export const ACTIONS = [
   'attendance.read',
   'absence.report',
   'absence.review',
+  'teacherAbsence.report',
+  'exam.read',
   'exam.write',
   'grade.write',
   'grade.read',
@@ -68,6 +70,16 @@ export const PERMISSION_MATRIX: Matrix = {
   },
   'absence.report': { STUDENT: 'OWN', GUARDIAN: 'CHILDREN', ADMIN: 'ALL' }, // Schüler: optional (Altersgrenze pro Schule)
   'absence.review': { HOMEROOM: 'OWN_CLASS', PRINCIPAL: 'ALL', ADMIN: 'ALL' },
+  // Krankmeldung: Lehrkräfte für sich selbst, Direktion und Administration für alle (Spec Abschnitt 9)
+  'teacherAbsence.report': { TEACHER: 'OWN', HOMEROOM: 'OWN', PRINCIPAL: 'ALL', ADMIN: 'ALL' },
+  'exam.read': {
+    STUDENT: 'OWN',
+    GUARDIAN: 'CHILDREN',
+    TEACHER: 'OWN_CLASSES',
+    HOMEROOM: 'OWN_CLASS',
+    PRINCIPAL: 'ALL',
+    ADMIN: 'ALL',
+  },
   'exam.write': { TEACHER: 'OWN_SUBJECTS', HOMEROOM: 'OWN_SUBJECTS', PRINCIPAL: 'ALL' },
   'grade.write': { TEACHER: 'OWN_SUBJECTS', HOMEROOM: 'OWN_SUBJECTS' },
   'grade.read': {

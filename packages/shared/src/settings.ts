@@ -15,8 +15,10 @@ export const tenantSettingsSchema = z.object({
     .object({
       excuseDeadlineDays: z.number().int().min(0).default(7),
       attachmentRequiredFromDays: z.number().int().min(1).default(3),
+      /** Erinnerungen an Eltern so viele Tage nach Beginn einer offenen Fehlzeit. */
+      reminderAfterDays: z.array(z.number().int().min(0)).default([1, 4]),
     })
-    .default({ excuseDeadlineDays: 7, attachmentRequiredFromDays: 3 }),
+    .default({ excuseDeadlineDays: 7, attachmentRequiredFromDays: 3, reminderAfterDays: [1, 4] }),
   exams: z
     .object({
       maxPerDayPerClass: z.number().int().min(1).default(1),

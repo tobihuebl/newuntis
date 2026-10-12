@@ -16,6 +16,7 @@ import {
   hasHardConflicts,
   lessonInput,
   lessonPatchInput,
+  mondayOf,
   publishInput,
   requirementInput,
   requirementPatchInput,
@@ -42,6 +43,7 @@ import {
   todayIn,
 } from './data';
 import { EventsService } from '../events/events.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { OccurrencesService } from './occurrences.service';
 
 const validateInput = z.object({
@@ -73,6 +75,7 @@ export class VersionsController {
     private readonly audit: AuditService,
     private readonly occurrences: OccurrencesService,
     private readonly events: EventsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private log(
@@ -519,7 +522,19 @@ export class VersionsController {
     });
     const generated = await this.occurrences.generateWindow(tx, tenantId);
     await this.events.emit(tx, tenantId, 'timetable.published', [id]);
-    // Benachrichtigung "Stundenplan geändert ab <Datum>" folgt mit dem Benachrichtigungsdienst (M5).
+    // "Stundenplan geändert ab <Datum>" an alle Personen der Schule mit Konto (Spec Abschnitt 10, Schritt 5)
+    const people = await tx.user.findMany({
+      where: { person: { anonymizedAt: null } },
+      select: { personId: true },
+    });
+    const [y, m, d] = body.validFrom.split('-');
+    await this.notifications.emit(
+      tx,
+      tenantId,
+      'timetable.published',
+      people.map((p) => p.personId),
+      { params: { date: `${d}.${m}.${y}` }, url: `/plan?from=${mondayOf(body.validFrom)}` },
+    );
     await this.log(tenantId, actor, 'timetableVersion.publish', id, {
       validFrom: body.validFrom,
       created: generated.created,

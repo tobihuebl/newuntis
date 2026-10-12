@@ -17,6 +17,12 @@ export const serverEnvSchema = z.object({
   API_URL: z.url(),
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
+  /** Kontakt für Push-Dienste (mailto: oder https:). */
+  VAPID_SUBJECT: z.string().optional(),
+  /** Virenscan für Uploads (clamd), z. B. tcp://localhost:3310. */
+  CLAMAV_URL: z.string().optional(),
+  /** Uploads ohne Virenscan ablehnen (Standard in Produktion). */
+  UPLOADS_REQUIRE_SCAN: z.enum(['true', 'false']).optional(),
   SMTP_URL: z.string().min(1),
   S3_ENDPOINT: z.url(),
   S3_BUCKET: z.string().min(1),

@@ -52,10 +52,16 @@ enum AttendanceStatus {
 }
 
 enum AbsenceStatus {
+  OPEN // aus dem Klassenbuch, Entschuldigung ausständig (Ergänzung zur Spec, ADR 0008)
   REPORTED
   EXCUSED
   REJECTED
   UNEXCUSED
+}
+
+enum AbsenceOrigin {
+  CLASSBOOK // Lehrkraft hat "abwesend" eingetragen
+  REPORT // Meldung durch Eltern, Schüler:in oder Administration
 }
 
 enum TeacherAbsenceKind {
@@ -525,20 +531,24 @@ model Attendance {
 // ───────────────────────── Abwesenheit, Supplierung ─────────────────────────
 
 model Absence {
-  id            String        @id @default(cuid())
-  tenantId      String
-  studentId     String
-  fromAt        DateTime      @db.Timestamptz(3)
-  toAt          DateTime      @db.Timestamptz(3)
-  reason        String?
-  status        AbsenceStatus @default(REPORTED)
-  reportedById  String
-  reviewedById  String?
-  reviewedAt    DateTime?     @db.Timestamptz(3)
-  reviewComment String?
-  attachmentId  String? // FileAsset
-  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
-  updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
+  id             String        @id @default(cuid())
+  tenantId       String
+  studentId      String
+  fromAt         DateTime      @db.Timestamptz(3)
+  toAt           DateTime      @db.Timestamptz(3)
+  reason         String?
+  reasonCode     String? // Krankheit, Arzttermin, Familie, Sonstiges
+  origin         AbsenceOrigin @default(REPORT)
+  status         AbsenceStatus @default(REPORTED)
+  remindersSent  Int           @default(0)
+  lastReminderAt DateTime?     @db.Timestamptz(3)
+  reportedById   String
+  reviewedById   String?
+  reviewedAt     DateTime?     @db.Timestamptz(3)
+  reviewComment  String?
+  attachmentId   String? // FileAsset
+  createdAt      DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime      @updatedAt @db.Timestamptz(3)
 
   student    Person     @relation(fields: [studentId], references: [id])
   attachment FileAsset? @relation(fields: [attachmentId], references: [id])
@@ -554,11 +564,14 @@ model TeacherAbsence {
   fromAt       DateTime           @db.Timestamptz(3)
   toAt         DateTime           @db.Timestamptz(3)
   kind         TeacherAbsenceKind
+  note         String?
+  createdById  String?
   approvedById String?
   createdAt    DateTime           @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime           @updatedAt @db.Timestamptz(3)
 
-  teacher Person @relation(fields: [teacherId], references: [id])
+  teacher       Person         @relation(fields: [teacherId], references: [id])
+  substitutions Substitution[]
 
   @@index([tenantId, teacherId, fromAt])
 }
@@ -572,13 +585,16 @@ model Substitution {
   newRoomId           String?
   note                String?
   status              SubstitutionStatus @default(OPEN)
+  teacherAbsenceId    String? // entstanden aus einer Lehrerabwesenheit (für Neuberechnung bei Änderung)
   publishedAt         DateTime?          @db.Timestamptz(3)
+  publishedById       String?
   createdAt           DateTime           @default(now()) @db.Timestamptz(3)
   updatedAt           DateTime           @updatedAt @db.Timestamptz(3)
 
-  occurrence        Occurrence @relation(fields: [occurrenceId], references: [id])
-  substituteTeacher Person?    @relation(fields: [substituteTeacherId], references: [id])
-  newRoom           Room?      @relation(fields: [newRoomId], references: [id])
+  occurrence        Occurrence      @relation(fields: [occurrenceId], references: [id])
+  substituteTeacher Person?         @relation(fields: [substituteTeacherId], references: [id])
+  newRoom           Room?           @relation(fields: [newRoomId], references: [id])
+  teacherAbsence    TeacherAbsence? @relation(fields: [teacherAbsenceId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, status])
 }
@@ -687,14 +703,17 @@ model Notification {
   tenantId  String
   personId  String
   type      String
-  payload   Json
+  payload   Json // { params, url } – Texte entstehen erst bei der Anzeige (keine Namen in Push-Texten)
   readAt    DateTime? @db.Timestamptz(3)
+  pushedAt  DateTime? @db.Timestamptz(3) // per Web-Push zugestellt (oder bewusst übersprungen)
+  emailedAt DateTime? @db.Timestamptz(3)
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt DateTime  @updatedAt @db.Timestamptz(3)
 
   person Person @relation(fields: [personId], references: [id])
 
   @@index([tenantId, personId, createdAt])
+  @@index([tenantId, personId, type, pushedAt])
 }
 
 model NotificationPreference {
@@ -744,14 +763,16 @@ model CalendarToken {
 }
 
 model FileAsset {
-  id        String   @id @default(cuid())
-  tenantId  String
-  key       String
-  mime      String
-  size      Int
-  ownerId   String
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  id         String    @id @default(cuid())
+  tenantId   String
+  key        String
+  mime       String
+  size       Int
+  ownerId    String
+  scanStatus String    @default("PENDING") // CLEAN, INFECTED, SKIPPED (nur Entwicklung)
+  scannedAt  DateTime? @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
 
   absences Absence[]
 

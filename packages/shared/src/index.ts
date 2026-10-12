@@ -8,3 +8,6 @@ export * from './masterdata';
 export * from './timetable';
 export * from './timetable-api';
 export * from './classbook';
+export * from './notifications';
+export * from './absences';
+export * from './substitutions';

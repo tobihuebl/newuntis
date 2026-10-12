@@ -1,4 +1,16 @@
-import { Body, Controller, Get, HttpCode, Inject, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  NotFoundException,
+  Param,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import {
   inviteAcceptSchema,
   loginSchema,
@@ -20,6 +32,7 @@ import {
 } from '../../common/decorators';
 import { ZodPipe } from '../../common/zod.pipe';
 import { ENV, type Env } from '../../config/env';
+import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
 import type { IssuedSession } from './session.service';
 
@@ -159,7 +172,42 @@ export class AuthController {
 
 @Controller('me')
 export class MeController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  /** Geräteliste (Spec Abschnitt 13): angemeldete Sitzungen der Person. */
+  @Authenticated()
+  @Get('sessions')
+  async sessions(@Req() req: FastifyRequest) {
+    const p = req.principal!;
+    const rows = await this.prisma.tx.session.findMany({
+      where: { userId: p.userId },
+      orderBy: { lastSeenAt: 'desc' },
+      select: { id: true, userAgent: true, lastSeenAt: true, createdAt: true },
+    });
+    return {
+      data: rows.map((s) => ({
+        id: s.id,
+        userAgent: s.userAgent,
+        lastSeenAt: s.lastSeenAt.toISOString(),
+        createdAt: s.createdAt.toISOString(),
+        current: s.id === p.sessionId,
+      })),
+    };
+  }
+
+  /** Ein anderes Gerät abmelden. */
+  @Authenticated()
+  @Delete('sessions/:id')
+  @HttpCode(204)
+  async endSession(@Req() req: FastifyRequest, @Param('id') id: string) {
+    const r = await this.prisma.tx.session.deleteMany({
+      where: { id, userId: req.principal!.userId },
+    });
+    if (r.count === 0) throw new NotFoundException({ title: 'Sitzung nicht gefunden' });
+  }
 
   @AllowStages('ACTIVE', 'NEEDS_2FA_VERIFY', 'NEEDS_2FA_SETUP')
   @Authenticated()

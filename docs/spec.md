@@ -64,6 +64,8 @@ Rollen sind additiv: Eine Person kann Lehrer und Klassenvorstand sein, oder Lehr
 | Anwesenheit einsehen | eigene | Kinder | eigene Klassen | eigene Klasse | alle | alle |
 | Abwesenheit melden | optional | Kinder | nein | nein | nein | ja (für andere) |
 | Entschuldigung prüfen und annehmen | nein | nein | nein | eigene Klasse | ja | ja |
+| Lehrerabwesenheit melden | nein | nein | sich selbst | sich selbst | ja | ja |
+| Prüfungen einsehen | eigene | Kinder | eigene Klassen | eigene Klasse | ja | ja |
 | Prüfung eintragen | nein | nein | eigene Fächer | eigene Fächer | ja | nein |
 | Noten eintragen | nein | nein | eigene Fächer | eigene Fächer | nein | nein |
 | Noten einsehen | eigene | Kinder | eigene Fächer | eigene Klasse | alle (lesen) | nein |

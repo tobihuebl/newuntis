@@ -2,6 +2,8 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
+  type OnModuleInit,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -19,8 +21,12 @@ import {
   type PolicyUser,
 } from '@sp/shared';
 import type { Principal } from '../../common/request';
+import { AbsencesService } from '../absences/absences.service';
 import { AuditService } from '../audit/audit.service';
 import { EventsService } from '../events/events.service';
+import { QueueService } from '../jobs/queue.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { asDate, iso, todayIn } from '../timetable/data';
 import { PlansService, rawFromOccurrence } from '../timetable/plans.service';
 
@@ -72,12 +78,62 @@ export function progressOf(o: {
  * Schreibrechte: Lehrkräfte des Termins (wirksame Lehrer nach Supplierung) und die Direktion (Korrektur).
  */
 @Injectable()
-export class ClassbookService {
+export class ClassbookService implements OnModuleInit {
+  private readonly logger = new Logger(ClassbookService.name);
+
   constructor(
     private readonly plans: PlansService,
     private readonly events: EventsService,
     private readonly audit: AuditService,
+    private readonly absences: AbsencesService,
+    private readonly prisma: PrismaService,
+    private readonly queue: QueueService,
+    private readonly notifications: NotificationsService,
   ) {}
+
+  /** KB-04: werktags am Nachmittag Hinweis an Lehrkräfte mit offenen Einträgen (In-App, Push optional). */
+  onModuleInit(): void {
+    this.queue.register('classbook-open-daily', () => this.remindAllTenants(), {
+      cron: '0 15 * * 1-5',
+    });
+  }
+
+  async remindAllTenants(): Promise<void> {
+    const tenants = await this.prisma.client.tenant.findMany({ select: { id: true, slug: true } });
+    for (const t of tenants) {
+      try {
+        await this.prisma.runAsTenant(t.id, (tx) => this.remindOpen(tx, t.id));
+      } catch (err) {
+        this.logger.error(
+          `Klassenbuch-Hinweis ${t.slug}: ${err instanceof Error ? err.message : ''}`,
+        );
+      }
+    }
+  }
+
+  async remindOpen(tx: Tx, tenantId: string): Promise<number> {
+    const today = todayIn(await this.timezone(tx, tenantId));
+    const rows = await tx.occurrenceTeacher.findMany({
+      where: {
+        occurrence: {
+          status: { not: 'CANCELLED' },
+          endsAt: { lte: new Date() },
+          date: { gte: asDate(addDays(today, -OPEN_LOOKBACK_DAYS)) },
+          OR: [{ classbook: { is: null } }, { classbook: { is: { closedAt: null } } }],
+        },
+      },
+      select: { teacherId: true },
+      distinct: ['teacherId'],
+    });
+    await this.notifications.emit(
+      tx,
+      tenantId,
+      'classbook.open',
+      rows.map((r) => r.teacherId),
+      { url: '/klassenbuch' },
+    );
+    return rows.length;
+  }
 
   async timezone(tx: Tx, tenantId: string): Promise<string> {
     return (
@@ -406,6 +462,14 @@ export class ClassbookService {
       applied++;
     }
     if (applied > 0) {
+      // "abwesend" im Klassenbuch erzeugt bzw. ändert offene Fehlzeiten (Spec Abschnitt 11)
+      await this.absences.syncFromClassbook(
+        tx,
+        tenantId,
+        o.date,
+        [...new Set(items.map((i) => i.studentId))],
+        me.personId,
+      );
       await this.audit.record({
         tenantId,
         actorId: me.personId,

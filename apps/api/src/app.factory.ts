@@ -20,6 +20,23 @@ export async function configureApp(app: NestFastifyApplication): Promise<void> {
   await app.register(helmet, {
     contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
   });
+  // Uploads (Fotos, PDF) als Rohdaten; der Typ wird später am Inhalt geprüft, nicht am Header
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addContentTypeParser(
+      [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/heic',
+        'image/heif',
+        'application/pdf',
+        'application/octet-stream',
+      ],
+      { parseAs: 'buffer', bodyLimit: 5 * 1024 * 1024 },
+      (_req, body, done) => done(null, body),
+    );
   app.setGlobalPrefix('api/v1', { exclude: ['healthz', 'readyz'] });
   app.enableShutdownHooks();
 }
