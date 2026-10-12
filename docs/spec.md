@@ -116,7 +116,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - SP-05 MVP: Kalender-Sync per iCal-Link (Apple, Google, Outlook)
 - SP-06 V1: Weiche Regeln mit Warnungen (Hohlstunden, Tagesbelastung), Wochenmuster A/B
 - SP-07 V1: Raumbuchung außerhalb des Stundenplans
-- SP-08 V2: Automatische Planung (Solver), Untis-Import
+- SP-08 V2: Automatische Planung (Solver mit KI-Unterstützung für Planungswünsche, Meilenstein M7), Untis-Import
 
 ### Klassenbuch (KB)
 
@@ -873,6 +873,20 @@ zusammen, was gebaut wurde und was als Nächstes folgt.
 - [ ] Onboarding-Abläufe für Eltern und Lehrer
 
 **Fertig wenn:** Eine Pilotschule kann den Alltag ohne WebUntis-Klassenbuch und ohne WhatsApp-Gruppen abbilden.
+
+### M7: Stundenplan-Assistent (automatische Planung, SP-08)
+
+Ziel: Die Administration erstellt einen Stundenplan nicht mehr Stunde für Stunde, sondern lässt ihn aus den Soll-Stunden vorschlagen und korrigiert nur noch.
+
+- [ ] Lehrfächerverteilung (Soll-Stunden) per CSV importieren, Prüfung "zu wenige/zu viele Stunden eingeplant" vor dem Veröffentlichen
+- [ ] Planungswünsche erfassen: Sperrzeiten und freie Tage von Lehrkräften, Fachräume, maximale Stunden pro Tag, Doppelstunden, keine Hohlstunden für Schüler:innen
+- [ ] Solver erzeugt einen Vorschlag als neuen Entwurf: harte Regeln aus Abschnitt 10 werden immer eingehalten, weiche Regeln (Hohlstunden, Tagesbelastung, gleiches Fach zweimal am Tag) werden minimiert
+- [ ] Teilplanung: bestehende Stunden festpinnen, nur den Rest planen lassen (z. B. eine Klasse oder eine Lehrkraft neu)
+- [ ] Erklärung für nicht einplanbare Stunden ("Mathe 3A: keine freie Zeit, in der Lehrkraft und Klasse gleichzeitig frei sind")
+- [ ] KI-Unterstützung: Planungswünsche in natürlicher Sprache eingeben ("Frau Huber hat freitags frei", "Turnen nicht in der ersten Stunde"), werden in überprüfbare Regeln übersetzt; die eigentliche Planung bleibt deterministisch (Solver), damit Ergebnisse nachvollziehbar und reproduzierbar sind
+- [ ] Datenschutz: an ein KI-Modell gehen nur Planungsdaten ohne Personenbezug (Kürzel statt Namen), Anbieter mit EU-Verarbeitung
+
+**Fertig wenn:** Für die Demoschule entsteht aus den Soll-Stunden ohne Handarbeit ein Entwurf ohne harte Konflikte, und die Administration kann Wünsche in Worten nachreichen.
 
 ### CLAUDE.md (in das Repository-Stammverzeichnis legen)
 
