@@ -203,7 +203,8 @@
     "saved": "Gespeichert",
     "conflict": "Dieser Eintrag existiert schon oder wird noch verwendet.",
     "forbidden": "Dafür fehlt die Berechtigung. Die Administration der Schule kann sie vergeben.",
-    "required": "Pflichtfeld"
+    "required": "Pflichtfeld",
+    "undo": "Rückgängig"
   },
   "admin": {
     "subjects": {
@@ -445,16 +446,22 @@
     "double": "Doppelstunde",
     "weekA": "A-Woche",
     "weekB": "B-Woche",
-    "calendar": "Kalender abonnieren",
+    "calendar": "In Kalender abonnieren",
     "calendarHelp": "Mit diesem Link zeigt {formal, select, yes {Ihr} other {dein}} Kalender (Apple, Google, Outlook) den Stundenplan an und aktualisiert ihn automatisch. {formal, select, yes {Behalten Sie den Link für sich.} other {Behalte den Link für dich.}}",
     "calendarCreate": "Link erzeugen",
     "calendarRenew": "Neuen Link erzeugen (alter wird ungültig)",
     "calendarStop": "Abo beenden",
     "calendarCopy": "Link kopieren",
-    "calendarCopied": "Kopiert",
-    "calendarOpen": "In Kalender-App öffnen",
+    "calendarCopied": "Link kopiert",
     "calendarActive": "Ein Kalender-Link ist aktiv. Aus Sicherheitsgründen wird er nicht noch einmal angezeigt.",
-    "days": "Tag wählen"
+    "days": "Tag wählen",
+    "calendarOn": "Abo aktiv",
+    "calendarLink": "Abo-Link",
+    "calendarApps": "Direkt abonnieren",
+    "calendarApp_apple": "Apple Kalender",
+    "calendarApp_google": "Google Kalender",
+    "calendarApp_outlook": "Outlook",
+    "calendarStopped": "Abo beendet"
   },
   "timetable": {
     "versions": "Stundenplan-Versionen",
@@ -469,7 +476,7 @@
     "noVersions": "Noch kein Stundenplan",
     "noVersionsHelp": "Legen Sie einen Entwurf an. Sie können ihn bearbeiten, bis er ohne harte Konflikte ist, und dann veröffentlichen.",
     "schoolYear": "Schuljahr",
-    "noYear": "Es gibt kein aktuelles Schuljahr.",
+    "noYear": "Es gibt kein aktuelles Schuljahr. Legen Sie es unter Schuljahr an.",
     "statuses": {
       "DRAFT": "Entwurf",
       "PUBLISHED": "Veröffentlicht",
@@ -531,7 +538,8 @@
     "copyToDraft": "Als neuen Entwurf kopieren",
     "deleteDraft": "Entwurf löschen",
     "back": "Alle Versionen",
-    "move": "Verschieben"
+    "move": "Verschieben",
+    "lessonCount": "{count, plural, one {# Stunde} other {# Stunden}}"
   },
   "classbook": {
     "title": "Klassenbuch",
@@ -651,7 +659,7 @@
     "listEmpty": "Keine Fehlzeiten",
     "excuse": "Entschuldigen",
     "lessons": "{n, plural, one {# Stunde} other {# Stunden}}",
-    "deadline": "Entschuldigen bis {date}",
+    "deadline": "{days, plural, =0 {Frist heute} one {Frist morgen} other {Frist in # Tagen}}",
     "comment": "Kommentar",
     "origin_CLASSBOOK": "aus dem Klassenbuch",
     "origin_REPORT": "gemeldet",
@@ -672,7 +680,8 @@
       "reminder": "Erinnerung",
       "reviewed": "Geprüft",
       "excused": "Entschuldigt"
-    }
+    },
+    "deadlinePassed": "Frist abgelaufen"
   },
   "klasse": {
     "title": "Meine Klasse",
@@ -684,7 +693,7 @@
     "toReview": "Zu prüfen",
     "open": "Noch nicht entschuldigt",
     "decided": "Zuletzt entschieden",
-    "accept": "Annehmen",
+    "accept": "Entschuldigen",
     "reject": "Ablehnen",
     "commentOptional": "Kommentar (optional)",
     "reviewTitle": "Entschuldigung prüfen",
@@ -693,7 +702,13 @@
     "excused": "entschuldigt",
     "unexcused": "unentschuldigt",
     "pending": "offen",
-    "students": "Schüler:innen"
+    "students": "Schüler:innen",
+    "excuseNow": "Entschuldigen",
+    "withComment": "Mit Kommentar",
+    "excusedToast": "{name} entschuldigt",
+    "excuseFailed": "Die Entschuldigung von {name} wurde nicht gespeichert. Versuch es noch einmal.",
+    "swipeHint": "Tipp: Nach rechts wischen entschuldigt.",
+    "sections": "Ansicht"
   },
   "substitution": {
     "title": "Supplierung",
@@ -802,13 +817,14 @@
     "saved": "Prüfung eingetragen"
   },
   "tasks": {
-    "title": "Aufgaben",
+    "title": "Hausübungen",
     "homework": "Hausübungen",
     "exams": "Prüfungen",
     "noHomework": "Keine Hausübungen offen.",
     "noExams": "Keine Prüfungen eingetragen.",
     "termine": "Termine",
-    "due": "fällig {date}"
+    "due": "fällig {date}",
+    "child": "Kind wählen"
   },
   "profile": {
     "title": "Profil",
@@ -829,10 +845,8 @@
     "iosStep2": "2. Die App vom Home-Bildschirm öffnen und hier Push einschalten.",
     "channels": "Was {formal, select, yes {Sie bekommen} other {du bekommst}}",
     "type": "Ereignis",
-    "inApp": "In der App",
     "channelPush": "Push",
     "channelEmail": "E-Mail",
-    "always": "immer",
     "types": {
       "substitution_published": "Supplierung und Entfall",
       "timetable_published": "Neuer Stundenplan",
@@ -880,7 +894,8 @@
     "exportPdf": "Als PDF herunterladen",
     "exportJson": "Als JSON herunterladen",
     "myDataHelp": "Für Berichtigung, Löschung oder Einschränkung {formal, select, yes {wenden Sie sich} other {wende dich}} an die Schule. Klassenbuch und Fehlzeiten sind Schulunterlagen und bleiben bis zum Ende der Aufbewahrungsfrist.",
-    "mandatory": "Pflichtmitteilung, nicht abschaltbar"
+    "mandatory": "Pflichtmitteilung, nicht abschaltbar",
+    "inAppAlways": "In der App {formal, select, yes {sehen Sie} other {siehst du}} alle Benachrichtigungen. Zusätzlich auf Wunsch:"
   },
   "messages": {
     "title": "Nachrichten",
@@ -1033,10 +1048,10 @@
     "student": "Schüler:in",
     "lateMinutes": "Verspätung (Min.)",
     "attendanceNote": "Stunden aus dem Klassenbuch; Fehlzeiten zählen als Meldungen bzw. Blöcke, nicht als Stunden.",
-    "total_substitutions": "Vertretungen (Std.)",
-    "total_supervisions": "Betreuungen (Std.)",
-    "total_cancelled": "Entfall (Std.)",
-    "total_roomChanges": "Raumwechsel (Std.)",
+    "total_substitutions": "Vertretungsstunden",
+    "total_supervisions": "Betreuungsstunden",
+    "total_cancelled": "entfallene Stunden",
+    "total_roomChanges": "Stunden mit Raumwechsel",
     "emptySubstitutions": "Keine veröffentlichten Supplierungen in diesem Zeitraum.",
     "byTeacher": "Supplierstunden je Lehrkraft",
     "teacher": "Lehrkraft",

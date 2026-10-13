@@ -1,17 +1,35 @@
 'use client';
+import { Check, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { AbsenceItem } from '@sp/shared';
-import { Button, Card, EmptyState, Sheet, Skeleton, Textarea, cn } from '@sp/ui';
+import {
+  Banner,
+  Button,
+  Card,
+  EmptyState,
+  SegmentedNav,
+  Sheet,
+  Skeleton,
+  Textarea,
+  TOAST_DURATION,
+  cn,
+  useToast,
+} from '@sp/ui';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
 import { AbsenceList, absenceRange } from './absence-list';
+import { ExcuseReviewRow } from './excuse-review-row';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
 
 type Tab = 'entschuldigungen' | 'fehlzeiten';
+type Pending = { timer: ReturnType<typeof setTimeout>; run: () => void };
 
-/** Klassenvorstand (AB-02): Entschuldigungen prüfen und Fehlzeiten der Klasse. */
+/**
+ * Klassenvorstand (AB-02, Design System Screens 6): Entschuldigungen prüfen und Fehlzeiten der Klasse.
+ * "Entschuldigen" und Wischen nach rechts entschuldigen sofort mit Rückgängig; "Mit Kommentar" öffnet ein Sheet.
+ */
 export function ClassAbsences({
   classId,
   className,
@@ -25,6 +43,7 @@ export function ClassAbsences({
   const ta = useT('absence');
   const tc = useT('common');
   const problem = useProblemText();
+  const toast = useToast();
   const q = useApi<{ data: AbsenceItem[] }>(
     ['absences', 'class', classId],
     `/absences?classId=${classId}`,
@@ -48,39 +67,71 @@ export function ClassAbsences({
     setComment('');
   };
 
-  const tabLink = (target: Tab, label: string) => (
-    <Link
-      href={`/klasse/${classId}/${target}`}
-      aria-current={tab === target ? 'page' : undefined}
-      className={cn(
-        'inline-flex min-h-11 items-center rounded-sm px-4 text-label',
-        tab === target
-          ? 'bg-brand text-on-brand'
-          : 'border border-line bg-bg-raised hover:bg-bg-sunken',
-      )}
-    >
-      {label}
-    </Link>
-  );
+  // Schnell entschuldigen: Die Zeile verschwindet sofort, gespeichert wird erst nach Ablauf des Toasts
+  // (Rückgängig ohne eigene API). Verlässt man die Seite vorher, wird sofort gespeichert.
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
+  const [failed, setFailed] = useState<string | null>(null);
+  const pending = useRef(new Map<string, Pending>());
+  const send = useRef(review.mutateAsync);
+  useEffect(() => {
+    send.current = review.mutateAsync;
+  });
+  useEffect(() => {
+    const map = pending.current;
+    return () => {
+      for (const p of map.values()) {
+        clearTimeout(p.timer);
+        p.run();
+      }
+      map.clear();
+    };
+  }, []);
+  const setVisible = (id: string, visible: boolean) =>
+    setHidden((h) => {
+      const n = new Set(h);
+      if (visible) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  const quickExcuse = (a: AbsenceItem) => {
+    const name = `${a.student.firstName} ${a.student.lastName}`;
+    setFailed(null);
+    setVisible(a.id, false);
+    const run = () => {
+      pending.current.delete(a.id);
+      send.current({ id: a.id, decision: 'EXCUSED', comment: null }).catch(() => {
+        setVisible(a.id, true);
+        setFailed(t('excuseFailed', { name }));
+      });
+    };
+    pending.current.set(a.id, { timer: setTimeout(run, TOAST_DURATION), run });
+    toast({
+      text: t('excusedToast', { name }),
+      icon: Check,
+      action: {
+        label: tc('undo'),
+        onClick: () => {
+          const p = pending.current.get(a.id);
+          if (p) clearTimeout(p.timer);
+          pending.current.delete(a.id);
+          setVisible(a.id, true);
+        },
+      },
+    });
+  };
+  const visibleToReview = toReview.filter((a) => !hidden.has(a.id));
 
-  const section = (title: string, items: AbsenceItem[], empty?: string) => (
-    <section className="flex flex-col gap-2" aria-label={title}>
-      <h2 className="text-h3">
-        {title} <span className="text-ink-muted">({items.length})</span>
-      </h2>
-      {items.length === 0 ? (
-        empty ? (
-          <Card>
-            <p className="text-ink-muted">{empty}</p>
-          </Card>
-        ) : null
-      ) : (
+  const section = (id: string, title: string, items: AbsenceItem[]) =>
+    items.length === 0 ? null : (
+      <section className="flex flex-col gap-3" aria-labelledby={id}>
+        <h2 id={id} className="text-h3">
+          {title} <span className="text-ink-muted">({items.length})</span>
+        </h2>
         <Card className="p-0">
           <AbsenceList items={items} showStudent onReview={(a) => setCurrent(a)} />
         </Card>
-      )}
-    </section>
-  );
+      </section>
+    );
 
   // Fehlstunden je Schüler:in (entschuldigt / unentschuldigt / offen)
   const perStudent = new Map<
@@ -104,44 +155,96 @@ export function ClassAbsences({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="klassenvorstand">{className}</PageTitle>
-      <nav aria-label={t('title')} className="flex flex-wrap gap-2">
-        {tabLink('entschuldigungen', t('excuses'))}
-        {tabLink('fehlzeiten', t('absences'))}
-      </nav>
+      <SegmentedNav
+        label={t('sections')}
+        linkAs={Link}
+        items={(['entschuldigungen', 'fehlzeiten'] as const).map((target) => ({
+          key: target,
+          href: `/klasse/${classId}/${target}`,
+          label: target === 'entschuldigungen' ? t('excuses') : t('absences'),
+          current: tab === target,
+        }))}
+      />
       {q.isPending ? (
-        <Skeleton className="h-40 w-full" />
+        <div className="flex flex-col gap-3" aria-hidden="true">
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+        </div>
       ) : q.isError ? (
-        <Card>
-          <EmptyState title={problem(q.error) ?? tc('error')} />
-        </Card>
+        <Banner
+          tone="danger"
+          icon={TriangleAlert}
+          action={
+            <Button size="sm" variant="secondary" onClick={() => void q.refetch()}>
+              {tc('retry')}
+            </Button>
+          }
+        >
+          {problem(q.error) ?? tc('error')}
+        </Banner>
       ) : tab === 'entschuldigungen' ? (
         <>
-          {section(t('toReview'), toReview, t('nothingToReview'))}
-          {section(t('open'), open)}
-          {section(t('decided'), decided)}
+          {failed ? (
+            <Banner tone="danger" icon={TriangleAlert}>
+              {failed}
+            </Banner>
+          ) : null}
+          <section className="flex flex-col gap-3" aria-labelledby="to-review">
+            <div className="flex flex-col gap-1">
+              <h2 id="to-review" className="text-h3">
+                {t('toReview')} <span className="text-ink-muted">({visibleToReview.length})</span>
+              </h2>
+              {visibleToReview.length > 0 ? (
+                <p className="text-caption text-ink-muted lg:hidden">{t('swipeHint')}</p>
+              ) : null}
+            </div>
+            {visibleToReview.length === 0 ? (
+              <Card flat>
+                <EmptyState as="h3" title={t('nothingToReview')} />
+              </Card>
+            ) : (
+              <Card className="p-0">
+                <ul>
+                  {visibleToReview.map((a) => (
+                    <ExcuseReviewRow
+                      key={a.id}
+                      item={a}
+                      busy={review.isPending}
+                      onExcuse={() => quickExcuse(a)}
+                      onComment={() => setCurrent(a)}
+                    />
+                  ))}
+                </ul>
+              </Card>
+            )}
+          </section>
+          {section('open-h', t('open'), open)}
+          {section('decided-h', t('decided'), decided)}
         </>
       ) : (
-        <section aria-label={t('perStudent')} className="flex flex-col gap-2">
-          <h2 className="text-h3">{t('perStudent')}</h2>
+        <section aria-labelledby="per-student" className="flex flex-col gap-3">
+          <h2 id="per-student" className="text-h3">
+            {t('perStudent')}
+          </h2>
           {perStudent.size === 0 ? (
-            <Card>
-              <p className="text-ink-muted">{ta('listEmpty')}</p>
+            <Card flat>
+              <EmptyState as="h3" title={ta('listEmpty')} />
             </Card>
           ) : (
             <Card className="overflow-x-auto p-0">
               <table className="w-full text-body-sm">
                 <thead>
-                  <tr className="text-left text-ink-muted">
-                    <th scope="col" className="px-4 py-2 font-medium">
+                  <tr className="text-left text-label text-ink-muted">
+                    <th scope="col" className="px-4 py-2">
                       {t('students')}
                     </th>
-                    <th scope="col" className="px-4 py-2 text-right font-medium">
+                    <th scope="col" className="px-4 py-2 text-right">
                       {t('excused')}
                     </th>
-                    <th scope="col" className="px-4 py-2 text-right font-medium">
+                    <th scope="col" className="px-4 py-2 text-right">
                       {t('unexcused')}
                     </th>
-                    <th scope="col" className="px-4 py-2 text-right font-medium">
+                    <th scope="col" className="px-4 py-2 text-right">
                       {t('pending')}
                     </th>
                   </tr>
@@ -151,19 +254,19 @@ export function ClassAbsences({
                     .sort((a, b) => a.name.localeCompare(b.name, 'de'))
                     .map((r) => (
                       <tr key={r.name} className="border-t border-line">
-                        <th scope="row" className="px-4 py-2 text-left font-normal">
+                        <th scope="row" className="px-4 py-2 text-left text-body-sm">
                           {r.name}
                         </th>
-                        <td className="px-4 py-2 text-right tabular-nums">{r.excused}</td>
+                        <td className="px-4 py-2 text-right text-mono">{r.excused}</td>
                         <td
                           className={cn(
-                            'px-4 py-2 text-right tabular-nums',
-                            r.unexcused > 0 && 'font-semibold text-danger-ink',
+                            'px-4 py-2 text-right text-mono',
+                            r.unexcused > 0 && 'text-signal-ink',
                           )}
                         >
                           {r.unexcused}
                         </td>
-                        <td className="px-4 py-2 text-right tabular-nums">{r.pending}</td>
+                        <td className="px-4 py-2 text-right text-mono">{r.pending}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -189,13 +292,13 @@ export function ClassAbsences({
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
-        {review.error ? <FormError message={problem(review.error)} /> : null}
+        {review.error && current ? <FormError message={problem(review.error)} /> : null}
         <div className="flex flex-wrap gap-2">
           <Button disabled={review.isPending} onClick={() => void decide('EXCUSED')}>
             {t('accept')}
           </Button>
           <Button
-            variant="danger"
+            variant="secondary"
             disabled={review.isPending}
             onClick={() => void decide('REJECTED')}
           >

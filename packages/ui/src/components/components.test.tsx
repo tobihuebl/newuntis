@@ -6,7 +6,9 @@ import { Chip } from './chip';
 import { EmptyState } from './empty-state';
 import { Input } from './input';
 import { KpiTile } from './kpi-tile';
+import { ListRow } from './list-row';
 import { Logo } from './logo';
+import { SegmentedNav } from './segmented-nav';
 import { Skeleton } from './skeleton';
 import { StatusBadge } from './status-badge';
 import { ToastProvider, useToast } from './toast';
@@ -150,6 +152,38 @@ describe('Skeleton und Toast (Zeitverhalten)', () => {
     fireEvent.click(screen.getByText('auslösen'));
     act(() => vi.advanceTimersByTime(5000));
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+});
+
+describe('SegmentedNav', () => {
+  it('ist Navigation mit Links, die gewählte Ansicht trägt aria-current="page"', () => {
+    render(
+      <SegmentedNav
+        label="Kind wählen"
+        linkAs="a"
+        items={[
+          { key: 'a', href: '/heute?kind=a', label: 'Anna', current: true },
+          { key: 'b', href: '/heute?kind=b', label: 'Ben' },
+        ]}
+      />,
+    );
+    const nav = screen.getByRole('navigation', { name: 'Kind wählen' });
+    expect(nav).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Anna' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Ben' })).not.toHaveAttribute('aria-current');
+  });
+});
+
+describe('ListRow', () => {
+  it('als Link: ganze Zeile tippbar, in einer Liste als li', () => {
+    render(
+      <ul>
+        <ListRow as="li" href="/klasse/1" linkAs="a" title="3B" subtitle="24 Schüler:innen" />
+      </ul>,
+    );
+    const link = screen.getByRole('link', { name: /3B/ });
+    expect(link).toHaveAttribute('href', '/klasse/1');
+    expect(link.closest('li')).toHaveClass('border-b');
   });
 });
 

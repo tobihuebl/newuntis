@@ -1,5 +1,6 @@
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
+import { UserRoundX } from 'lucide-react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import type { AbsenceItem } from '@sp/shared';
@@ -11,6 +12,7 @@ import { AbsenceList } from './absence-list';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
 
 /** Fehlzeiten eines Kindes (Eltern, Spec Abschnitt 5: /kind/[id]/fehlzeiten). */
 export function ChildAbsences({ studentId }: { studentId: string }) {
@@ -27,27 +29,19 @@ export function ChildAbsences({ studentId }: { studentId: string }) {
   const [error, setError] = useState<string | null>(null);
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <PageTitle area="familie">{t('list')}</PageTitle>
-        <Button asChild>
+        <Button asChild iconLeft={UserRoundX}>
           <Link href={`/abwesenheit/neu?kind=${studentId}`}>{t('title')}</Link>
         </Button>
       </div>
       {error ? <FormError message={error} /> : null}
       {q.isPending ? (
-        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full rounded-lg" />
       ) : q.isError ? (
-        <Card>
-          <EmptyState
-            title={
-              q.error instanceof ApiError && q.error.problem.status === 403
-                ? tc('forbidden')
-                : tc('error')
-            }
-          />
-        </Card>
+        <LoadError error={q.error} onRetry={() => void q.refetch()} />
       ) : q.data.data.length === 0 ? (
-        <Card>
+        <Card flat>
           <EmptyState title={t('listEmpty')} />
         </Card>
       ) : (

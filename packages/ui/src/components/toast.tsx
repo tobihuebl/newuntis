@@ -18,7 +18,7 @@ interface ToastState extends ToastOptions {
 const ToastContext = React.createContext<((t: ToastOptions) => void) | null>(null);
 
 /** Dauer eines Toasts (Design System: 5 Sekunden). */
-const DURATION = 5000;
+export const TOAST_DURATION = 5000;
 
 /**
  * Toast (Design System, pf-toast): bestätigt kurz und bietet Rückgängig an. Nachtfläche, role="status", immer nur
@@ -36,7 +36,7 @@ export function ToastProvider({
 
   React.useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), DURATION);
+    const t = setTimeout(() => setToast(null), TOAST_DURATION);
     return () => clearTimeout(t);
   }, [toast]);
 

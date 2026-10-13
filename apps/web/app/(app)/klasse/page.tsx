@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Card, EmptyState } from '@sp/ui';
+import { Card, EmptyState, ListRow } from '@sp/ui';
 import { apiGet } from '../../../src/lib/api-server';
 import { requireRoute } from '../../../src/lib/route-guard';
 import { getT } from '../../../src/lib/nav-server';
@@ -22,21 +22,20 @@ export default async function KlassePage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="klassenvorstand">{t('choose')}</PageTitle>
       {classes.length === 0 ? (
-        <Card>
+        <Card flat>
           <EmptyState title={t('noClass')} />
         </Card>
       ) : (
         <Card className="p-0">
           <ul>
             {classes.map((c) => (
-              <li key={c.id} className="border-b border-line last:border-b-0">
-                <Link
-                  href={`/klasse/${c.id}/entschuldigungen`}
-                  className="flex min-h-12 items-center px-4 hover:bg-bg-sunken"
-                >
-                  {c.name}
-                </Link>
-              </li>
+              <ListRow
+                key={c.id}
+                as="li"
+                href={`/klasse/${c.id}/entschuldigungen`}
+                linkAs={Link}
+                title={c.name}
+              />
             ))}
           </ul>
         </Card>

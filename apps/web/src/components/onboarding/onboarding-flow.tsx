@@ -3,7 +3,7 @@ import { BellRing, BookOpenCheck, CheckCircle2, ShieldCheck, Smartphone } from '
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { PRIVACY_NOTICE_VERSION, type PreferencesResponse, type Role } from '@sp/shared';
-import { Button, Checkbox, Skeleton } from '@sp/ui';
+import { Banner, Button, Card, Checkbox, Skeleton, cn } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { PushToggle } from '../profile/push-toggle';
@@ -74,19 +74,30 @@ export function OnboardingFlow({
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-body-sm text-ink-muted" aria-live="polite">
-        {t('step', { n: index + 1, total: steps.length })}
-      </p>
+      {/* Fortschritt als Kachel-Leiste (Design System): erledigt und aktuell Kobalt, offen bg-sunken */}
+      <div className="flex flex-col gap-2">
+        <div aria-hidden="true" className="grid grid-cols-3 gap-2">
+          {steps.map((s, i) => (
+            <span
+              key={s}
+              className={cn('h-2 rounded-xs', i <= index ? 'bg-brand' : 'bg-bg-sunken')}
+            />
+          ))}
+        </div>
+        <p className="text-overline text-ink-muted" aria-live="polite">
+          {t('step', { n: index + 1, total: steps.length })}
+        </p>
+      </div>
 
       {step === 'privacy' ? (
         <section aria-labelledby="ob-h" className="flex flex-col gap-4">
-          <ShieldCheck aria-hidden="true" size={32} className="text-brand-text" />
+          <ShieldCheck aria-hidden="true" className="size-8 text-brand-text" />
           <h1 id="ob-h" className="text-h1">
             {t('welcome', { name: firstName })}
           </h1>
-          <p>{t('intro', { school })}</p>
-          <div className="flex flex-col gap-2 rounded-sm border border-line bg-bg-raised p-4 text-body-sm">
-            <h2 className="font-semibold">{t('privacyTitle')}</h2>
+          <p className="text-body-lg">{t('intro', { school })}</p>
+          <Card flat className="flex flex-col gap-2 text-body-sm">
+            <h2 className="text-h3">{t('privacyTitle')}</h2>
             <p>{t('privacyWho', { school })}</p>
             <ul className="list-disc pl-5">
               <li>{t('privacyWhat')}</li>
@@ -99,7 +110,7 @@ export function OnboardingFlow({
                 href={noticeUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-brand-text underline"
+                className="pf-focusable self-start text-label text-brand-text underline underline-offset-4"
               >
                 {t('privacyFull')}
               </a>
@@ -107,7 +118,7 @@ export function OnboardingFlow({
             <p className="text-caption text-ink-muted">
               {t('version', { version: PRIVACY_NOTICE_VERSION })}
             </p>
-          </div>
+          </Card>
           <Checkbox
             label={t('accept')}
             checked={accepted}
@@ -125,27 +136,26 @@ export function OnboardingFlow({
 
       {step === 'notifications' ? (
         <section aria-labelledby="ob-h" className="flex flex-col gap-4">
-          <BellRing aria-hidden="true" size={32} className="text-brand-text" />
+          <BellRing aria-hidden="true" className="size-8 text-brand-text" />
           <h1 id="ob-h" className="text-h1">
             {t('notifyTitle')}
           </h1>
-          <p>{t(`notify_${kind}`)}</p>
+          <p className="text-body-lg">{t(`notify_${kind}`)}</p>
           {prefs.data ? (
             <PushToggle vapidPublicKey={prefs.data.vapidPublicKey} />
-          ) : (
+          ) : prefs.isError ? null : (
             <Skeleton className="h-12 w-full" />
           )}
-          <div className="flex gap-3 rounded-sm border border-line p-4 text-body-sm">
-            <Smartphone aria-hidden="true" size={20} className="shrink-0 text-ink-muted" />
-            <div className="flex flex-col gap-1">
-              <p className="font-medium">{t('iosTitle')}</p>
+          <Banner tone="brand" icon={Smartphone}>
+            <div className="flex flex-col gap-1 text-body-sm">
+              <p className="text-body-strong">{t('iosTitle')}</p>
               <ol className="list-decimal pl-5">
                 <li>{t('ios1')}</li>
                 <li>{t('ios2')}</li>
               </ol>
               <p className="text-ink-muted">{t('emailFallback')}</p>
             </div>
-          </div>
+          </Banner>
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => setStep('role')}>{t('next')}</Button>
             <Button variant="ghost" onClick={() => setStep('privacy')}>
@@ -158,9 +168,9 @@ export function OnboardingFlow({
       {step === 'role' ? (
         <section aria-labelledby="ob-h" className="flex flex-col gap-4">
           {kind === 'teacher' ? (
-            <BookOpenCheck aria-hidden="true" size={32} className="text-brand-text" />
+            <BookOpenCheck aria-hidden="true" className="size-8 text-brand-text" />
           ) : (
-            <CheckCircle2 aria-hidden="true" size={32} className="text-brand-text" />
+            <CheckCircle2 aria-hidden="true" className="size-8 text-brand-text" />
           )}
           <h1 id="ob-h" className="text-h1">
             {t(`roleTitle_${kind}`)}
@@ -168,12 +178,8 @@ export function OnboardingFlow({
           <ul className="flex flex-col gap-2">
             {[1, 2, 3].map((n) => (
               <li key={n} className="flex gap-2">
-                <CheckCircle2
-                  aria-hidden="true"
-                  size={18}
-                  className="mt-0.5 shrink-0 text-brand-text"
-                />
-                <span>{t(`tip_${kind}_${n}`)}</span>
+                <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand-text" />
+                <span className="text-body">{t(`tip_${kind}_${n}`)}</span>
               </li>
             ))}
           </ul>

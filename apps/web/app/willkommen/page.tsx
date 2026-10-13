@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { Card } from '@sp/ui';
+import { Card, Logo } from '@sp/ui';
 import { OnboardingFlow } from '../../src/components/onboarding/onboarding-flow';
 import { AppProviders } from '../../src/components/providers';
 import { getMe } from '../../src/lib/api-server';
@@ -26,8 +26,8 @@ export default async function WillkommenPage() {
       clearAfterIdleDays={me.tenant.offlineClearAfterIdleDays}
       formal={isFormalView(nav.view)}
     >
-      <main className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 p-4">
-        <p className="text-center text-h3 text-brand-text">{t('name')}</p>
+      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col justify-center gap-6 px-4 py-8">
+        <Logo className="self-center" label={t('name')} />
         <Card className="p-6">
           <OnboardingFlow
             firstName={me.user.firstName}

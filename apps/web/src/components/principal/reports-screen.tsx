@@ -3,12 +3,22 @@ import { Download } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { addDays, type AttendanceReport, type SubstitutionReport } from '@sp/shared';
-import { Button, Card, EmptyState, Input, SegmentedControl, Select, Skeleton } from '@sp/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Input,
+  KpiTile,
+  SegmentedControl,
+  Select,
+  Skeleton,
+} from '@sp/ui';
 import { todayVienna } from '../../lib/dates';
 import { useApi } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
 
 type Tab = 'attendance' | 'substitutions';
 
@@ -22,17 +32,13 @@ function Table({
   rows: (string | number)[][];
 }) {
   return (
-    <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
+    <Card className="overflow-x-auto p-0">
       <table className="w-full text-body-sm">
         <caption className="sr-only">{caption}</caption>
         <thead>
-          <tr className="border-b border-line text-left text-ink-muted">
+          <tr className="border-b border-line text-left text-label text-ink-muted">
             {head.map((h, i) => (
-              <th
-                key={h}
-                scope="col"
-                className={i === 0 ? 'px-4 py-2 font-medium' : 'px-3 py-2 text-right font-medium'}
-              >
+              <th key={h} scope="col" className={i === 0 ? 'px-4 py-3' : 'px-3 py-3 text-right'}>
                 {h}
               </th>
             ))}
@@ -43,11 +49,11 @@ function Table({
             <tr key={i} className="border-b border-line last:border-b-0">
               {r.map((c, j) =>
                 j === 0 ? (
-                  <th key={j} scope="row" className="px-4 py-2 text-left font-normal">
+                  <th key={j} scope="row" className="px-4 py-2 text-left text-body-sm">
                     {c}
                   </th>
                 ) : (
-                  <td key={j} className="px-3 py-2 text-right tabular-nums">
+                  <td key={j} className="px-3 py-2 text-right text-mono">
                     {c}
                   </td>
                 ),
@@ -56,14 +62,13 @@ function Table({
           ))}
         </tbody>
       </table>
-    </div>
+    </Card>
   );
 }
 
 /** Basis-Auswertungen (DB-03): Anwesenheit je Klasse und Schüler:in, Supplierstunden, Export als CSV. */
 export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
   const t = useT('reports');
-  const tc = useT('common');
   const router = useRouter();
   const search = useSearchParams();
   const today = todayVienna();
@@ -175,37 +180,31 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" onClick={() => preset('month')}>
+          <Button variant="ghost" size="sm" onClick={() => preset('month')}>
             {t('thisMonth')}
           </Button>
-          <Button variant="ghost" onClick={() => preset(30)}>
+          <Button variant="ghost" size="sm" onClick={() => preset(30)}>
             {t('last30')}
           </Button>
-          <Button variant="ghost" onClick={() => preset('year')}>
+          <Button variant="ghost" size="sm" onClick={() => preset('year')}>
             {t('lastYear')}
+          </Button>
+          <Button variant="secondary" size="sm" asChild iconLeft={Download} className="ml-auto">
+            <a href={csv} download>
+              {t('csv')}
+            </a>
           </Button>
         </div>
         {!valid ? <FormError message={t('invalidRange')} /> : null}
       </Card>
 
-      <div className="flex justify-end">
-        <Button variant="secondary" asChild>
-          <a href={csv} download>
-            <Download aria-hidden="true" size={18} />
-            {t('csv')}
-          </a>
-        </Button>
-      </div>
-
       {tab === 'attendance' ? (
         attendance.isPending ? (
-          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full rounded-lg" />
         ) : !attendance.data ? (
-          <Card>
-            <EmptyState title={tc('error')} />
-          </Card>
+          <LoadError error={attendance.error} onRetry={() => void attendance.refetch()} />
         ) : attendance.data.classes.length === 0 ? (
-          <Card>
+          <Card flat>
             <EmptyState title={t('empty')} />
           </Card>
         ) : (
@@ -227,7 +226,7 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
               ])}
             />
             {attendance.data.students ? (
-              <section aria-labelledby="students-h" className="flex flex-col gap-2">
+              <section aria-labelledby="students-h" className="flex flex-col gap-3">
                 <h2 id="students-h" className="text-h3">
                   {t('byStudent')}
                 </h2>
@@ -252,23 +251,20 @@ export function ReportsScreen({ schoolWide }: { schoolWide: boolean }) {
           </>
         )
       ) : subs.isPending ? (
-        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-48 w-full rounded-lg" />
       ) : !subs.data ? (
-        <Card>
-          <EmptyState title={tc('error')} />
-        </Card>
+        <LoadError error={subs.error} onRetry={() => void subs.refetch()} />
       ) : (
         <>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {(['substitutions', 'supervisions', 'cancelled', 'roomChanges'] as const).map((k) => (
-              <li key={k} className="rounded-md border border-line bg-bg-raised p-4">
-                <p className="text-body-sm text-ink-muted">{t(`total_${k}`)}</p>
-                <p className="text-h1 tabular-nums">{subs.data!.totals[k]}</p>
+              <li key={k}>
+                <KpiTile value={subs.data!.totals[k]} label={t(`total_${k}`)} className="h-full" />
               </li>
             ))}
           </ul>
           {subs.data.teachers.length === 0 ? (
-            <Card>
+            <Card flat>
               <EmptyState title={t('emptySubstitutions')} />
             </Card>
           ) : (

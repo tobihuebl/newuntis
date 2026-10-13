@@ -29,7 +29,7 @@ export function ClassbookList() {
     p === null ? null : closing.has(id) && p !== 'closed' ? (
       <Chip tone="ok">{tt('progress_pending')}</Chip>
     ) : (
-      <Chip tone={p === 'closed' ? 'ok' : p === 'started' ? 'late' : 'neutral'}>
+      <Chip tone={p === 'closed' ? 'ok' : p === 'started' ? 'late' : 'absent'}>
         {tt(`progress_${p}`)}
       </Chip>
     );
@@ -38,7 +38,7 @@ export function ClassbookList() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="unterricht">{t('title')}</PageTitle>
       <SyncStatus />
-      <section aria-labelledby="open" className="flex flex-col gap-2">
+      <section aria-labelledby="open" className="flex flex-col gap-3">
         <h2 id="open" className="text-h3">
           {t('open')}
         </h2>
@@ -47,8 +47,8 @@ export function ClassbookList() {
         ) : open.isError ? (
           <LoadError error={open.error} onRetry={() => void open.refetch()} />
         ) : openList.length === 0 ? (
-          <Card>
-            <EmptyState title={t('openEmpty')} description={t('openEmptyDescription')} />
+          <Card flat>
+            <EmptyState as="h3" title={t('openEmpty')} description={t('openEmptyDescription')} />
           </Card>
         ) : (
           <Card className="p-0">
@@ -61,7 +61,7 @@ export function ClassbookList() {
                   href={`/klassenbuch/${o.id}?von=liste`}
                   trailing={
                     <>
-                      <span className="text-caption text-ink-muted">{weekdayDate(o.date)}</span>
+                      <span className="text-mono-sm text-ink-muted">{weekdayDate(o.date)}</span>
                       {progress(o.classbook, o.id)}
                     </>
                   }
@@ -71,7 +71,7 @@ export function ClassbookList() {
           </Card>
         )}
       </section>
-      <section aria-labelledby="today" className="flex flex-col gap-2">
+      <section aria-labelledby="today" className="flex flex-col gap-3">
         <h2 id="today" className="text-h3">
           {t('todayList')}
         </h2>
@@ -80,8 +80,8 @@ export function ClassbookList() {
         ) : today.isError ? (
           <LoadError error={today.error} onRetry={() => void today.refetch()} />
         ) : today.data.data.lessons.length === 0 ? (
-          <Card>
-            <EmptyState title={tt('emptyTitle')} />
+          <Card flat>
+            <EmptyState as="h3" title={tt('emptyTitle')} />
           </Card>
         ) : (
           <Card className="p-0">

@@ -1,12 +1,24 @@
 'use client';
+import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { addDays, type TeacherAbsenceItem } from '@sp/shared';
-import { Button, Card, Checkbox, Input, Select, Skeleton, Textarea } from '@sp/ui';
+import {
+  Button,
+  Card,
+  Checkbox,
+  EmptyState,
+  Input,
+  Select,
+  Skeleton,
+  Textarea,
+  useToast,
+} from '@sp/ui';
 import { dateTimeOf, todayVienna } from '../../lib/dates';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
 
 const PERIODS = Array.from({ length: 10 }, (_, i) => ({
   value: String(i + 1),
@@ -34,19 +46,18 @@ export function SickReport() {
   const [fp, setFp] = useState('1');
   const [tp, setTp] = useState('6');
   const [note, setNote] = useState('');
-  const [sent, setSent] = useState(false);
+  const toast = useToast();
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="unterricht">{t('title')}</PageTitle>
-      <p className="text-ink-muted">{t('help')}</p>
+      <p className="text-body text-ink-muted">{t('help')}</p>
       <Card>
         <form
           className="flex flex-col gap-4"
           noValidate
           onSubmit={async (e) => {
             e.preventDefault();
-            setSent(false);
             await create.mutateAsync({
               fromDate: from,
               toDate: to,
@@ -55,7 +66,7 @@ export function SickReport() {
               kind: 'SICK',
               note: note || null,
             });
-            setSent(true);
+            toast({ text: t('sent'), icon: Check });
             setNote('');
           }}
         >
@@ -105,22 +116,23 @@ export function SickReport() {
             onChange={(e) => setNote(e.target.value)}
           />
           {create.error ? <FormError message={problem(create.error)} /> : null}
-          <p role="status" className="text-body-sm text-brand-text">
-            {sent ? t('sent') : ''}
-          </p>
-          <Button type="submit" disabled={create.isPending} className="self-start">
+          <Button type="submit" loading={create.isPending} className="self-start">
             {t('send')}
           </Button>
         </form>
       </Card>
-      <section aria-labelledby="mine" className="flex flex-col gap-2">
+      <section aria-labelledby="mine" className="flex flex-col gap-3">
         <h2 id="mine" className="text-h3">
           {t('mine')}
         </h2>
-        {!list.data ? (
+        {list.isError ? (
+          <LoadError error={list.error} onRetry={() => void list.refetch()} />
+        ) : !list.data ? (
           <Skeleton className="h-16 w-full" />
         ) : list.data.data.length === 0 ? (
-          <p className="text-ink-muted">{t('none')}</p>
+          <Card flat>
+            <EmptyState as="h3" title={t('none')} />
+          </Card>
         ) : (
           <Card className="p-0">
             <ul>
@@ -130,7 +142,7 @@ export function SickReport() {
                   className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <div>
-                    <p className="font-medium">
+                    <p className="text-body-strong">
                       {dateTimeOf(a.fromAt)} – {dateTimeOf(a.toAt)}
                     </p>
                     <p className="text-body-sm text-ink-muted">
@@ -142,7 +154,12 @@ export function SickReport() {
                       })}
                     </p>
                   </div>
-                  <Button variant="ghost" onClick={() => remove.mutate(a.id)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate(a.id)}
+                  >
                     {t('delete')}
                   </Button>
                 </li>

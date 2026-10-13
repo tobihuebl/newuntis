@@ -1,13 +1,15 @@
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download } from 'lucide-react';
+import { Download, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { Channel, NotificationType, PreferencesResponse } from '@sp/shared';
-import { Button, Card, Input, SegmentedControl, Skeleton, Switch } from '@sp/ui';
+import { Button, Card, Input, SegmentedControl, Skeleton, Switch, useToast } from '@sp/ui';
 import { dateTimeOf } from '../../lib/dates';
-import { useApi, useApiMutation } from '../../lib/use-api';
+import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
+import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
 import { clearOfflineData } from '../../offline/db';
 import { applyTheme, readTheme, type Theme } from '../../lib/theme';
 import { PushToggle } from './push-toggle';
@@ -78,7 +80,7 @@ export function ProfileScreen(p: ProfileProps) {
           }))}
         />
         <div className="flex flex-col gap-1 text-body-sm">
-          <span className="font-medium">{t('language')}</span>
+          <span className="text-label">{t('language')}</span>
           <span>{t('languageValue')}</span>
           <span className="text-ink-muted">{t('languageMore')}</span>
         </div>
@@ -97,7 +99,8 @@ function NotificationSettings() {
   const save = useApiMutation<object, PreferencesResponse>('PATCH', () => '/me/preferences', [
     ['preferences'],
   ]);
-  const [saved, setSaved] = useState(false);
+  const toast = useToast();
+  const problem = useProblemText();
   const [quiet, setQuiet] = useState<{ from: string; to: string } | null>(null);
   useEffect(() => {
     if (q.data) setQuiet(q.data.quiet);
@@ -105,72 +108,69 @@ function NotificationSettings() {
   const enabled = (type: NotificationType, channel: Channel) =>
     q.data?.channels.find((c) => c.type === type && c.channel === channel)?.enabled ?? false;
   const persist = async (body: object) => {
-    setSaved(false);
     await save.mutateAsync(body);
-    setSaved(true);
+    toast({ text: t('saved') });
   };
 
   return (
     <Section title={t('notifications')}>
-      {!q.data ? (
+      {q.isError ? (
+        <LoadError error={q.error} onRetry={() => void q.refetch()} />
+      ) : !q.data ? (
         <Skeleton className="h-40 w-full" />
       ) : (
         <>
           <div className="flex flex-col gap-1">
-            <h3 className="font-medium">{t('push')}</h3>
+            <h3 className="text-label">{t('push')}</h3>
             <PushToggle vapidPublicKey={q.data.vapidPublicKey} />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-body-sm">
-              <caption className="sr-only">{t('channels')}</caption>
-              <thead>
-                <tr className="text-left text-ink-muted">
-                  <th scope="col" className="py-2 pr-2 font-medium">
-                    {t('type')}
-                  </th>
-                  <th scope="col" className="px-2 py-2 font-medium">
-                    {t('inApp')}
-                  </th>
-                  <th scope="col" className="px-2 py-2 font-medium">
-                    {t('channelPush')}
-                  </th>
-                  <th scope="col" className="px-2 py-2 font-medium">
-                    {t('channelEmail')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {q.data.types.map((type) => (
-                  <tr key={type} className="border-t border-line">
-                    <th scope="row" className="py-1 pr-2 text-left font-normal">
-                      {t(`types.${type.replace('.', '_')}`)}
+          {/* Liste statt Tabelle (Design System, Responsive Muster): je Art eine Zeile mit Push und E-Mail */}
+          <div className="flex flex-col">
+            <p className="text-body-sm text-ink-muted">{t('inAppAlways')}</p>
+            <div
+              aria-hidden="true"
+              className="mt-3 grid grid-cols-[1fr_4rem_4rem] gap-2 border-b border-line pb-2 text-caption text-ink-muted"
+            >
+              <span>{t('type')}</span>
+              <span className="text-center">{t('channelPush')}</span>
+              <span className="text-center">{t('channelEmail')}</span>
+            </div>
+            <ul aria-label={t('channels')}>
+              {q.data.types.map((type) => {
+                const label = t(`types.${type.replace('.', '_')}`);
+                return (
+                  <li
+                    key={type}
+                    className="grid min-h-13 grid-cols-[1fr_4rem_4rem] items-center gap-2 border-b border-line py-2 last:border-b-0"
+                  >
+                    <span className="text-body-sm">
+                      {label}
                       {q.data.mandatory.some((m) => m.type === type) ? (
                         <span className="block text-caption text-ink-muted">{t('mandatory')}</span>
                       ) : null}
-                    </th>
-                    <td className="px-2 text-ink-muted">{t('always')}</td>
+                    </span>
                     {(['push', 'email'] as const).map((channel) => (
-                      <td key={channel} className="px-2">
+                      <span key={channel} className="flex justify-center">
                         <Switch
                           checked={enabled(type, channel)}
                           disabled={q.data!.mandatory.some(
                             (m) => m.type === type && m.channel === channel,
                           )}
                           hideLabel
-                          label={`${t(`types.${type.replace('.', '_')}`)}: ${channel === 'push' ? t('channelPush') : t('channelEmail')}`}
+                          label={`${label}: ${channel === 'push' ? t('channelPush') : t('channelEmail')}`}
                           onCheckedChange={(v) =>
                             void persist({ channels: [{ type, channel, enabled: v }] })
                           }
                         />
-                      </td>
+                      </span>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
           <fieldset className="flex flex-col gap-2">
-            <legend className="font-medium">{t('quiet')}</legend>
+            <legend className="text-label">{t('quiet')}</legend>
             <p className="text-body-sm text-ink-muted">{t('quietHelp')}</p>
             <Switch
               checked={quiet !== null}
@@ -202,9 +202,7 @@ function NotificationSettings() {
               </div>
             ) : null}
           </fieldset>
-          <p role="status" className="text-body-sm text-brand-text">
-            {saved ? t('saved') : ''}
-          </p>
+          {save.error ? <FormError message={problem(save.error)} /> : null}
         </>
       )}
     </Section>
@@ -218,15 +216,13 @@ function MyData() {
     <Section title={t('myData')}>
       <p className="text-body-sm">{t('myDataText')}</p>
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" asChild>
+        <Button variant="secondary" asChild iconLeft={Download}>
           <a href="/api/v1/me/export?format=pdf" download>
-            <Download aria-hidden="true" size={18} />
             {t('exportPdf')}
           </a>
         </Button>
-        <Button variant="ghost" asChild>
+        <Button variant="ghost" asChild iconLeft={Download}>
           <a href="/api/v1/me/export?format=json" download>
-            <Download aria-hidden="true" size={18} />
             {t('exportJson')}
           </a>
         </Button>
@@ -279,11 +275,14 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
   return (
     <Section title={t('security')}>
       <p className="text-body-sm">
-        {t('twoFactor')}: <strong>{twoFactor ? t('twoFactorOn') : t('twoFactorOff')}</strong>
+        {t('twoFactor')}:{' '}
+        <strong className="text-body-strong">{twoFactor ? t('twoFactorOn') : t('twoFactorOff')}</strong>
       </p>
       <div className="flex flex-col gap-2">
-        <h3 className="font-medium">{t('devices')}</h3>
-        {!q.data ? (
+        <h3 className="text-label">{t('devices')}</h3>
+        {q.isError ? (
+          <LoadError error={q.error} onRetry={() => void q.refetch()} />
+        ) : !q.data ? (
           <Skeleton className="h-16 w-full" />
         ) : (
           <ul className="flex flex-col">
@@ -302,7 +301,7 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
                   </p>
                 </div>
                 {s.current ? null : (
-                  <Button variant="ghost" onClick={() => end.mutate(s.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => end.mutate(s.id)}>
                     {t('signOut')}
                   </Button>
                 )}
@@ -313,7 +312,8 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
       </div>
       <div className="flex flex-col gap-1">
         <Button
-          variant="danger"
+          variant="secondary"
+          iconLeft={LogOut}
           className="self-start"
           onClick={async () => {
             await all.mutateAsync(undefined);

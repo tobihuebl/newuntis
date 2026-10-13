@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Chip, Card, EmptyState } from '@sp/ui';
+import { FilePen } from 'lucide-react';
+import { Chip, Card, EmptyState, ListRow } from '@sp/ui';
 import { apiGet } from '../../../src/lib/api-server';
 import { shortDate } from '../../../src/lib/dates';
 import { requireRoute } from '../../../src/lib/route-guard';
@@ -24,33 +25,32 @@ export default async function FreigabenPage() {
   const current = data.find((v) => v.status === 'PUBLISHED');
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div>
+      <div className="flex flex-col gap-2">
         <PageTitle area="direktion">{t('title')}</PageTitle>
         <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </div>
       {drafts.length === 0 ? (
-        <Card>
+        <Card flat>
           <EmptyState title={t('empty')} description={t('emptyText')} />
         </Card>
       ) : (
         <Card className="p-0">
           <ul>
             {drafts.map((v) => (
-              <li key={v.id} className="border-b border-line last:border-b-0">
-                <Link
-                  href={`/admin/stundenplan/${v.id}`}
-                  className="flex min-h-16 flex-wrap items-center justify-between gap-2 px-4 py-3 hover:bg-bg-sunken"
-                >
-                  <span>
-                    <span className="block font-medium">{v.name ?? t('unnamed')}</span>
-                    <span className="block text-body-sm text-ink-muted">
-                      {v.schoolYear.name} · {t('validFrom', { date: shortDate(v.validFrom) })} ·{' '}
-                      {t('lessons', { count: v.lessonCount })}
-                    </span>
-                  </span>
-                  <Chip tone="late">{t('draft')}</Chip>
-                </Link>
-              </li>
+              <ListRow
+                key={v.id}
+                as="li"
+                href={`/admin/stundenplan/${v.id}`}
+                linkAs={Link}
+                className="min-h-16 py-3"
+                title={v.name ?? t('unnamed')}
+                subtitle={`${v.schoolYear.name} · ${t('validFrom', { date: shortDate(v.validFrom) })} · ${t('lessons', { count: v.lessonCount })}`}
+                trailing={
+                  <Chip tone="absent" icon={FilePen}>
+                    {t('draft')}
+                  </Chip>
+                }
+              />
             ))}
           </ul>
         </Card>

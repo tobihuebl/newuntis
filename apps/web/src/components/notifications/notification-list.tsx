@@ -1,5 +1,6 @@
 'use client';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { notificationText, type NotificationItem } from '@sp/shared';
 import { Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
@@ -8,6 +9,7 @@ import { dateTimeOf } from '../../lib/dates';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
+import { LoadError } from '../load-error';
 
 interface Page {
   data: NotificationItem[];
@@ -39,11 +41,13 @@ export function NotificationList() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <PageTitle area="konto">{t('title')}</PageTitle>
         {unread > 0 ? (
           <Button
             variant="secondary"
+            size="sm"
+            iconLeft={CheckCheck}
             onClick={async () => {
               await apiRequest('POST', '/notifications/read-all', undefined, csrfToken);
               refresh();
@@ -54,20 +58,11 @@ export function NotificationList() {
         ) : null}
       </div>
       {q.isPending ? (
-        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full rounded-lg" />
       ) : q.isError ? (
-        <Card>
-          <EmptyState
-            title={tc('error')}
-            action={
-              <Button variant="secondary" onClick={() => void q.refetch()}>
-                {tc('retry')}
-              </Button>
-            }
-          />
-        </Card>
+        <LoadError error={q.error} onRetry={() => void q.refetch()} />
       ) : items.length === 0 ? (
-        <Card>
+        <Card flat>
           <EmptyState title={t('empty')} description={t('emptyDescription')} />
         </Card>
       ) : (
@@ -80,27 +75,24 @@ export function NotificationList() {
                   <button
                     type="button"
                     onClick={() => void open(n)}
-                    className={cn(
-                      'flex min-h-16 w-full items-start gap-3 px-4 py-3 text-left hover:bg-bg-sunken',
-                      !n.readAt && 'bg-bg-sunken/60',
-                    )}
+                    className="pf-focusable flex min-h-16 w-full items-start gap-3 px-4 py-3 text-left hover:bg-brand-soft"
                   >
                     <span
                       aria-hidden="true"
                       className={cn(
-                        'mt-2 h-2 w-2 shrink-0 rounded-full',
-                        n.readAt ? 'bg-transparent' : 'bg-brand',
+                        'mt-2 size-2 shrink-0 rounded-pill',
+                        n.readAt ? 'bg-transparent' : 'bg-signal',
                       )}
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block font-medium">
+                      <span className={cn('block', n.readAt ? 'text-body' : 'text-body-strong')}>
                         {text.title}
                         {n.params.correction ? ` (${t('correction')})` : ''}
                         {!n.readAt ? <span className="sr-only">, {t('unread')}</span> : null}
                       </span>
                       <span className="block text-body-sm text-ink-muted">{text.body}</span>
                     </span>
-                    <span className="shrink-0 text-caption text-ink-muted tabular-nums">
+                    <span className="shrink-0 text-mono-sm text-ink-muted">
                       {dateTimeOf(n.createdAt)}
                     </span>
                   </button>

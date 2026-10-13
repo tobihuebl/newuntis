@@ -9,7 +9,7 @@ import {
   UserRoundX,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   addDays,
@@ -29,6 +29,7 @@ import {
   EmptyState,
   FACH_BORDER,
   KpiTile,
+  SegmentedNav,
   Skeleton,
   cn,
 } from '@sp/ui';
@@ -368,23 +369,18 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
 
 function ChildSwitcher({ data }: { data: TodayResponse }) {
   const t = useT('today');
-  const router = useRouter();
   if (data.children.length < 2) return null;
   return (
-    <nav aria-label={t('child')} className="flex flex-wrap gap-2">
-      {data.children.map((c) => (
-        <Button
-          key={c.id}
-          size="sm"
-          variant={c.id === data.studentId ? 'primary' : 'secondary'}
-          aria-current={c.id === data.studentId ? 'page' : undefined}
-          onClick={() => router.replace(`/heute?kind=${encodeURIComponent(c.id)}`)}
-        >
-          {c.firstName}
-          {c.className ? ` (${c.className})` : ''}
-        </Button>
-      ))}
-    </nav>
+    <SegmentedNav
+      label={t('child')}
+      linkAs={Link}
+      items={data.children.map((c) => ({
+        key: c.id,
+        href: `/heute?kind=${encodeURIComponent(c.id)}`,
+        label: c.className ? `${c.firstName} (${c.className})` : c.firstName,
+        current: c.id === data.studentId,
+      }))}
+    />
   );
 }
 

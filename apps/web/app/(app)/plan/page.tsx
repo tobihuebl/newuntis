@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { can, type PlanResponse } from '@sp/shared';
-import { Button } from '@sp/ui';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button, SegmentedNav } from '@sp/ui';
 import { CalendarSubscription } from '../../../src/components/plan/calendar-subscription';
 import { PlanPicker } from '../../../src/components/plan/plan-picker';
 import { WeekPlan, type PlanPerspective } from '../../../src/components/plan/week-plan';
@@ -81,39 +82,40 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-2">
           <PageTitle area="stundenplan">{title}</PageTitle>
           <p className="text-body-sm text-ink-muted">
             {t('week', { from: shortDate(week.from), to: shortDate(week.to) })}
           </p>
         </div>
         <nav aria-label={t('title')} className="flex flex-wrap gap-2">
-          <Button variant="secondary" asChild>
+          <Button variant="secondary" size="sm" asChild iconLeft={ChevronLeft}>
             <Link href={link(week.prev)}>{t('prevWeek')}</Link>
           </Button>
-          <Button variant="ghost" asChild>
+          <Button variant="ghost" size="sm" asChild>
             <Link href={link('')}>{t('thisWeek')}</Link>
           </Button>
-          <Button variant="secondary" asChild>
-            <Link href={link(week.next)}>{t('nextWeek')}</Link>
+          <Button variant="secondary" size="sm" asChild>
+            <Link href={link(week.next)}>
+              {t('nextWeek')}
+              <ChevronRight aria-hidden="true" />
+            </Link>
           </Button>
         </nav>
       </div>
 
       {children.length > 1 ? (
-        <nav aria-label={t('child')} className="flex flex-wrap gap-2">
-          {children.map((c) => (
-            <Button key={c.id} variant={c.id === child?.id ? 'primary' : 'secondary'} asChild>
-              <Link
-                href={`/plan?child=${c.id}&from=${week.from}`}
-                aria-current={c.id === child?.id ? 'page' : undefined}
-              >
-                {c.firstName}
-              </Link>
-            </Button>
-          ))}
-        </nav>
+        <SegmentedNav
+          label={t('child')}
+          linkAs={Link}
+          items={children.map((c) => ({
+            key: c.id,
+            href: `/plan?child=${c.id}&from=${week.from}`,
+            label: c.firstName,
+            current: c.id === child?.id,
+          }))}
+        />
       ) : null}
 
       {directory ? <PlanPicker directory={directory} from={week.from} current={current} /> : null}

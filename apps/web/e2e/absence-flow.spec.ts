@@ -36,10 +36,10 @@ test('Eltern melden eine Abwesenheit, der Klassenvorstand nimmt sie an, Eltern w
   await kv.goto('/klasse');
   await expect(kv).toHaveURL(/\/klasse\/[^/]+\/entschuldigungen$/);
   const row = kv.locator('li[data-absence="REPORTED"]', { hasText: note });
-  await row.getByRole('button', { name: 'Entschuldigung prüfen' }).click();
+  await row.getByRole('button', { name: /^Mit Kommentar/ }).click();
   const dialog = kv.getByRole('dialog');
   await dialog.getByLabel('Kommentar (optional)').fill('Gute Besserung');
-  await dialog.getByRole('button', { name: 'Annehmen' }).click();
+  await dialog.getByRole('button', { name: 'Entschuldigen' }).click();
   await expect(
     kv.locator('li[data-absence="EXCUSED"]', { hasText: 'Gute Besserung' }),
   ).toBeVisible();

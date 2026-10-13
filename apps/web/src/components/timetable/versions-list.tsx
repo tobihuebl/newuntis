@@ -1,9 +1,10 @@
 'use client';
-import { Plus } from 'lucide-react';
+import { Archive, CircleCheck, FilePen, Info, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Chip, Button, EmptyState, Input, Select, Sheet } from '@sp/ui';
+import { Banner, Button, Card, Chip, EmptyState, Input, ListRow, Select, Sheet } from '@sp/ui';
+import { shortDate } from '../../lib/dates';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
@@ -18,6 +19,8 @@ export interface VersionRow {
   schoolYear: { id: string; name: string };
   lessonCount: number;
 }
+
+const STATUS_ICON = { PUBLISHED: CircleCheck, DRAFT: FilePen, ARCHIVED: Archive } as const;
 
 export function VersionsList({
   rows,
@@ -60,63 +63,49 @@ export function VersionsList({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <PageTitle area="stundenplan">{t('versions')}</PageTitle>
         {canEdit && schoolYearId ? (
-          <Button onClick={() => setOpen(true)}>
-            <Plus aria-hidden="true" size={18} />
+          <Button iconLeft={Plus} onClick={() => setOpen(true)}>
             {t('newDraft')}
           </Button>
         ) : null}
       </div>
-      {!schoolYearId ? <p className="text-ink-muted">{t('noYear')}</p> : null}
+      {!schoolYearId ? (
+        <Banner tone="brand" icon={Info}>
+          {t('noYear')}
+        </Banner>
+      ) : null}
       {rows.length === 0 ? (
-        <div className="rounded-md border border-line bg-bg-raised">
+        <Card flat>
           <EmptyState title={t('noVersions')} description={t('noVersionsHelp')} />
-        </div>
+        </Card>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
-          <table className="w-full text-left text-body-sm">
-            <thead className="border-b border-line text-ink-muted">
-              <tr>
-                <th scope="col" className="px-4 py-3">
-                  {t('name')}
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  {t('status')}
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  {t('validFrom')}
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  {t('lessons')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-b border-line last:border-b-0">
-                  <td className="px-4 py-3">
-                    <Link className="text-brand-text underline" href={`/admin/stundenplan/${r.id}`}>
-                      {r.name ?? `${t('statuses.' + r.status)} ${r.schoolYear.name}`}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Chip
-                      tone={
-                        r.status === 'PUBLISHED' ? 'ok' : r.status === 'DRAFT' ? 'ok' : 'neutral'
-                      }
-                    >
-                      {t(`statuses.${r.status}`)}
-                    </Chip>
-                  </td>
-                  <td className="px-4 py-3 tabular-nums">{r.validFrom}</td>
-                  <td className="px-4 py-3 tabular-nums">{r.lessonCount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Card className="p-0">
+          <ul aria-label={t('versions')}>
+            {rows.map((r) => (
+              <ListRow
+                key={r.id}
+                as="li"
+                href={`/admin/stundenplan/${r.id}`}
+                linkAs={Link}
+                className="min-h-16 py-3"
+                title={r.name ?? `${t('statuses.' + r.status)} ${r.schoolYear.name}`}
+                subtitle={`${t('validFrom')} ${shortDate(r.validFrom)} · ${t('lessonCount', { count: r.lessonCount })}`}
+                trailing={
+                  <Chip
+                    tone={
+                      r.status === 'PUBLISHED' ? 'ok' : r.status === 'DRAFT' ? 'absent' : 'neutral'
+                    }
+                    icon={STATUS_ICON[r.status]}
+                  >
+                    {t(`statuses.${r.status}`)}
+                  </Chip>
+                }
+              />
+            ))}
+          </ul>
+        </Card>
       )}
       <Sheet open={open} onOpenChange={setOpen} title={t('newDraft')} closeLabel={c('close')}>
         <form onSubmit={create} className="flex flex-col gap-4" noValidate>

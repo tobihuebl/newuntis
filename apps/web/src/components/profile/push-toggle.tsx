@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { BellOff } from 'lucide-react';
+import { BellOff, Smartphone } from 'lucide-react';
 import { Banner, Button } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useSession } from '../providers';
@@ -113,11 +113,11 @@ export function PushToggle({ vapidPublicKey }: { vapidPublicKey: string | null }
         </div>
       ) : null}
       {ios ? (
-        <div className="rounded-sm border border-brand p-3 text-body-sm">
-          <p className="font-medium">{t('iosHint')}</p>
-          <p>{t('iosStep1')}</p>
-          <p>{t('iosStep2')}</p>
-        </div>
+        <Banner tone="brand" icon={Smartphone}>
+          <p className="text-body-strong">{t('iosHint')}</p>
+          <p className="text-body-sm">{t('iosStep1')}</p>
+          <p className="text-body-sm">{t('iosStep2')}</p>
+        </Banner>
       ) : null}
     </div>
   );
