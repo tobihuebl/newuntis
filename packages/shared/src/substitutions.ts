@@ -135,6 +135,33 @@ export interface ExamItem {
   canEdit: boolean;
 }
 
+/** Kollision (Design System, Prüfungskalender): zwei oder mehr Prüfungen einer Klasse am selben Tag. */
+export interface ExamCollision {
+  date: string;
+  classId: string;
+  className: string;
+  examIds: string[];
+}
+
+export function examCollisions(items: readonly ExamItem[]): ExamCollision[] {
+  const byKey = new Map<string, ExamCollision>();
+  for (const x of items) {
+    if (!x.class) continue;
+    const key = `${x.date}|${x.class.id}`;
+    const c = byKey.get(key) ?? {
+      date: x.date,
+      classId: x.class.id,
+      className: x.class.name,
+      examIds: [],
+    };
+    c.examIds.push(x.id);
+    byKey.set(key, c);
+  }
+  return [...byKey.values()]
+    .filter((c) => c.examIds.length > 1)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.className.localeCompare(b.className, 'de'));
+}
+
 export interface ExamWarning {
   code: 'EXAM_DAY_LIMIT' | 'EXAM_WEEK_LIMIT';
   count: number;

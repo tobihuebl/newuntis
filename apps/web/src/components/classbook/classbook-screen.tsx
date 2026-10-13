@@ -23,7 +23,7 @@ import {
   useToast,
 } from '@sp/ui';
 import { ApiError } from '../../lib/api-client';
-import { dateTimeOf, longDate, timeOf, todayVienna } from '../../lib/dates';
+import { dateTimeOf, longDate, timeOf, todayVienna, weekdayDate } from '../../lib/dates';
 import { OfflineMissError } from '../../offline/cached';
 import { useOccurrence } from '../../offline/hooks';
 import { statusOf, type OutboxItem } from '../../offline/mutations';
@@ -251,8 +251,8 @@ function Loaded({
             </p>
           ) : null}
           {detail.students.length === 0 ? (
-            <Card>
-              <p className="text-ink-muted">{t('noStudents')}</p>
+            <Card flat>
+              <EmptyState as="h3" title={t('noStudents')} />
             </Card>
           ) : (
             <ul className="pf-list">
@@ -274,6 +274,7 @@ function Loaded({
         {detail.status !== 'CANCELLED' ? (
           <div className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--topbar-h)+var(--space-4))]">
             <EntryBar detail={detail} serverVersion={serverVersion} outbox={outbox} />
+            <RecentEntries detail={detail} />
           </div>
         ) : null}
       </div>
@@ -527,6 +528,36 @@ function EntryBar({
         </>
       ) : null}
     </>
+  );
+}
+
+/** Verlauf der letzten Stunden (Design System, Klassenbuch Web): Stoff und Hausübung, neueste zuerst. */
+function RecentEntries({ detail }: { detail: OccurrenceDetail }) {
+  const t = useT('classbook');
+  const tt = useT('today');
+  const recent = detail.recent ?? [];
+  if (recent.length === 0) return null;
+  return (
+    <section aria-labelledby="recent-h" className="flex flex-col gap-2">
+      <h2 id="recent-h" className="text-h3">
+        {t('recent')}
+      </h2>
+      <ol className="flex flex-col divide-y divide-line rounded-lg bg-bg-sunken px-4">
+        {recent.map((r) => (
+          <li key={r.occurrenceId} className="flex flex-col gap-1 py-3">
+            <p className="text-mono-sm text-ink-muted">
+              {weekdayDate(r.date)} · {tt('period', { n: r.periodStart })}
+            </p>
+            {r.topic ? <p className="text-body-sm whitespace-pre-line">{r.topic}</p> : null}
+            {r.homework ? (
+              <p className="text-body-sm whitespace-pre-line text-ink-muted">
+                {t('homework')}: {r.homework}
+              </p>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

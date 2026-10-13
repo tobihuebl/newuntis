@@ -581,7 +581,7 @@
     "readOnly": "Nur Ansicht: Diese Stunde trägt eine andere Lehrkraft ein.",
     "cancelled": "Diese Stunde entfällt. Ein Klassenbucheintrag ist nicht nötig.",
     "substitution": "Supplierstunde: Klasse, Fach und Raum sind vorbelegt.",
-    "noStudents": "Für diese Stunde sind keine Schüler:innen eingetragen.",
+    "noStudents": "Keine Schülerinnen und Schüler in dieser Gruppe.",
     "notFound": "Diese Stunde gibt es nicht oder {formal, select, yes {Sie dürfen} other {du darfst}} sie nicht sehen.",
     "notCached": "Diese Stunde ist auf dem Gerät nicht gespeichert. {formal, select, yes {Öffnen Sie} other {Öffne}} sie einmal mit Verbindung.",
     "conflictTitle": "Auf einem anderen Gerät wurde der Eintrag geändert",
@@ -598,7 +598,8 @@
     "entryEmpty": "noch nichts eingetragen",
     "closedToast": "Stunde abgeschlossen",
     "keyboardHint": "Tastatur: Pfeile wechseln die Zeile, A abwesend, V verspätet, Strg+Enter schließt ab.",
-    "conflict": "Konflikt"
+    "conflict": "Konflikt",
+    "recent": "Letzte Stunden"
   },
   "sync": {
     "saved": "Gespeichert",
@@ -636,7 +637,7 @@
     "child": "Kind",
     "period": "Zeitraum",
     "today": "Heute",
-    "yesterday": "Gestern",
+    "tomorrow": "Morgen",
     "range": "Zeitraum",
     "from": "Von",
     "to": "Bis",
@@ -1023,7 +1024,8 @@
     "kpis": "Kennzahlen",
     "byClass": "Fehlstunden je Klasse",
     "byClassEmpty": "Heute keine Fehlstunden eingetragen.",
-    "lessonsShort": "{count} Std."
+    "lessonsShort": "{count} Std.",
+    "card_examCollisions": "{count, plural, one {Prüfungskollision} other {Prüfungskollisionen}} (4 Wochen)"
   },
   "reports": {
     "title": "Auswertung",
@@ -1405,6 +1407,16 @@
   },
   "special": {
     "notFound": "Diese Seite gibt es nicht.",
-    "toStart": "Zur Startseite"
+    "toStart": "Zur Startseite",
+    "forbidden": "Diese Seite ist für Ihre Rolle nicht freigegeben.",
+    "forbiddenText": "Wenn Sie sie brauchen, kann die Administration der Schule die Rolle vergeben."
+  },
+  "install": {
+    "title": "Auf dem Startbildschirm",
+    "text": "Als App startet PROfessor schneller und {formal, select, yes {Sie sehen} other {du siehst}} Heute, Stundenplan und Klassenbuch auch ohne Verbindung.",
+    "iosText": "Als App startet PROfessor schneller und funktioniert auch ohne Verbindung.",
+    "iosStep": "Im Teilen-Menü „Zum Home-Bildschirm“ wählen.",
+    "install": "Installieren",
+    "later": "Nicht jetzt"
   }
 }

@@ -184,6 +184,31 @@ describe('Heute und Klassenbuch', () => {
       expect(audit.length).toBeGreaterThanOrEqual(2);
     });
 
+    it('Verlauf: letzte Einträge desselben Fachs in derselben Klasse, neueste zuerst', async () => {
+      const older = await occurrence(addDays(today, -7), 2);
+      const otherClass = await occurrence(addDays(today, -6), 2, { classId: ids.class2 });
+      const later = await occurrence(addDays(today, 5), 2);
+      for (const [id, topic] of [
+        [older, 'Bruchrechnen'],
+        [otherClass, 'Nicht diese Klasse'],
+        [later, 'Noch nicht gehalten'],
+      ] as const)
+        await h.owner.classbookEntry.create({ data: { tenantId, occurrenceId: id, topic } });
+      const r = await teacher.get(`/occurrences/${ids.now}`);
+      expect(r.status).toBe(200);
+      const recent = r.json.recent as { occurrenceId: string; topic: string | null }[];
+      expect(recent.length).toBeLessThanOrEqual(3);
+      expect(recent.map((e) => e.occurrenceId)).toContain(older);
+      expect(recent.map((e) => e.occurrenceId)).not.toContain(otherClass);
+      expect(recent.map((e) => e.occurrenceId)).not.toContain(later);
+      expect(recent.find((e) => e.occurrenceId === older)?.topic).toBe('Bruchrechnen');
+      // aufräumen: spätere Tests zählen offene Einträge
+      const made = [older, otherClass, later];
+      await h.owner.classbookEntry.deleteMany({ where: { occurrenceId: { in: made } } });
+      await h.owner.occurrenceTeacher.deleteMany({ where: { occurrenceId: { in: made } } });
+      await h.owner.occurrence.deleteMany({ where: { id: { in: made } } });
+    });
+
     it('anderer Mandant sieht den Termin nicht', async () => {
       const t2 = await h.createTenant('kx');
       const u = await h.createUser(t2.id, [{ role: 'PRINCIPAL' }], undefined, 'STAFF');

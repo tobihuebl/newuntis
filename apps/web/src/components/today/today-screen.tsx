@@ -124,7 +124,9 @@ export function TodayScreen({ firstName }: { firstName: string }) {
         <p className="text-overline text-brand-text">
           {q.data ? longDate(q.data.data.date) : t('title')}
         </p>
-        <h1 className="text-display-lg">{t(greetingKey(now), { name: firstName })}</h1>
+        <h1 className="text-display-lg" data-doc-title={t('title')}>
+          {t(greetingKey(now), { name: firstName })}
+        </h1>
       </header>
       {q.isPending ? (
         <TodaySkeleton />

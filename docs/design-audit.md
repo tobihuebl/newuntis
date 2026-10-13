@@ -145,6 +145,11 @@ Weitere Unterschiede:
 - **E17 Abgeleitete Bausteine** (Lücke 6.1): `SegmentedNav` (Ansicht/Kind wählen als Links, Optik wie `SegmentedControl`), `ListRow` als ganze Zeile tippbar (`href`), Tabellen mobil als Karten-Liste mit zwei Feldern (`CrudManager`), `LoadError` (Banner mit „Erneut versuchen“) und `AuthDone` im App-Code.
 - **E18 Screenshots ohne Pixelvergleich:** Heute, Klassenbuch, Lagebild und Stundenplan zeigen Tagesdaten und die Uhrzeit (Zeitlinie, „läuft gerade“). Feste Vergleichsbilder würden täglich brechen. `e2e/design.spec.ts` nimmt deshalb alle Kombinationen hell/dunkel × 390/1280 auf (CI-Artefakt „design-screenshots“) und prüft dabei jede Aufnahme mit axe (serious, critical) und auf waagrechtes Scrollen.
 - **E19 PWA und LCP ohne Lighthouse:** Lighthouse hat die PWA-Kategorie entfernt (Lücke 6.5). Der Playwright-Test prüft Manifest, Icons, `theme-color` je Theme, Service Worker und Offline-Start; LCP und CLS misst er auf Heute im mobilen Profil (langsames 4G, CPU vierfach gedrosselt, ohne Service Worker). Stand 13. Okt. 2026: LCP rund 0,8 s, CLS 0.
+- **E20 Diktat über die Tastatur des Geräts:** Eine eigene Diktat-Taste bräuchte die Web Speech API; Chrome schickt die Aufnahme dafür an Google-Server. Das widerspricht den Datenschutzregeln (keine Fremddienste, Spec Abschnitt 13). iOS und Android bieten das Mikrofon in der Bildschirmtastatur, das funktioniert in Stoff und Hausübung ohne Weitergabe durch die App.
+- **E21 Abschließen mit Strg/Cmd+Enter statt Enter:** Enter fügt in Stoff und Hausübung eine Zeile ein und wechselt auf einer Schülerzeile anwesend/abwesend. Der Hinweis über der Liste nennt die Tasten.
+- **E22 Ohne Wartungsseite:** Die App hat keinen Wartungsmodus; bei Ausfall zeigt der Betrieb eine statische Seite des Proxys (Runbook). Kommt ein Wartungsmodus, nutzt er `SpecialPage`.
+- **E23 Kleine Buttons 40 px:** `pf-btn--sm` aus `bundle.css` ist 40 px hoch, also unter `tap-min` (44 px), aber über WCAG 2.2 AA (24 px). Kleine Buttons stehen nur neben größeren Zielen (Kopfzeilen, Listenaktionen). Vorschlag ans Design System: `--sm` auf 44 px.
+- **E24 Abwesenheit:** Zeitraum „Heute, Morgen, Zeitraum“ (am Freitag zeigt „Morgen“ den Montag mit Datum). Gründe bleiben die vier der Schnittstelle (Krankheit, Arzttermin, Familiäre Gründe, Sonstiges) statt drei.
 
 ### Entscheidungen der Produktverantwortung (am 12. Okt. 2026 bestätigt)
 
@@ -153,6 +158,19 @@ Weitere Unterschiede:
 - **F3 Fächerfarben:** `Subject.color` speichert künftig eine der acht Fächerfarben (`kobalt`, `mint`, … statt Hex). Migration ordnet bestehende Fächer nach Name/Kürzel der Standardzuordnung zu (Mathe Kobalt, Deutsch Koralle …). Kleine Änderung an Validierung und Daten, sonst kein Verhalten.
 - **F4 Anrede Sie** für Eltern, Direktion und Administration: Texte bekommen eine zweite Fassung (ICU `select` nach Rolle), auch E-Mails und Einführung.
 - **F5 Schüler-Tab-Leiste (13. Okt. 2026):** Heute ist für Schüler:innen die Hauptaktion in der Mitte und die Startseite; Reihenfolge Plan, Hausübungen, **Heute**, Chat, Mehr. Bewusste Abweichung von der Tabelle im Design System (dort Hausübungen in der Mitte) (`packages/shared/src/navigation.ts`).
+
+### Prüflauf nach Abschluss (13. Okt. 2026)
+
+Abgleich aller Screens und der Prüfliste mit dem Stand; nachgezogen:
+
+- Klassenbuch: Verlauf der letzten Stunden (Stoff, Hausübung) rechts bzw. unter den Feldern; Leertext laut System.
+- Lagebild: Kennzahl „Prüfungskollisionen“ (nächste vier Wochen, Amber ab 1).
+- Abwesenheit melden: „Heute, Morgen, Zeitraum“ (E24).
+- PWA: Hinweis „Auf dem Startbildschirm“ in „Mehr“ und einmalig nach der zweiten Sitzung (Installieren, Nicht jetzt).
+- Fehlerseiten: „Kein Zugriff“ für bekannte, nicht freigegebene Seiten; unbekannte Seiten zeigen die 404 statt einer Umleitung.
+- Rundschreiben: Zielgruppe als Chips (`ChoiceChips`).
+- Browser-Titel je Seite („Heute · PROfessor“), ohne Namen (WCAG 2.4.2).
+- Entwicklungsserver: Nach `pnpm install` mit neuen Abhängigkeiten muss `pnpm dev` neu starten (sonst 500 bei neu zu übersetzenden Seiten wie dem Klassenbuch).
 
 ### Pfade
 

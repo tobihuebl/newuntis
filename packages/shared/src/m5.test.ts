@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   absenceBlocks,
+  examCollisions,
   examWarnings,
   minutesUntilQuietEnds,
   notificationText,
@@ -82,5 +83,29 @@ describe('Benachrichtigungen', () => {
     expect(notificationText('substitution.published', 3).body).toBe(
       'Es gibt 3 Änderungen im Stundenplan.',
     );
+  });
+});
+
+describe('Prüfungskollisionen', () => {
+  const exam = (id: string, date: string, classId: string | null) => ({
+    id,
+    date,
+    title: id,
+    kind: 'Schularbeit',
+    subject: { id: 's', name: 'M', code: 'M', color: null },
+    class: classId ? { id: classId, name: classId.toUpperCase() } : null,
+    canEdit: false,
+  });
+  it('zählt nur zwei oder mehr Prüfungen einer Klasse am selben Tag', () => {
+    const c = examCollisions([
+      exam('a', '2026-10-20', '3a'),
+      exam('b', '2026-10-20', '3a'),
+      exam('c', '2026-10-20', '3b'),
+      exam('d', '2026-10-21', '3a'),
+      exam('e', '2026-10-20', null),
+    ]);
+    expect(c).toEqual([
+      { date: '2026-10-20', classId: '3a', className: '3A', examIds: ['a', 'b'] },
+    ]);
   });
 });

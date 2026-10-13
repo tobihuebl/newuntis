@@ -164,7 +164,9 @@ export function PersonDetail({
           <Link href="/admin/personen">{t('title')}</Link>
         </Button>
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <PageTitle area="stammdaten">{name}</PageTitle>
+          <PageTitle area="stammdaten" docTitle={t(`kinds.${person.kind}`)}>
+            {name}
+          </PageTitle>
           {readOnly ? null : (
             <Button
               variant="secondary"

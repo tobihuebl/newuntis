@@ -9,8 +9,8 @@ import {
   Button,
   Card,
   CardTitle,
-  Checkbox,
   Chip,
+  ChoiceChips,
   EmptyState,
   Input,
   SegmentedControl,
@@ -157,9 +157,6 @@ export function AnnouncementForm() {
     return () => clearTimeout(h);
   }, [key, valid, csrfToken]);
 
-  const toggle = <T extends string>(list: T[], v: T) =>
-    list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
-
   const [confirm, setConfirm] = useState(false);
 
   async function submit() {
@@ -189,19 +186,12 @@ export function AnnouncementForm() {
     set: (v: string[]) => void,
   ) =>
     options.length ? (
-      <fieldset className="flex flex-col">
-        <legend className="mb-1 text-label">{label}</legend>
-        <div className="grid grid-cols-2 gap-x-4 sm:grid-cols-4">
-          {options.map((o) => (
-            <Checkbox
-              key={o.id}
-              label={o.name}
-              checked={value.includes(o.id)}
-              onChange={() => set(toggle(value, o.id))}
-            />
-          ))}
-        </div>
-      </fieldset>
+      <ChoiceChips
+        label={label}
+        options={options.map((o) => ({ value: o.id, label: o.name }))}
+        value={value}
+        onChange={set}
+      />
     ) : null;
 
   return (
@@ -231,17 +221,15 @@ export function AnnouncementForm() {
           maxLength={10000}
           onChange={(e) => setBody(e.target.value)}
         />
-        <fieldset className="flex flex-col">
-          <legend className="mb-1 text-label">{t('roles')}</legend>
-          {(['GUARDIAN', 'STUDENT', 'TEACHER'] as const).map((r) => (
-            <Checkbox
-              key={r}
-              label={t(`role${r}`)}
-              checked={roles.includes(r)}
-              onChange={() => setRoles(toggle(roles, r))}
-            />
-          ))}
-        </fieldset>
+        <ChoiceChips
+          label={t('roles')}
+          options={(['GUARDIAN', 'STUDENT', 'TEACHER'] as const).map((r) => ({
+            value: r,
+            label: t(`role${r}`),
+          }))}
+          value={roles}
+          onChange={setRoles}
+        />
         <SegmentedControl
           label={t('scope')}
           value={scope}

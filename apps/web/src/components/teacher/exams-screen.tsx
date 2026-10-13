@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Info, Plus, TriangleAlert } from 'lucide-rea
 import {
   EXAM_KINDS,
   addDays,
+  examCollisions,
   fachColorOf,
   mondayOf,
   type ExamItem,
@@ -76,7 +77,7 @@ export function ExamsScreen() {
   const cls = options.data?.classes.find((c) => c.id === classId);
   const items = list.data?.data ?? [];
   const perKey = new Map<string, number>();
-  for (const x of items) perKey.set(collisionKey(x), (perKey.get(collisionKey(x)) ?? 0) + 1);
+  for (const c of examCollisions(items)) perKey.set(`${c.date}|${c.classId}`, c.examIds.length);
   const sameDay = classId ? items.filter((x) => x.date === date && x.class?.id === classId) : [];
   const warningText = (w: ExamWarning[]) =>
     w

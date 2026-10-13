@@ -55,6 +55,8 @@ export interface CrudManagerProps<Row extends { id: string }> {
   emptyDescription: string;
   csrfToken: string;
   readOnly?: boolean;
+  /** Zweite Liste auf derselben Seite (z. B. Gruppen unter Klassen): Überschrift h2, Anlegen sekundär. */
+  secondary?: boolean;
   /** Bearbeiten ausblenden (Ressourcen ohne PATCH, z. B. Ferien). */
   canEdit?: boolean;
   /** Link zur Detailseite einer Zeile. */
@@ -191,7 +193,11 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <PageTitle area="stammdaten">{props.title}</PageTitle>
+        {props.secondary ? (
+          <h2 className="text-h2">{props.title}</h2>
+        ) : (
+          <PageTitle area="stammdaten">{props.title}</PageTitle>
+        )}
         <div className="flex flex-wrap gap-2">
           {props.headerExtra}
           {readOnly ? (
@@ -201,6 +207,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
           ) : (
             <Button
               iconLeft={Plus}
+              variant={props.secondary ? 'secondary' : 'primary'}
               onClick={() => {
                 setError(null);
                 setFieldErrors({});

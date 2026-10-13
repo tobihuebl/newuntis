@@ -8,6 +8,7 @@ import { Button, SegmentedControl } from '@sp/ui';
 import { applyTheme, readTheme, type Theme } from '../../lib/theme';
 import { setRoleView } from '../../lib/role-view';
 import { NAV_ICONS } from '../nav-icons';
+import { InstallHint } from './install-hint';
 import { useT } from '../../lib/i18n';
 
 export interface MoreContentProps {
@@ -45,6 +46,7 @@ export function MoreContent({
 
   return (
     <div className="flex flex-col gap-6">
+      <InstallHint variant="more" />
       {sections.map((sec, i) => (
         <section key={sec.labelKey ?? i} className="flex flex-col gap-1">
           {sec.labelKey ? (

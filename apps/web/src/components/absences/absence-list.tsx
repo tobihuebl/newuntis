@@ -136,7 +136,9 @@ export function AbsenceList({
             ) : null}
             {a.hasAttachment && a.canReview ? <AttachmentButton absenceId={a.id} /> : null}
             {onReview && a.canReview && a.status !== 'EXCUSED' ? (
-              <Button onClick={() => onReview(a)}>{tk('reviewTitle')}</Button>
+              <Button variant="secondary" onClick={() => onReview(a)}>
+                {tk('reviewTitle')}
+              </Button>
             ) : null}
           </div>
         </li>

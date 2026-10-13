@@ -276,6 +276,32 @@ export function formalAddress(roles: readonly Role[]): boolean {
   return view === undefined || view === 'GUARDIAN' || view === 'PRINCIPAL' || view === 'ADMIN';
 }
 
+/** Routen, die jede angemeldete Person öffnen darf. */
+const COMMON_ROUTES = [
+  '/profil',
+  '/nachrichten',
+  '/nachrichten/neu',
+  '/nachrichten/[id]',
+  '/nachrichten/rundschreiben/[id]',
+  '/mehr',
+  '/benachrichtigungen',
+];
+
+/**
+ * Alle Routen, die irgendeine Rolle öffnen darf. Was hier fehlt, gibt es nicht (404); was hier steht, aber für die
+ * Person nicht erlaubt ist, zeigt "Kein Zugriff" (Design System, Fehler- und Sonderseiten).
+ */
+export function isKnownRoute(pathname: string): boolean {
+  const all = new Set<string>(COMMON_ROUTES);
+  for (const n of Object.values(NAV)) {
+    all.add(n.home);
+    for (const t of n.tabs) all.add(t.href);
+    for (const sec of n.sections) for (const i of sec.items) all.add(i.href);
+    for (const r of n.routes) all.add(r);
+  }
+  return [...all].some((p) => patternToRegExp(p).test(pathname));
+}
+
 export interface Navigation {
   /** Rolle, deren Navigation gezeigt wird. */
   view: Role | null;
@@ -300,15 +326,7 @@ export function navigationFor(roles: readonly Role[], preferred?: string | null)
       allowedRoutes: ['/profil'],
     };
   }
-  const allowed = new Set<string>([
-    '/profil',
-    '/nachrichten',
-    '/nachrichten/neu',
-    '/nachrichten/[id]',
-    '/nachrichten/rundschreiben/[id]',
-    '/mehr',
-    '/benachrichtigungen',
-  ]);
+  const allowed = new Set<string>(COMMON_ROUTES);
   for (const role of ROLE_PRIORITY.filter((r) => roles.includes(r))) {
     const n = NAV[role];
     allowed.add(n.home);

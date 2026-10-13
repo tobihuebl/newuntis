@@ -3,6 +3,8 @@ import { Ellipsis, Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { countSession } from '../../lib/install';
+import { InstallHint } from './install-hint';
 import {
   moreSections,
   type NavCount,
@@ -100,6 +102,7 @@ export function AppShell({
   );
   const title = items.find((i) => i.href === active);
 
+  useEffect(() => countSession(), []);
   useEffect(() => {
     setMac(/Mac|iPhone|iPad/.test(navigator.platform));
     const onKey = (e: KeyboardEvent) => {
@@ -211,6 +214,9 @@ export function AppShell({
             </header>
             <OfflineBanner />
             <main id="main" tabIndex={-1} className="min-w-0 flex-1 outline-none">
+              <div className="mx-auto w-full max-w-(--content-max) px-4 pt-4 empty:hidden lg:px-6">
+                <InstallHint variant="once" />
+              </div>
               {children}
             </main>
           </div>

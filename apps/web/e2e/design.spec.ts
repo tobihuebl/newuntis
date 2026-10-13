@@ -286,3 +286,19 @@ test.describe('Leistung', () => {
     await ctx.close();
   });
 });
+
+test.describe('Seitentitel und Sonderseiten', () => {
+  test('Browser-Titel je Seite ohne Namen; Kein Zugriff und 404', async ({ page }) => {
+    await login(page, accounts().studentEmail, /\/heute$/);
+    await expect(page).toHaveTitle('Heute · PROfessor');
+    await page.goto('/plan');
+    await expect(page).toHaveTitle(/· PROfessor$/);
+    // bekannte Seite einer anderen Rolle
+    await page.goto('/lagebild');
+    await expect(page).toHaveURL(/\/kein-zugriff$/);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('nicht freigegeben');
+    // unbekannte Seite
+    await page.goto('/gibt-es-nicht');
+    await expect(page.getByRole('heading', { name: 'Diese Seite gibt es nicht.' })).toBeVisible();
+  });
+});

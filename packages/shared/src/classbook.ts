@@ -64,6 +64,17 @@ export interface AttendanceState {
 }
 
 /** Ein Termin mit allem, was der Klassenbuch-Screen braucht (auch offline). */
+export interface RecentEntry {
+  occurrenceId: string;
+  date: string;
+  periodStart: number;
+  topic: string | null;
+  homework: string | null;
+}
+
+/** Wie viele frühere Stunden der Verlauf zeigt. */
+export const RECENT_ENTRIES = 3;
+
 export interface OccurrenceDetail {
   id: string;
   date: string;
@@ -82,6 +93,11 @@ export interface OccurrenceDetail {
   students: { id: string; firstName: string; lastName: string }[];
   attendance: Record<string, AttendanceState>;
   entry: ClassbookEntryState | null;
+  /**
+   * Verlauf (Design System, Klassenbuch Web): Stoff und Hausübung der letzten Stunden desselben Fachs in derselben
+   * Klasse bzw. Gruppe, neueste zuerst. Fehlt in älteren Offline-Ständen.
+   */
+  recent?: RecentEntry[];
   /** Darf eintragen (eigene Stunde oder Direktion). */
   canWrite: boolean;
   /** Abschließen ist ab dem Tag der Stunde möglich (nicht bei Entfall). */

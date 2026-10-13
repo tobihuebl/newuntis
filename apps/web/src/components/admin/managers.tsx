@@ -237,6 +237,7 @@ export function GroupsManager({
       resource="groups"
       rows={rows}
       title={t('groups')}
+      secondary
       newLabel={t('newGroup')}
       emptyTitle={t('noGroups')}
       emptyDescription=""
@@ -341,6 +342,7 @@ export function FreeDaysManager({
       resource={`school-years/${yearId}/free-days`}
       rows={rows}
       title={t('freeDays')}
+      secondary
       newLabel={t('addFree')}
       emptyTitle={t('noFree')}
       emptyDescription=""

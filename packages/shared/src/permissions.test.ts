@@ -8,7 +8,7 @@ import {
   type PolicyUser,
   type Scope,
 } from './permissions';
-import { isRouteAllowed, moreSections, navViews, navigationFor } from './navigation';
+import { isKnownRoute, isRouteAllowed, moreSections, navViews, navigationFor } from './navigation';
 
 const ME = 'person-me';
 
@@ -157,6 +157,12 @@ describe('Navigation', () => {
     expect(isRouteAllowed(nav, '/heute')).toBe(true);
     expect(isRouteAllowed(nav, '/admin/personen')).toBe(false);
     expect(isRouteAllowed(nav, '/klassenbuch/abc')).toBe(false);
+  });
+  it('bekannte Routen: Seiten irgendeiner Rolle, sonst 404', () => {
+    expect(isKnownRoute('/lagebild')).toBe(true);
+    expect(isKnownRoute('/admin/personen/abc')).toBe(true);
+    expect(isKnownRoute('/gibt-es-nicht')).toBe(false);
+    expect(isKnownRoute('/klassenbuch/a/b')).toBe(false);
   });
   it('Routenmuster mit Parametern passen genau ein Segment', () => {
     const nav = navigationFor(['TEACHER']);

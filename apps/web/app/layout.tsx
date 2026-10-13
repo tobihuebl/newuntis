@@ -4,6 +4,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import { cookies } from 'next/headers';
 import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import { THEME_COLOR, THEME_COOKIE, parseTheme } from '../src/lib/theme';
+import { BRAND } from '@sp/shared';
+import { DocumentTitle } from '../src/components/document-title';
 import './globals.css';
 
 // Schriften des Design Systems, beim Build geladen und von der eigenen Domain ausgeliefert (keine Anfrage an Google)
@@ -63,6 +65,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body className="bg-bg font-body text-ink antialiased">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        <DocumentTitle brand={BRAND.name} />
       </body>
     </html>
   );

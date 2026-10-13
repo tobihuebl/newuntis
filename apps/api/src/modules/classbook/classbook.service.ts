@@ -17,6 +17,8 @@ import {
   type ClassbookInput,
   type ClassbookProgress,
   type OccurrenceDetail,
+  RECENT_ENTRIES,
+  type RecentEntry,
   type OpenEntry,
   type PolicyUser,
 } from '@sp/shared';
@@ -35,6 +37,9 @@ export const OPEN_LOOKBACK_DAYS = 60;
 /** Termine der nächsten Tage für den Offline-Zwischenspeicher (Spec Abschnitt 12). */
 export const PREFETCH_DAYS = 7;
 const PREFETCH_MAX = 120;
+
+/** Wie weit der Verlauf zurückreicht (Tage). */
+const RECENT_WINDOW_DAYS = 120;
 
 const occurrenceInclude = {
   teachers: { select: { teacherId: true } },
@@ -219,6 +224,55 @@ export class ClassbookService implements OnModuleInit {
         : sort(members.filter((m) => m.groupId === o.groupId).map((m) => m.student));
   }
 
+  /**
+   * Verlauf je Termin: die letzten RECENT_ENTRIES Einträge mit Stoff oder Hausübung im selben Fach und derselben
+   * Klasse bzw. Gruppe vor dieser Stunde (eine Abfrage für alle Termine, Fenster 120 Tage).
+   */
+  private async recent(tx: Tx, rows: OccurrenceRow[]) {
+    const minDate = rows.reduce((m, o) => (o.date < m ? o.date : m), rows[0]!.date);
+    const maxStart = rows.reduce((m, o) => (o.startsAt > m ? o.startsAt : m), rows[0]!.startsAt);
+    const classIds = [...new Set(rows.flatMap((o) => (o.classId ? [o.classId] : [])))];
+    const groupIds = [...new Set(rows.flatMap((o) => (o.groupId ? [o.groupId] : [])))];
+    const past = await tx.occurrence.findMany({
+      where: {
+        subjectId: { in: [...new Set(rows.map((o) => o.subjectId))] },
+        OR: [{ classId: { in: classIds } }, { groupId: { in: groupIds } }],
+        startsAt: { lt: maxStart },
+        date: { gte: asDate(addDays(iso(minDate), -RECENT_WINDOW_DAYS)) },
+        status: { not: 'CANCELLED' },
+        classbook: { is: { OR: [{ topic: { not: null } }, { homework: { not: null } }] } },
+      },
+      select: {
+        id: true,
+        date: true,
+        periodStart: true,
+        startsAt: true,
+        classId: true,
+        groupId: true,
+        subjectId: true,
+        classbook: { select: { topic: true, homework: true } },
+      },
+      orderBy: [{ startsAt: 'desc' }],
+      take: 1000,
+    });
+    return (o: OccurrenceRow): RecentEntry[] =>
+      past
+        .filter(
+          (p) =>
+            p.subjectId === o.subjectId &&
+            p.startsAt < o.startsAt &&
+            (o.groupId ? p.groupId === o.groupId : p.classId === o.classId && p.groupId === null),
+        )
+        .slice(0, RECENT_ENTRIES)
+        .map((p) => ({
+          occurrenceId: p.id,
+          date: iso(p.date),
+          periodStart: p.periodStart,
+          topic: p.classbook?.topic ?? null,
+          homework: p.classbook?.homework ?? null,
+        }));
+  }
+
   private async details(
     tx: Tx,
     rows: OccurrenceRow[],
@@ -226,9 +280,10 @@ export class ClassbookService implements OnModuleInit {
     today: string,
   ): Promise<OccurrenceDetail[]> {
     if (rows.length === 0) return [];
-    const [entries, studentsOf] = await Promise.all([
+    const [entries, studentsOf, recentOf] = await Promise.all([
       this.plans.toEntries(tx, rows.map(rawFromOccurrence)),
       this.students(tx, rows),
+      this.recent(tx, rows),
     ]);
     const byId = new Map(entries.map((e) => [e.id, e]));
     return rows.map((o) => {
@@ -266,6 +321,7 @@ export class ClassbookService implements OnModuleInit {
         students: studentsOf(o),
         attendance,
         entry: entryState(o.classbook),
+        recent: recentOf(o),
         canWrite,
         canClose: canWrite && e.date <= today,
       };

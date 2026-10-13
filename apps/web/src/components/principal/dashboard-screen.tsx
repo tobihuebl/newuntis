@@ -15,7 +15,9 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   addDays,
+  examCollisions,
   nextWeekday,
+  type ExamItem,
   type AttendanceReport,
   type PrincipalDashboard,
   type TimelineKind,
@@ -72,6 +74,12 @@ export function DashboardScreen() {
     `/reports/attendance?from=${date}&to=${date}`,
   );
   const classes = (att.data?.classes ?? []).filter((c) => c.absentLessons > 0);
+  // Prüfungskollisionen der nächsten vier Wochen (Design System, Lagebild: Kennzahl in Amber)
+  const exams = useApi<{ data: ExamItem[] }>(
+    ['exams', 'dashboard', date],
+    `/exams?from=${date}&to=${addDays(date, 27)}`,
+  );
+  const collisions = examCollisions(exams.data?.data ?? []).length;
   const maxAbsent = Math.max(1, ...classes.map((c) => c.absentLessons));
 
   const tiles: {
@@ -147,6 +155,15 @@ export function DashboardScreen() {
                   tone={c.action && d.cards[c.key] > 0 ? 'signal' : 'brand'}
                 />
               ))}
+              {exams.data ? (
+                <KpiTile
+                  as={Link}
+                  href="/pruefungen"
+                  value={collisions}
+                  label={t('card_examCollisions', { count: collisions })}
+                  tone={collisions > 0 ? 'signal' : 'brand'}
+                />
+              ) : null}
             </section>
 
             <section aria-labelledby="absences-h" className="flex flex-col gap-4">

@@ -2,18 +2,24 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { ABSENCE_REASONS, addDays, type AbsenceItem, type TodayChild } from '@sp/shared';
+import {
+  ABSENCE_REASONS,
+  addDays,
+  nextWeekday,
+  type AbsenceItem,
+  type TodayChild,
+} from '@sp/shared';
 import { CircleCheck, FileWarning, Send } from 'lucide-react';
 import { Banner, Button, Card, Checkbox, Input, SegmentedControl, Select, Textarea } from '@sp/ui';
 import { FormError } from '../form-bits';
 import { StatusSteps } from './status-steps';
 import { ApiError, apiRequest, apiUpload } from '../../lib/api-client';
-import { todayVienna } from '../../lib/dates';
+import { todayVienna, weekdayDate } from '../../lib/dates';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
 
-type Span = 'today' | 'yesterday' | 'range';
+type Span = 'today' | 'tomorrow' | 'range';
 const PERIODS = Array.from({ length: 10 }, (_, i) => ({
   value: String(i + 1),
   label: `${i + 1}.`,
@@ -71,11 +77,13 @@ export function AbsenceForm({
 
   const kids = children.data?.data ?? [];
   const chosen = studentId || (kids.length === 1 ? kids[0]!.id : '');
+  // "Morgen" ist der nächste Schultag (am Freitag der Montag, dann mit Datum beschriftet)
+  const nextDay = nextWeekday(today);
   const range =
     span === 'today'
       ? { fromDate: today, toDate: today }
-      : span === 'yesterday'
-        ? { fromDate: addDays(today, -1), toDate: addDays(today, -1) }
+      : span === 'tomorrow'
+        ? { fromDate: nextDay, toDate: nextDay }
         : { fromDate: from, toDate: to };
 
   async function submit(e: React.FormEvent) {
@@ -183,7 +191,10 @@ export function AbsenceForm({
         label={t('period')}
         value={span}
         onChange={setSpan}
-        options={(['today', 'yesterday', 'range'] as const).map((v) => ({ value: v, label: t(v) }))}
+        options={(['today', 'tomorrow', 'range'] as const).map((v) => ({
+          value: v,
+          label: v === 'tomorrow' && nextDay !== addDays(today, 1) ? weekdayDate(nextDay) : t(v),
+        }))}
       />
       {span === 'range' ? (
         <div className="flex flex-wrap gap-3">

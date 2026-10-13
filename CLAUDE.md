@@ -95,5 +95,6 @@ die Spezifikation anpassen, dann bauen.
 ## Hinweise zur Umgebung
 
 - pnpm liegt ggf. in ~/.local/bin (corepack); PATH entsprechend setzen.
+- Nach pnpm install mit geänderten Abhängigkeiten pnpm dev neu starten (der laufende Next-Server sucht sonst alte Paketpfade, Seiten liefern 500).
 - Achtung beim Schreiben über die Shell: die Zeichenfolge Backslash-Backslash-Strichpunkt kommt verfälscht an; solche Stellen mit dem Edit-Werkzeug schreiben.
 - `prisma migrate reset` verweigert die Ausführung durch KI-Agenten; Reset (pnpm db:reset) startet der Mensch.

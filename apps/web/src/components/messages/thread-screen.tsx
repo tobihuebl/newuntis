@@ -81,7 +81,9 @@ export function ThreadScreen({ id }: { id: string }) {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       {back}
       <div>
-        <PageTitle area="kommunikation">{th.subject}</PageTitle>
+        <PageTitle area="kommunikation" docTitle={t('title')}>
+          {th.subject}
+        </PageTitle>
         <p className="text-body-sm text-ink-muted">
           {th.aboutStudent ? `${t('about', { name: th.aboutStudent.name })} · ` : ''}
           {th.className ? `${th.className} · ` : ''}
