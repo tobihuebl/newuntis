@@ -24,7 +24,7 @@ export function ClassesScreen() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="unterricht">{t('title')}</PageTitle>
       {q.isPending ? (
-        <div className="grid gap-3 sm:grid-cols-2" aria-hidden="true">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-hidden="true">
           <Skeleton className="h-28 rounded-lg" />
           <Skeleton className="h-28 rounded-lg" />
         </div>
@@ -35,7 +35,7 @@ export function ClassesScreen() {
           <EmptyState title={t('empty')} description={t('emptyText')} />
         </Card>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {q.data.data.map((c) => (
             <li key={c.id}>
               <Card interactive asChild className="flex min-h-28 flex-col gap-1">

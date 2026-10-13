@@ -3,3 +3,9 @@ docs/spec.md
 dist
 .next
 packages/db/prisma/migrations
+docs/kontrast.md
+docs/design-system
+packages/ui/src/styles/bundle.css
+packages/ui/src/styles/tokens.css
+packages/ui/src/tokens.generated.ts
+packages/shared/src/design-tokens.ts

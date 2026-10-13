@@ -68,7 +68,7 @@ export function AttendanceRow({
         disabled={disabled}
         aria-label={toggleLabel}
         className={cn(
-          'pf-att select-none disabled:cursor-default',
+          'pf-att min-w-0 select-none disabled:cursor-default',
           status === 'absent' && 'bg-neutral-soft',
           status === 'late' && 'bg-signal-soft',
         )}

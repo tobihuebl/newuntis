@@ -231,7 +231,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
         <Card className="flex flex-col gap-3">
           <h2 className="text-h3">{t('mapping')}</h2>
           <p className="text-body-sm text-ink-muted">{t('mappingHelp')}</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {IMPORT_FIELDS.filter((f) => preview.unmappedRequired.includes(f)).map((f) => (
               <Select
                 key={f}

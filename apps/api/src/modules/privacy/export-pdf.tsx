@@ -21,7 +21,14 @@ const s = StyleSheet.create({
   cell: { flex: 1, paddingRight: 4 },
   label: { width: 120, color: c['ink-muted'] },
   empty: { color: c['ink-subtle'] },
-  footer: { position: 'absolute', bottom: 20, left: 36, right: 36, color: c['ink-subtle'], fontSize: 8 },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 36,
+    right: 36,
+    color: c['ink-subtle'],
+    fontSize: 8,
+  },
 });
 
 const when = (iso: string | null, tz: string) =>

@@ -597,7 +597,7 @@ export function TimetableEditor({
         </p>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[12rem_1fr]">
         <Select
           label={t('view')}
           value={view.kind}
@@ -636,7 +636,7 @@ export function TimetableEditor({
         </p>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] 2xl:grid-cols-[14rem_minmax(0,1fr)_18rem]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] 2xl:grid-cols-[14rem_minmax(0,1fr)_18rem]">
         {/* Pool der noch einzuplanenden Soll-Stunden */}
         <Card className="flex flex-col gap-2 self-start">
           <div className="flex items-center justify-between gap-2">

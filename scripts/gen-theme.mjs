@@ -18,7 +18,8 @@ const src = join(root, 'docs/design-system');
 const tokens = JSON.parse(readFileSync(join(src, 'tokens.json'), 'utf8'));
 const check = process.argv.includes('--check');
 
-const HEADER = '/* Erzeugt von scripts/gen-theme.mjs aus docs/design-system/tokens.json. Nicht von Hand ändern. */\n';
+const HEADER =
+  '/* Erzeugt von scripts/gen-theme.mjs aus docs/design-system/tokens.json. Nicht von Hand ändern. */\n';
 
 /** Typo-Stile, die mobil (unter bp-lg) kleiner sind (ui-grundlagen Abschnitt 2). */
 const MOBILE = {
@@ -80,7 +81,8 @@ function typoUtility(style, family) {
     if (!style.letterSpacing) out.push('  letter-spacing: normal;');
   }
   if (style.name === 'overline') out.push('  text-transform: uppercase;');
-  if (family === 'display' || style.name.startsWith('mono')) out.push('  font-variant-numeric: tabular-nums;');
+  if (family === 'display' || style.name.startsWith('mono'))
+    out.push('  font-variant-numeric: tabular-nums;');
   out.push('}');
   return out.join('\n');
 }
@@ -106,7 +108,9 @@ function themeCss() {
     '@theme {',
     '  --color-*: initial;',
     '  --text-*: initial;',
-    ...tokens.breakpoint.tokens.map((t) => `  --breakpoint-${t.name.replace('bp-', '')}: ${t.value};`),
+    ...tokens.breakpoint.tokens.map(
+      (t) => `  --breakpoint-${t.name.replace('bp-', '')}: ${t.value};`,
+    ),
     '  --breakpoint-2xl: initial;',
     ...tokens.radius.tokens.map((t) => `  --${t.name}: ${t.value};`),
     '  --radius-2xl: initial;',
@@ -125,7 +129,10 @@ function themeCss() {
     '}',
     '',
     '/* Schatten wechseln mit dem Theme, deshalb als Variable statt als Tailwind-Schattenwert */',
-    ...shadows.map((s) => `@utility shadow-${s.name.replace('shadow-', '')} {\n  box-shadow: var(--${s.name});\n}`),
+    ...shadows.map(
+      (s) =>
+        `@utility shadow-${s.name.replace('shadow-', '')} {\n  box-shadow: var(--${s.name});\n}`,
+    ),
     '',
     ...tokens.zIndex.tokens.map((z) => `@utility ${z.name} {\n  z-index: var(--${z.name});\n}`),
     '',
@@ -158,7 +165,10 @@ function uiTokensTs() {
 
 function bundleCss() {
   const css = readFileSync(join(src, 'bundle.css'), 'utf8');
-  return '/* Kopie von docs/design-system/bundle.css (scripts/gen-theme.mjs). Nicht von Hand ändern. */\n' + css;
+  return (
+    '/* Kopie von docs/design-system/bundle.css (scripts/gen-theme.mjs). Nicht von Hand ändern. */\n' +
+    css
+  );
 }
 
 const outputs = {

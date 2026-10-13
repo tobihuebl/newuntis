@@ -17,7 +17,7 @@ export default async function ShowcasePage() {
         <p className="text-body-lg text-ink-muted">{t('intro')}</p>
         <p className="text-caption text-ink-subtle">{t('demo')}</p>
       </header>
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <ShowcasePanel theme="light" />
         <ShowcasePanel theme="dark" />
       </div>

@@ -1,4 +1,4 @@
-/* Service Worker der Schulplattform (Spec Abschnitt 12): App-Hülle und Seiten für Heute, Plan und Klassenbuch.
+/* Service Worker von PROfessor (Spec Abschnitt 12): App-Hülle und Seiten für Heute, Plan und Klassenbuch.
  * Daten (Termine, Schülerlisten, Outbox) liegen in IndexedDB und werden von der App selbst verwaltet;
  * API-Aufrufe gehen nie durch einen Cache. */
 const VERSION = 'v3';
@@ -123,14 +123,14 @@ self.addEventListener('push', (event) => {
       return {};
     }
   })();
-  const title = data.title || 'Schulplattform';
+  const title = data.title || 'PROfessor';
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || '',
       tag: data.tag || 'sp',
       renotify: true,
       icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      badge: '/icons/monochrome-512.png',
       data: { url: typeof data.url === 'string' && data.url.startsWith('/') ? data.url : '/' },
       lang: 'de-AT',
     }),

@@ -56,7 +56,10 @@ export function CodeInput({
           }}
           className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0"
         />
-        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}>
+        <div
+          className="grid gap-2"
+          style={{ gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }}
+        >
           {Array.from({ length }, (_, i) => (
             <span
               key={i}
@@ -64,10 +67,7 @@ export function CodeInput({
               className={cn(
                 'pf-input flex items-center justify-center px-0 font-data text-h3',
                 error && 'ring-field-error',
-                focused &&
-                  (i === Math.min(value.length, length - 1)
-                    ? 'ring-field-focus'
-                    : ''),
+                focused && (i === Math.min(value.length, length - 1) ? 'ring-field-focus' : ''),
               )}
             >
               {value[i] ?? ''}

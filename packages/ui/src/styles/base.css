@@ -81,6 +81,11 @@
   .pf-tt__cell small {
     opacity: 1;
   }
+  /* Zustandswort in der Kachel ("Konflikt", "Vertretung"): Textschrift fett statt Mono */
+  .pf-tt__cell small.pf-tt__state {
+    font-family: var(--font-text);
+    font-weight: 700;
+  }
 }
 
 /* Zustände von pf-input für zusammengesetzte Felder (Werte wie in bundle.css .pf-input:focus / [aria-invalid]) */

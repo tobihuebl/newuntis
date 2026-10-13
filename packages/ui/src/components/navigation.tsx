@@ -145,8 +145,11 @@ export function TabBar({ items, linkAs, ariaLabel, className }: TabBarProps) {
                 />
               ) : null}
             </span>
-            <span>{e.label}</span>
-            <ScreenReaderExtras entry={e} />
+            {/* Beschriftung als letztes Kind: bundle.css färbt .pf-tab--primary span:last-child */}
+            <span>
+              {e.label}
+              <ScreenReaderExtras entry={e} />
+            </span>
           </Entry>
         );
       })}

@@ -87,6 +87,10 @@ die Spezifikation anpassen, dann bauen.
 - Theme über Cookie pf-theme (src/lib/theme.ts), kein Inline-Skript (CSP).
 - Produktname über BRAND aus @sp/shared, Schreibweise immer PROfessor. Anrede: du für Schüler:innen und Lehrkräfte, Sie für Eltern, Direktion, Administration.
 - PWA-Icons: pnpm design:icons (aus packages/ui/assets/logo).
+- Prüfungen (D6): pnpm design:lint (Token-Lint: Hex, rgb(), px in Arbitrary-Values, Tailwind-Farben/-Größen/-Gewichte,
+  rounded-full, Raster ohne grid-cols für mobil) und pnpm design:contrast (schreibt docs/kontrast.md; CI prüft mit --check).
+- Responsive Raster immer mit Grundspalte: grid grid-cols-1 lg:grid-cols-3 (sonst wächst das Raster bei 320 px über den Rand).
+- e2e/design.spec.ts: Screenshots hell/dunkel × 390/1280 nach test-results/design, axe, Tastatur, Reduced Motion, PWA, LCP.
 
 ## Hinweise zur Umgebung
 

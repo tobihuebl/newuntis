@@ -132,7 +132,7 @@ export function TimetableCell({
       {state === 'conflict' ? <TriangleAlert aria-hidden="true" /> : null}
       {state === 'cancelled' ? <Ban aria-hidden="true" /> : null}
       {children}
-      {stateLabel ? <small className="font-text font-bold opacity-100">{stateLabel}</small> : null}
+      {stateLabel ? <small className="pf-tt__state">{stateLabel}</small> : null}
     </Comp>
   );
 }

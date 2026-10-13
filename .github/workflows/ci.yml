@@ -43,6 +43,9 @@ jobs:
       - run: pnpm audit --prod --audit-level high
       # Design System: erzeugte Token-Dateien müssen zu docs/design-system/tokens.json passen
       - run: pnpm design:check
+      # Token-Lint (keine Rohwerte) und Kontrast der Token-Paare (docs/kontrast.md muss aktuell sein)
+      - run: pnpm design:lint
+      - run: node scripts/check-contrast.mjs --check
       - run: pnpm db:generate
       - run: pnpm --filter @sp/db migrate:deploy
       - run: pnpm db:seed
@@ -68,6 +71,13 @@ jobs:
       - run: pnpm e2e
         env:
           CI: 'true'
+      # Design-Screenshots hell/dunkel × 390/1280 (e2e/design.spec.ts) zur Durchsicht
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: design-screenshots
+          path: apps/web/test-results/design
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

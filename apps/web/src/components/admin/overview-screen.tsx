@@ -104,7 +104,7 @@ export function OverviewScreen() {
             />
           ))}
         </div>
-        <ol className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <ol className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {steps.map((s) => (
             <li key={s}>
               {loading ? (

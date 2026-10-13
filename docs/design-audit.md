@@ -10,78 +10,78 @@ Abhaken: Jede Zeile in Abschnitt 7 wird in der genannten Phase erledigt und hier
 
 ## 1. Bestand: Technik
 
-| Bereich | Heute | Design System | Abweichung |
-| --- | --- | --- | --- |
-| UI-Paket | `packages/ui` (`@sp/ui`), 15 Komponenten, Radix (`dialog`, `slot`), `cva`, `tailwind-merge`, `lucide-react` | dasselbe Muster (cva, Lucide) | passt, Komponenten werden ersetzt bzw. umgebaut |
-| Tailwind | v4, `@theme inline` in `packages/ui/src/styles/index.css` | v4, `@theme inline` aus `tokens.json` erzeugt | Token-Namen und -Werte komplett neu |
-| Tokens | `tokens.css` von Hand, 12 Farben (`--surface`, `--primary`, `--success` …), 3 Radien, keine Abstände, Schatten, Ebenen | 40 Farb-Tokens je Theme, Abstände, Radien, Schatten, Ebenen, Breakpoints, Typografie; `tokens.json` ist die einzige Quelle | ersetzen; `tokens.css` wird erzeugt |
-| Schrift | Inter Variable (`@fontsource-variable/inter`), Größen über Tailwind (`text-sm` 218×, `text-lg` 51×, `text-2xl` 53× …) | Bricolage Grotesque (700/800), DM Sans, JetBrains Mono (500) über `next/font`; Tailwind-Textgrößen verboten, nur Typo-Stile `display-xl` … `mono-sm` | Schriften tauschen, alle Textgrößen auf Typo-Stile umstellen |
-| Farben im Code | alte Token-Utilities (`text-muted` 176×, `bg-surface-2` 53×, `bg-surface` 36×, `text-primary` 32× …), Rohwerte `#4f46e5` (Fächer-Standardfarbe, `layout.tsx`, `manifest.ts`), `bg-white`, `bg-black/50` | nur neue Token-Utilities, keine Hex-Werte | alle Stellen umstellen, Lint-Skript verhindert Rückfall |
-| Theme | Cookie `sp_theme` (light/dark, sonst System), Server setzt `data-theme` beim Rendern; System über `@media (prefers-color-scheme)` | `localStorage` `pf-theme` + Inline-Skript im `head` | Abweichung beibehalten, siehe Entscheidung E3 |
-| `theme-color` | fest `#4F46E5` | je Theme per `media` (`#F6F5F1` hell, `#0E192D` dunkel) | ändern |
-| Fokusring | 2px `--primary`, Abstand 2px | 3px `--focus`, Abstand 3px; auf Nachtflächen Amber | ändern |
-| Bewegung | 150 ms global, Reduced Motion über `!important` | 120–320 ms, `cubic-bezier(.2,.8,.2,1)`, gezielt je Komponente | ändern |
-| Logo / Icons | Text „Schulplattform“ in der Sidebar; PWA-Icons ohne Marke (`apps/web/public/icons/*`) | Raster-P, Wortmarke PROfessor, App-Icon Nacht | neu |
-| Manifest | `name` „Schulplattform“, `short_name` „Schule“, Farben Indigo | „PROfessor“, `#0E192D` | ändern |
-| Showcase | keiner | Storybook oder Showcase-Route mit allen Zuständen hell/dunkel | neu (E6) |
-| Prüfskripte | axe in Playwright (hell und dunkel, 320 px) | dazu Token-Lint, Kontrast-Skript, Screenshots, PWA- und LCP-Prüfung | neu |
+| Bereich        | Heute                                                                                                                                                                                                   | Design System                                                                                                                                        | Abweichung                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| UI-Paket       | `packages/ui` (`@sp/ui`), 15 Komponenten, Radix (`dialog`, `slot`), `cva`, `tailwind-merge`, `lucide-react`                                                                                             | dasselbe Muster (cva, Lucide)                                                                                                                        | passt, Komponenten werden ersetzt bzw. umgebaut              |
+| Tailwind       | v4, `@theme inline` in `packages/ui/src/styles/index.css`                                                                                                                                               | v4, `@theme inline` aus `tokens.json` erzeugt                                                                                                        | Token-Namen und -Werte komplett neu                          |
+| Tokens         | `tokens.css` von Hand, 12 Farben (`--surface`, `--primary`, `--success` …), 3 Radien, keine Abstände, Schatten, Ebenen                                                                                  | 40 Farb-Tokens je Theme, Abstände, Radien, Schatten, Ebenen, Breakpoints, Typografie; `tokens.json` ist die einzige Quelle                           | ersetzen; `tokens.css` wird erzeugt                          |
+| Schrift        | Inter Variable (`@fontsource-variable/inter`), Größen über Tailwind (`text-sm` 218×, `text-lg` 51×, `text-2xl` 53× …)                                                                                   | Bricolage Grotesque (700/800), DM Sans, JetBrains Mono (500) über `next/font`; Tailwind-Textgrößen verboten, nur Typo-Stile `display-xl` … `mono-sm` | Schriften tauschen, alle Textgrößen auf Typo-Stile umstellen |
+| Farben im Code | alte Token-Utilities (`text-muted` 176×, `bg-surface-2` 53×, `bg-surface` 36×, `text-primary` 32× …), Rohwerte `#4f46e5` (Fächer-Standardfarbe, `layout.tsx`, `manifest.ts`), `bg-white`, `bg-black/50` | nur neue Token-Utilities, keine Hex-Werte                                                                                                            | alle Stellen umstellen, Lint-Skript verhindert Rückfall      |
+| Theme          | Cookie `sp_theme` (light/dark, sonst System), Server setzt `data-theme` beim Rendern; System über `@media (prefers-color-scheme)`                                                                       | `localStorage` `pf-theme` + Inline-Skript im `head`                                                                                                  | Abweichung beibehalten, siehe Entscheidung E3                |
+| `theme-color`  | fest `#4F46E5`                                                                                                                                                                                          | je Theme per `media` (`#F6F5F1` hell, `#0E192D` dunkel)                                                                                              | ändern                                                       |
+| Fokusring      | 2px `--primary`, Abstand 2px                                                                                                                                                                            | 3px `--focus`, Abstand 3px; auf Nachtflächen Amber                                                                                                   | ändern                                                       |
+| Bewegung       | 150 ms global, Reduced Motion über `!important`                                                                                                                                                         | 120–320 ms, `cubic-bezier(.2,.8,.2,1)`, gezielt je Komponente                                                                                        | ändern                                                       |
+| Logo / Icons   | Text „Schulplattform“ in der Sidebar; PWA-Icons ohne Marke (`apps/web/public/icons/*`)                                                                                                                  | Raster-P, Wortmarke PROfessor, App-Icon Nacht                                                                                                        | neu                                                          |
+| Manifest       | `name` „Schulplattform“, `short_name` „Schule“, Farben Indigo                                                                                                                                           | „PROfessor“, `#0E192D`                                                                                                                               | ändern                                                       |
+| Showcase       | keiner                                                                                                                                                                                                  | Storybook oder Showcase-Route mit allen Zuständen hell/dunkel                                                                                        | neu (E6)                                                     |
+| Prüfskripte    | axe in Playwright (hell und dunkel, 320 px)                                                                                                                                                             | dazu Token-Lint, Kontrast-Skript, Screenshots, PWA- und LCP-Prüfung                                                                                  | neu                                                          |
 
 ## 2. Bestand: Komponenten
 
-| Heute (`@sp/ui`) | Design System | Maßnahme |
-| --- | --- | --- |
-| `Button` (`primary`, `secondary`, `ghost`, `destructive`; 44px, `rounded-sm`) | `Button` (`pf-btn`): `primary` mit Taster-Kante, `signal`, `secondary`, `ghost`, `danger`; `sm`/`md`/`lg`, `block`, `loading`, `iconLeft`; 48px | umbauen, `destructive` → `danger` an allen Aufrufstellen |
-| `Badge` (Rahmen in Statusfarbe), `StatusBadge` (7 Zustände, Grün/Gelb/Rot/Blau) | `Chip` (`pf-chip`): `ok`, `late`, `absent`, `danger`, `solid`, `mono`; immer Wort plus Icon | `Chip` neu, `StatusBadge` auf `Chip` abbilden (Tabelle 2a), `Badge` entfällt |
-| `Card` (Rahmen, `rounded-md`, kein Schatten) | `Card` (`pf-card`): `night`, `signal`, `brand`, `flat`, `interactive`; `shadow-card`, `radius-lg` | umbauen; Karte-in-Karte-Stellen auflösen |
-| `Input`, `Textarea`, `Select` (44px, `bg-surface-2`, Rahmen) | `Field` (`pf-field`, `pf-input`): 52px, Ring `line-strong`, Fehler mit Icon | umbauen, Schnittstelle (`label`, `hint`, `error`) bleibt |
-| `Checkbox`, `Switch`, `SegmentedControl` | nicht im System (nur Hinweise: `line-strong` für Checkbox/Segmente, `radius-pill` für Segmente und Toggles, `bg-sunken` für Segment-Tracks) | aus Tokens ableiten; **Vorschlag zur Ergänzung im Design System** (Abschnitt 6) |
-| `ListRow` | nicht im System (Tabellen/Listen: Trennung durch `line`, Zeilen 52px) | aus Tokens ableiten; Vorschlag zur Ergänzung |
-| `Sheet` (Radix-Dialog, `bg-black/50`, `rounded-t-md`) | `Sheet` (`pf-sheet`, Griff, `radius-xl`, Scrim `overlay`), Web als Dialog; Wischen zum Schließen | umbauen, Wischgeste neu |
-| `Skeleton` | `Skeleton` (`pf-skel`, Schimmer, erst ab 1 s sichtbar) | umbauen, Verzögerung neu |
-| `EmptyState` (nur Text) | `EmptyState` mit Kachel-Raster (`pf-empty__tiles`) | umbauen |
-| – | `KpiTile` (`pf-kpi`, `--big` einmal je Dashboard) | neu |
-| – | `Toast` (Nacht, 5 s, Aktion „Rückgängig“), `Banner` (`pf-banner`) | neu (heute: Inline-Statuszeilen, Offline-Banner selbst gebaut) |
-| – | `Logo` (`pf-logo`, `onNight`, `symbolOnly`) | neu |
-| – | `Sidebar`, `TabBar` (`pf-nav`, `pf-tabbar`, erhobene Hauptaktion) | neu (heute in `app-shell.tsx` inline) |
-| – | `TimetableGrid` (`pf-tt`, Fächerfarben, `conflict`, `subst`, `drag`) | neu; ersetzt die Raster in `plan/week-plan.tsx` und `timetable/editor.tsx` |
-| – | `AttendanceRow` (`pf-att`, 56px, Avatar-Initial, Chip) | neu; ersetzt die Zeile in `classbook/classbook-screen.tsx` (Bedienung Tap/langes Drücken gibt es schon) |
+| Heute (`@sp/ui`)                                                                | Design System                                                                                                                                   | Maßnahme                                                                                                |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `Button` (`primary`, `secondary`, `ghost`, `destructive`; 44px, `rounded-sm`)   | `Button` (`pf-btn`): `primary` mit Taster-Kante, `signal`, `secondary`, `ghost`, `danger`; `sm`/`md`/`lg`, `block`, `loading`, `iconLeft`; 48px | umbauen, `destructive` → `danger` an allen Aufrufstellen                                                |
+| `Badge` (Rahmen in Statusfarbe), `StatusBadge` (7 Zustände, Grün/Gelb/Rot/Blau) | `Chip` (`pf-chip`): `ok`, `late`, `absent`, `danger`, `solid`, `mono`; immer Wort plus Icon                                                     | `Chip` neu, `StatusBadge` auf `Chip` abbilden (Tabelle 2a), `Badge` entfällt                            |
+| `Card` (Rahmen, `rounded-md`, kein Schatten)                                    | `Card` (`pf-card`): `night`, `signal`, `brand`, `flat`, `interactive`; `shadow-card`, `radius-lg`                                               | umbauen; Karte-in-Karte-Stellen auflösen                                                                |
+| `Input`, `Textarea`, `Select` (44px, `bg-surface-2`, Rahmen)                    | `Field` (`pf-field`, `pf-input`): 52px, Ring `line-strong`, Fehler mit Icon                                                                     | umbauen, Schnittstelle (`label`, `hint`, `error`) bleibt                                                |
+| `Checkbox`, `Switch`, `SegmentedControl`                                        | nicht im System (nur Hinweise: `line-strong` für Checkbox/Segmente, `radius-pill` für Segmente und Toggles, `bg-sunken` für Segment-Tracks)     | aus Tokens ableiten; **Vorschlag zur Ergänzung im Design System** (Abschnitt 6)                         |
+| `ListRow`                                                                       | nicht im System (Tabellen/Listen: Trennung durch `line`, Zeilen 52px)                                                                           | aus Tokens ableiten; Vorschlag zur Ergänzung                                                            |
+| `Sheet` (Radix-Dialog, `bg-black/50`, `rounded-t-md`)                           | `Sheet` (`pf-sheet`, Griff, `radius-xl`, Scrim `overlay`), Web als Dialog; Wischen zum Schließen                                                | umbauen, Wischgeste neu                                                                                 |
+| `Skeleton`                                                                      | `Skeleton` (`pf-skel`, Schimmer, erst ab 1 s sichtbar)                                                                                          | umbauen, Verzögerung neu                                                                                |
+| `EmptyState` (nur Text)                                                         | `EmptyState` mit Kachel-Raster (`pf-empty__tiles`)                                                                                              | umbauen                                                                                                 |
+| –                                                                               | `KpiTile` (`pf-kpi`, `--big` einmal je Dashboard)                                                                                               | neu                                                                                                     |
+| –                                                                               | `Toast` (Nacht, 5 s, Aktion „Rückgängig“), `Banner` (`pf-banner`)                                                                               | neu (heute: Inline-Statuszeilen, Offline-Banner selbst gebaut)                                          |
+| –                                                                               | `Logo` (`pf-logo`, `onNight`, `symbolOnly`)                                                                                                     | neu                                                                                                     |
+| –                                                                               | `Sidebar`, `TabBar` (`pf-nav`, `pf-tabbar`, erhobene Hauptaktion)                                                                               | neu (heute in `app-shell.tsx` inline)                                                                   |
+| –                                                                               | `TimetableGrid` (`pf-tt`, Fächerfarben, `conflict`, `subst`, `drag`)                                                                            | neu; ersetzt die Raster in `plan/week-plan.tsx` und `timetable/editor.tsx`                              |
+| –                                                                               | `AttendanceRow` (`pf-att`, 56px, Avatar-Initial, Chip)                                                                                          | neu; ersetzt die Zeile in `classbook/classbook-screen.tsx` (Bedienung Tap/langes Drücken gibt es schon) |
 
 ### 2a. Status-Abbildung (StatusBadge → Chip)
 
 Das System kennt fünf Tonarten; die sieben fachlichen Zustände werden so abgebildet:
 
-| Zustand | heute | neu | Icon |
-| --- | --- | --- | --- |
-| anwesend | Grün | `ok` „Anwesend“ | check |
-| verspätet | Gelb | `late` „5 Min spät“ | clock |
-| abwesend | Rot | `absent` „Abwesend“ | x |
-| entschuldigt | Blau | `ok` „Entschuldigt“ (erledigt) | file-check |
-| Entfall | Rot durchgestrichen | `late` „Entfall“ (Hinweis, Text durchgestrichen bleibt) | ban |
-| Vertretung | Gelb | `ok` „Vertretung“ (laut Tabelle „Status auf einen Blick“) | user-round-cog |
-| Raumwechsel | Blau | `late` „Raum 12“ (Hinweis) | door-open |
+| Zustand      | heute               | neu                                                       | Icon           |
+| ------------ | ------------------- | --------------------------------------------------------- | -------------- |
+| anwesend     | Grün                | `ok` „Anwesend“                                           | check          |
+| verspätet    | Gelb                | `late` „5 Min spät“                                       | clock          |
+| abwesend     | Rot                 | `absent` „Abwesend“                                       | x              |
+| entschuldigt | Blau                | `ok` „Entschuldigt“ (erledigt)                            | file-check     |
+| Entfall      | Rot durchgestrichen | `late` „Entfall“ (Hinweis, Text durchgestrichen bleibt)   | ban            |
+| Vertretung   | Gelb                | `ok` „Vertretung“ (laut Tabelle „Status auf einen Blick“) | user-round-cog |
+| Raumwechsel  | Blau                | `late` „Raum 12“ (Hinweis)                                | door-open      |
 
 Rot (`danger`) bleibt Fehlern vorbehalten; heute sind „abwesend“ und „Entfall“ rot. Im Stundenplan-Raster ist eine Vertretung `is-subst` (Amber weich mit Rand).
 
 ## 3. Bestand: Seiten (61) und Zuordnung zu „Screens“
 
-| Screen im System | Route(n) heute | wichtigste Abweichungen |
-| --- | --- | --- |
-| 1 Anmeldung, Zwei-Faktor, Einladung | `/login`, `/2fa`, `/2fa/einrichten`, `/einladung`, `/eltern-code`, `/passwort-*` | keine Marke, kein Nacht-/Raster-Teil, kein Claim; 2FA als ein Feld statt sechs Ziffernfeldern mit Autosubmit; Überschrift „Willkommen! …“ mit Ausrufezeichen |
-| 2 Heute (Lehrer) | `/heute` (`today/today-screen.tsx`) | Begrüßung klein (`text-2xl`), aktuelle Stunde als Karte mit Rand statt Nachtkarte, kein Zweispalter ab 1024px |
-| Heute (Schüler, Eltern) | `/heute` | nächste Stunde mit Fachfarbe als Randstreifen; Rest als Liste – passt im Aufbau, Optik neu |
-| 3 Klassenbuch | `/klassenbuch`, `/klassenbuch/[occurrenceId]` | Zeilen ohne Avatar, Status in Grün/Rot; kein Zweispalter (Liste + Stundendetail) ab 1024px; keine Tastenkürzel `A`/`V`/`Enter`; kein Toast „Stunde abgeschlossen“ mit Rückgängig |
-| 4 Stundenplan-Ansicht | `/plan`, `/kind/[id]/plan` (`plan/week-plan.tsx`) | Fächer als Randfarbe statt Fächerkachel; mobil kein Tageswischen; aktuelle Stunde ohne Nacht-Rand |
-| 4 Stundenplan-Editor | `/admin/stundenplan/[id]` (`timetable/editor.tsx`, 1.109 Zeilen) | Konflikte rot statt Amber-Kachel mit Wort; Kacheln ohne Fächerfarbe; Drag ohne `is-drag` |
-| 4 AI-Planung | – | gehört zu M7 (nicht Teil von M6.5) |
-| 5 Abwesenheit melden | `/abwesenheit/neu` (`absences/absence-form.tsx`) | eigene Seite statt Sheet aus der Tab-Leiste; Grund als Auswahl statt Chips; kein Status-Verlauf als vier Kacheln |
-| 6 Entschuldigungen prüfen | `/klasse/[id]/entschuldigungen` (`absences/class-absences.tsx`) | kein Wischen zum Entschuldigen, Frist nicht als Amber-Chip |
-| 7 Supplierung | `/supplierung` (`substitution/substitution-screen.tsx`), Karte auf `/heute` | kein Zweispalter (Ausfälle links, Vorschläge rechts) |
-| 8 Direktions-Lagebild | `/lagebild` (`principal/dashboard-screen.tsx`) | sechs gleich große Karten statt einer großen Zahl (`pf-kpi--big`) und kleinen Kennzahlen; kein Dreispalter ab 1280px |
-| 9 Prüfungskalender | `/pruefungen` (`teacher/exams-screen.tsx`) | Liste statt Monatsraster (Web)/Wochenliste (mobil); Kollision nicht als Amber-Kachel |
-| 10 Nachrichten, Rundschreiben | `/nachrichten*`, `/rundschreiben*` | kein Zweispalter auf Web; Senden ohne Vorschau „So sehen es Eltern“ (Vorschau der Empfängerzahl gibt es) |
-| 11 Admin: Einrichtung und Import | `/admin/*` (Personen, Klassen, Fächer, Räume, Raster, Schuljahr, Import, Rollen, Protokoll, Datenschutz, Einstellungen) | **keine Übersichtsseite** mit Checkliste „Schule einrichten“; Import ohne große Ablagefläche |
-| 12 Fehler- und Sonderseiten | `[...slug]` (404 im App-Bereich), `/offline` | keine Nachtfläche, kein Raster-Motiv; keine globale 404 außerhalb des App-Bereichs |
-| (nicht im System) | `/willkommen`, `/profil`, `/benachrichtigungen`, `/mehr`, `/klassen*`, `/klasse*`, `/raeume`, `/freigaben`, `/auswertung`, `/termine`, `/aufgaben`, `/krankmeldung`, `/kind/[id]/fehlzeiten` | werden mit denselben Bausteinen umgestellt, ohne eigene Screen-Vorgabe |
+| Screen im System                    | Route(n) heute                                                                                                                                                                               | wichtigste Abweichungen                                                                                                                                                          |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 Anmeldung, Zwei-Faktor, Einladung | `/login`, `/2fa`, `/2fa/einrichten`, `/einladung`, `/eltern-code`, `/passwort-*`                                                                                                             | keine Marke, kein Nacht-/Raster-Teil, kein Claim; 2FA als ein Feld statt sechs Ziffernfeldern mit Autosubmit; Überschrift „Willkommen! …“ mit Ausrufezeichen                     |
+| 2 Heute (Lehrer)                    | `/heute` (`today/today-screen.tsx`)                                                                                                                                                          | Begrüßung klein (`text-2xl`), aktuelle Stunde als Karte mit Rand statt Nachtkarte, kein Zweispalter ab 1024px                                                                    |
+| Heute (Schüler, Eltern)             | `/heute`                                                                                                                                                                                     | nächste Stunde mit Fachfarbe als Randstreifen; Rest als Liste – passt im Aufbau, Optik neu                                                                                       |
+| 3 Klassenbuch                       | `/klassenbuch`, `/klassenbuch/[occurrenceId]`                                                                                                                                                | Zeilen ohne Avatar, Status in Grün/Rot; kein Zweispalter (Liste + Stundendetail) ab 1024px; keine Tastenkürzel `A`/`V`/`Enter`; kein Toast „Stunde abgeschlossen“ mit Rückgängig |
+| 4 Stundenplan-Ansicht               | `/plan`, `/kind/[id]/plan` (`plan/week-plan.tsx`)                                                                                                                                            | Fächer als Randfarbe statt Fächerkachel; mobil kein Tageswischen; aktuelle Stunde ohne Nacht-Rand                                                                                |
+| 4 Stundenplan-Editor                | `/admin/stundenplan/[id]` (`timetable/editor.tsx`, 1.109 Zeilen)                                                                                                                             | Konflikte rot statt Amber-Kachel mit Wort; Kacheln ohne Fächerfarbe; Drag ohne `is-drag`                                                                                         |
+| 4 AI-Planung                        | –                                                                                                                                                                                            | gehört zu M7 (nicht Teil von M6.5)                                                                                                                                               |
+| 5 Abwesenheit melden                | `/abwesenheit/neu` (`absences/absence-form.tsx`)                                                                                                                                             | eigene Seite statt Sheet aus der Tab-Leiste; Grund als Auswahl statt Chips; kein Status-Verlauf als vier Kacheln                                                                 |
+| 6 Entschuldigungen prüfen           | `/klasse/[id]/entschuldigungen` (`absences/class-absences.tsx`)                                                                                                                              | kein Wischen zum Entschuldigen, Frist nicht als Amber-Chip                                                                                                                       |
+| 7 Supplierung                       | `/supplierung` (`substitution/substitution-screen.tsx`), Karte auf `/heute`                                                                                                                  | kein Zweispalter (Ausfälle links, Vorschläge rechts)                                                                                                                             |
+| 8 Direktions-Lagebild               | `/lagebild` (`principal/dashboard-screen.tsx`)                                                                                                                                               | sechs gleich große Karten statt einer großen Zahl (`pf-kpi--big`) und kleinen Kennzahlen; kein Dreispalter ab 1280px                                                             |
+| 9 Prüfungskalender                  | `/pruefungen` (`teacher/exams-screen.tsx`)                                                                                                                                                   | Liste statt Monatsraster (Web)/Wochenliste (mobil); Kollision nicht als Amber-Kachel                                                                                             |
+| 10 Nachrichten, Rundschreiben       | `/nachrichten*`, `/rundschreiben*`                                                                                                                                                           | kein Zweispalter auf Web; Senden ohne Vorschau „So sehen es Eltern“ (Vorschau der Empfängerzahl gibt es)                                                                         |
+| 11 Admin: Einrichtung und Import    | `/admin/*` (Personen, Klassen, Fächer, Räume, Raster, Schuljahr, Import, Rollen, Protokoll, Datenschutz, Einstellungen)                                                                      | **keine Übersichtsseite** mit Checkliste „Schule einrichten“; Import ohne große Ablagefläche                                                                                     |
+| 12 Fehler- und Sonderseiten         | `[...slug]` (404 im App-Bereich), `/offline`                                                                                                                                                 | keine Nachtfläche, kein Raster-Motiv; keine globale 404 außerhalb des App-Bereichs                                                                                               |
+| (nicht im System)                   | `/willkommen`, `/profil`, `/benachrichtigungen`, `/mehr`, `/klassen*`, `/klasse*`, `/raeume`, `/freigaben`, `/auswertung`, `/termine`, `/aufgaben`, `/krankmeldung`, `/kind/[id]/fehlzeiten` | werden mit denselben Bausteinen umgestellt, ohne eigene Screen-Vorgabe                                                                                                           |
 
 ## 4. Abweichungen bei Inhalt und Sprache
 
@@ -94,15 +94,15 @@ Rot (`danger`) bleibt Fehlern vorbehalten; heute sind „abwesend“ und „Entf
 
 ## 5. Abweichungen bei der Navigation (Spec Abschnitt 5 ↔ „Web und Mobile“ Abschnitt 3)
 
-| Rolle | Tab-Leiste heute (Spec) | Tab-Leiste laut Design System (Mitte = Hauptaktion, Amber) |
-| --- | --- | --- |
-| Schüler | Heute, Plan, Aufgaben, Nachrichten, Profil | Heute, Plan, **Hausübungen**, Chat, Mehr (umgesetzt nach F5: Plan, Hausübungen, **Heute**, Chat, Mehr) |
-| Eltern | Heute, Plan, Abwesenheit, Nachrichten, Profil | Heute, Plan, **Abwesenheit melden**, Nachrichten, Mehr |
-| Lehrer | Heute, Klassenbuch, Klassen, Nachrichten, Profil | Heute, Plan, **Klassenbuch**, Chat, Mehr |
-| Klassenvorstand | Heute, Klassenbuch, Meine Klasse, Nachrichten, Profil | wie Lehrer (Meine Klasse in Sidebar/Mehr) |
-| Direktion | Lagebild, Supplierung, Auswertung, Nachrichten, Mehr | Lagebild, Supplierung, **Freigaben**, Nachrichten, Mehr |
-| Administration | Personen, Klassen, Stundenplan, Import, Mehr | **Übersicht** (neu), Stundenplan, **Import**, Nachrichten, Mehr |
-| Schul-IT | – (Rolle gibt es nicht) | Übersicht, Import, Zugänge, Datenschutz, Mehr |
+| Rolle           | Tab-Leiste heute (Spec)                               | Tab-Leiste laut Design System (Mitte = Hauptaktion, Amber)                                             |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Schüler         | Heute, Plan, Aufgaben, Nachrichten, Profil            | Heute, Plan, **Hausübungen**, Chat, Mehr (umgesetzt nach F5: Plan, Hausübungen, **Heute**, Chat, Mehr) |
+| Eltern          | Heute, Plan, Abwesenheit, Nachrichten, Profil         | Heute, Plan, **Abwesenheit melden**, Nachrichten, Mehr                                                 |
+| Lehrer          | Heute, Klassenbuch, Klassen, Nachrichten, Profil      | Heute, Plan, **Klassenbuch**, Chat, Mehr                                                               |
+| Klassenvorstand | Heute, Klassenbuch, Meine Klasse, Nachrichten, Profil | wie Lehrer (Meine Klasse in Sidebar/Mehr)                                                              |
+| Direktion       | Lagebild, Supplierung, Auswertung, Nachrichten, Mehr  | Lagebild, Supplierung, **Freigaben**, Nachrichten, Mehr                                                |
+| Administration  | Personen, Klassen, Stundenplan, Import, Mehr          | **Übersicht** (neu), Stundenplan, **Import**, Nachrichten, Mehr                                        |
+| Schul-IT        | – (Rolle gibt es nicht)                               | Übersicht, Import, Zugänge, Datenschutz, Mehr                                                          |
 
 Weitere Unterschiede:
 
@@ -143,6 +143,8 @@ Weitere Unterschiede:
 - **E15 Supplierung für Lehrkräfte ohne „Annehmen“:** Supplierungen werden mit dem Veröffentlichen verbindlich (ADR 0008). Die Amber-Karte „Du vertrittst …“ steht mobil oben auf Heute (ab 1024 px rechts) und führt ins vorbelegte Klassenbuch.
 - **E16 Ohne API vorerst weggelassen:** „Zugang sperren“ bei Rechte und Einladungen sowie Schulname und Rolle auf der Einladungs-Landeseite (es gibt keine Abfrage zum Einladungs-Token). Beides ist Vorschlag für V1; Löschen bleibt Anonymisieren.
 - **E17 Abgeleitete Bausteine** (Lücke 6.1): `SegmentedNav` (Ansicht/Kind wählen als Links, Optik wie `SegmentedControl`), `ListRow` als ganze Zeile tippbar (`href`), Tabellen mobil als Karten-Liste mit zwei Feldern (`CrudManager`), `LoadError` (Banner mit „Erneut versuchen“) und `AuthDone` im App-Code.
+- **E18 Screenshots ohne Pixelvergleich:** Heute, Klassenbuch, Lagebild und Stundenplan zeigen Tagesdaten und die Uhrzeit (Zeitlinie, „läuft gerade“). Feste Vergleichsbilder würden täglich brechen. `e2e/design.spec.ts` nimmt deshalb alle Kombinationen hell/dunkel × 390/1280 auf (CI-Artefakt „design-screenshots“) und prüft dabei jede Aufnahme mit axe (serious, critical) und auf waagrechtes Scrollen.
+- **E19 PWA und LCP ohne Lighthouse:** Lighthouse hat die PWA-Kategorie entfernt (Lücke 6.5). Der Playwright-Test prüft Manifest, Icons, `theme-color` je Theme, Service Worker und Offline-Start; LCP und CLS misst er auf Heute im mobilen Profil (langsames 4G, CPU vierfach gedrosselt, ohne Service Worker). Stand 13. Okt. 2026: LCP rund 0,8 s, CLS 0.
 
 ### Entscheidungen der Produktverantwortung (am 12. Okt. 2026 bestätigt)
 
@@ -180,6 +182,6 @@ apps/web/public/icons/         erzeugte PWA-Icons
 - [x] **D3 Shell:** Sidebar ab 1024px, Topbar mit Befehlspalette (nur Seiten der Rolle; Personensuche bleibt V1), Tab-Leiste mit erhobener Hauptaktion, Mehr-Sheet (Profil, Rolle wechseln, Theme, Abmelden), Navigation nach F2, Admin-Übersicht.
 - [x] **D4 Fachkomponenten:** `TimetableGrid`, `AttendanceRow`, Heute-Nachtkarte; Fächerfarben (F3); Playwright-Zeitmessung „Stunde abschließen“ (≤ 4 Taps, < 10 s).
 - [x] **D5 Seiten:** in der Reihenfolge Anmeldung, Heute, Klassenbuch, Abwesenheit melden, Stundenplan, Lagebild, Supplierung, Editor, Admin, Nachrichten, Prüfungen, danach die übrigen; Anrede (F4), Texte ohne Ausrufezeichen, Leer-/Lade-/Fehler-/Offline-Zustände.
-- [ ] **D6 Härtung:** Token-Lint und Kontrast-Skript in CI, Screenshots hell/dunkel × 390/1280, axe, Tastatur, Reduced Motion, PWA-Test, LCP, Aufräumen (alte Tokens, `Badge`, Inter, alte Klassen), dieses Audit abhaken.
+- [x] **D6 Härtung:** Token-Lint und Kontrast-Skript in CI, Screenshots hell/dunkel × 390/1280, axe, Tastatur, Reduced Motion, PWA-Test, LCP, Aufräumen (alte Tokens, `Badge`, Inter, alte Klassen), dieses Audit abhaken.
 
 Nicht Teil von M6.5: AI-Planung (M7), Personensuche (PL-06, V1), Schul-IT-Rolle, Hilfeseiten.

@@ -20,15 +20,15 @@ Supplierung, Prüfungskalender, Nachrichten und Rundschreiben, Benachrichtigunge
 
 ## Risiken und Maßnahmen
 
-| Risiko | Eintritt/Schwere (vor Maßnahmen) | Maßnahmen | Restrisiko |
-| --- | --- | --- | --- |
-| Unbefugter Zugriff auf Fehlzeiten oder Nachrichten (z. B. fremde Schule, fremde Klasse) | mittel/hoch | RLS je Mandant, Policy-Matrix mit automatischen Tests, 2FA für Personal, Protokoll lesender Zugriffe | gering |
-| Kontoübernahme (Phishing, schwache Passwörter) | mittel/hoch | Argon2id, Sperre bei Fehlversuchen, 2FA für Personal, Geräteliste, "überall abmelden" | mittel (Eltern ohne 2FA) |
-| Offenlegung über verlorene Geräte | mittel/mittel | Offline-Speicher nur wenige Tage, Löschen bei Abmeldung/Nichtnutzung, keine Anhänge offline | gering |
-| Gesundheitsdaten in Freitexten (Grund der Abwesenheit) | mittel/mittel | Auswahl statt Freitext als Standard, Hinweis, Zugriff nur Klassenvorstand/Direktion, Fristen | gering |
-| Weitergabe an Dritte über Push | gering/mittel | Push-Texte ohne Namen und Inhalte, freiwillig je Gerät | gering |
-| Datenverlust | gering/hoch | tägliche verschlüsselte Sicherung, Restore-Tests, Offline-Warteschlange | gering |
-| Missbrauch durch Berechtigte | gering/mittel | Protokoll (nur anhängbar), Rechte nach Rolle, Kontrolle durch Direktion | gering |
+| Risiko                                                                                  | Eintritt/Schwere (vor Maßnahmen) | Maßnahmen                                                                                            | Restrisiko               |
+| --------------------------------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------ |
+| Unbefugter Zugriff auf Fehlzeiten oder Nachrichten (z. B. fremde Schule, fremde Klasse) | mittel/hoch                      | RLS je Mandant, Policy-Matrix mit automatischen Tests, 2FA für Personal, Protokoll lesender Zugriffe | gering                   |
+| Kontoübernahme (Phishing, schwache Passwörter)                                          | mittel/hoch                      | Argon2id, Sperre bei Fehlversuchen, 2FA für Personal, Geräteliste, "überall abmelden"                | mittel (Eltern ohne 2FA) |
+| Offenlegung über verlorene Geräte                                                       | mittel/mittel                    | Offline-Speicher nur wenige Tage, Löschen bei Abmeldung/Nichtnutzung, keine Anhänge offline          | gering                   |
+| Gesundheitsdaten in Freitexten (Grund der Abwesenheit)                                  | mittel/mittel                    | Auswahl statt Freitext als Standard, Hinweis, Zugriff nur Klassenvorstand/Direktion, Fristen         | gering                   |
+| Weitergabe an Dritte über Push                                                          | gering/mittel                    | Push-Texte ohne Namen und Inhalte, freiwillig je Gerät                                               | gering                   |
+| Datenverlust                                                                            | gering/hoch                      | tägliche verschlüsselte Sicherung, Restore-Tests, Offline-Warteschlange                              | gering                   |
+| Missbrauch durch Berechtigte                                                            | gering/mittel                    | Protokoll (nur anhängbar), Rechte nach Rolle, Kontrolle durch Direktion                              | gering                   |
 
 ## Ergebnis (vorläufig)
 

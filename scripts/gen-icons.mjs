@@ -26,7 +26,9 @@ function monochrome() {
     .filter((m) => m[1].toLowerCase() !== '#f3a423')
     .map((m) => m[0].replace(/fill="#[0-9a-f]+"/i, 'fill="#ffffff"').replace(/>$/, '/>'))
     .join('');
-  return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${tiles}</svg>`);
+  return Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">${tiles}</svg>`,
+  );
 }
 
 /** Favicon: Symbol (332 × 564) mittig mit etwas Rand auf transparentem Quadrat. */

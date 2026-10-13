@@ -188,7 +188,10 @@ export class NotificationsService implements OnModuleInit {
         return { kind: 'push' as const, push: subs, text, url, ids };
       }
       const user = await tx.user.findUnique({ where: { personId }, select: { email: true } });
-      const roles = await tx.roleAssignment.findMany({ where: { personId }, select: { role: true } });
+      const roles = await tx.roleAssignment.findMany({
+        where: { personId },
+        select: { role: true },
+      });
       return user
         ? {
             kind: 'email' as const,

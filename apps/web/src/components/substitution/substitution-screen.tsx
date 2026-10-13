@@ -86,7 +86,7 @@ export function SubstitutionScreen() {
       </header>
 
       {/* Ab 1024 px zweispaltig: Ausfälle links, Stunden mit Aktionen rechts (Design System, Supplierung) */}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <div className="flex flex-col gap-6">
           <AbsentTeachers day={q.data} onAdd={() => setAbsenceOpen(true)} />
           <ChangeLesson date={date} directory={directory.data} onPick={setCreating} />

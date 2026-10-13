@@ -112,7 +112,7 @@ export function DashboardScreen() {
       </header>
 
       {q.isPending ? (
-        <div className="grid gap-6 xl:grid-cols-3" aria-hidden="true">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3" aria-hidden="true">
           <Skeleton className="h-80 rounded-lg" />
           <Skeleton className="h-80 rounded-lg" />
           <Skeleton className="h-80 rounded-lg" />
@@ -240,7 +240,7 @@ export function DashboardScreen() {
                           </span>
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-body-strong">
+                          <span className="block text-body-strong break-words">
                             {x.className ? `${x.className} · ` : ''}
                             {x.subject}
                           </span>

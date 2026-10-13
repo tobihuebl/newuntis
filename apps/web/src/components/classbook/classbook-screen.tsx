@@ -231,7 +231,7 @@ function Loaded({
         </Banner>
       ))}
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
         <section
           aria-labelledby="students"
           className="flex flex-col gap-3"
@@ -465,7 +465,7 @@ function EntryBar({
 
   return (
     <>
-      <section aria-label={t('entryToggle')} className="grid gap-4 md:grid-cols-2">
+      <section aria-label={t('entryToggle')} className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Textarea
           label={t('topic')}
           rows={2}
@@ -561,7 +561,7 @@ function ConflictPanel({
         <p className="text-h3">{t('conflictTitle')}</p>
         <p className="text-body-sm">{t('conflictText')}</p>
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="flex flex-col gap-1 rounded-md bg-bg-raised p-3">
           <p className="text-label">{t('conflictTheirs')}</p>
           {show(theirs ?? { topic: null, homework: null })}

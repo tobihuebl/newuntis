@@ -1,11 +1,6 @@
 import { Inject, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import type { SessionStage, Tx } from '@sp/db';
-import {
-  TWO_FACTOR_REQUIRED_ROLES,
-  formalAddress,
-  type MeResponse,
-  type Role,
-} from '@sp/shared';
+import { TWO_FACTOR_REQUIRED_ROLES, formalAddress, type MeResponse, type Role } from '@sp/shared';
 import { ENV, type Env } from '../../config/env';
 import { tenantAppUrl } from '../../common/urls';
 import type { Principal, TenantInfo } from '../../common/request';

@@ -104,7 +104,7 @@ export function GuardianCodes({
           {t('codesCsv')}
         </Button>
       </div>
-      <ul className="grid gap-2 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {rows.map((r) => (
           <li key={r.studentId} className="flex flex-col gap-1 rounded-md bg-bg-sunken p-4">
             <p className="text-body-strong">

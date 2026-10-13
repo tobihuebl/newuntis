@@ -91,14 +91,16 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
         </div>
         <nav aria-label={t('title')} className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" asChild iconLeft={ChevronLeft}>
-            <Link href={link(week.prev)}>{t('prevWeek')}</Link>
+            <Link href={link(week.prev)}>
+              <span className="sr-only sm:not-sr-only">{t('prevWeek')}</span>
+            </Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link href={link('')}>{t('thisWeek')}</Link>
           </Button>
           <Button variant="secondary" size="sm" asChild>
             <Link href={link(week.next)}>
-              {t('nextWeek')}
+              <span className="sr-only sm:not-sr-only">{t('nextWeek')}</span>
               <ChevronRight aria-hidden="true" />
             </Link>
           </Button>

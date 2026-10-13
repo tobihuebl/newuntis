@@ -21,7 +21,9 @@
     "e2e": "pnpm --filter @sp/web e2e",
     "design:gen": "node scripts/gen-theme.mjs",
     "design:check": "node scripts/gen-theme.mjs --check",
-    "design:icons": "node scripts/gen-icons.mjs"
+    "design:icons": "node scripts/gen-icons.mjs",
+    "design:lint": "node scripts/check-tokens.mjs",
+    "design:contrast": "node scripts/check-contrast.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -1,7 +1,8 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button, Select } from '@sp/ui';
+import { Search } from 'lucide-react';
+import { Button, Select, Sheet } from '@sp/ui';
 import { useT } from '../../lib/i18n';
 
 interface Directory {
@@ -21,17 +22,20 @@ export function PlanPicker({
   current: { kind: 'class' | 'teacher' | 'room'; id: string } | null;
 }) {
   const t = useT('plan');
+  const c = useT('common');
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<'class' | 'teacher' | 'room'>(current?.kind ?? 'class');
   const [id, setId] = useState(current?.id ?? '');
   const options = (
     kind === 'class' ? directory.classes : kind === 'teacher' ? directory.teachers : directory.rooms
   ).map((x) => ({ value: x.id, label: x.name }));
-  return (
+  const form = (
     <form
-      className="grid items-end gap-3 sm:grid-cols-[10rem_1fr_auto]"
+      className="grid grid-cols-1 items-end gap-3 lg:grid-cols-[10rem_minmax(0,24rem)_auto]"
       onSubmit={(e) => {
         e.preventDefault();
+        setOpen(false);
         router.push(id ? `/plan?${kind}=${id}&from=${from}` : `/plan?from=${from}`);
       }}
     >
@@ -57,5 +61,19 @@ export function PlanPicker({
       />
       <Button type="submit">{t('show')}</Button>
     </form>
+  );
+  // Mobil hinter einem Knopf im Sheet, damit der Plan oben bleibt (Design System, Stundenplan mobil)
+  return (
+    <>
+      <div className="lg:hidden">
+        <Button variant="secondary" size="sm" iconLeft={Search} onClick={() => setOpen(true)}>
+          {t('other')}
+        </Button>
+        <Sheet open={open} onOpenChange={setOpen} title={t('other')} closeLabel={c('close')}>
+          {form}
+        </Sheet>
+      </div>
+      <div className="hidden lg:block">{form}</div>
+    </>
   );
 }

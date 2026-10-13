@@ -41,7 +41,7 @@ export function RolesScreen() {
         ) : !q.data ? (
           <LoadError error={q.error} onRetry={() => void q.refetch()} />
         ) : (
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {(['ADMIN', 'PRINCIPAL', 'HOMEROOM'] as const).map((role) => {
               const list = q.data.holders.filter((h) => h.role === role);
               return (

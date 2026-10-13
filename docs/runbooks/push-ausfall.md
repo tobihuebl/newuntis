@@ -11,12 +11,12 @@ er ab, kommen Hinweise verspätet oder gar nicht an. Die Liste in der App und de
 
 ## Einordnen
 
-| Status | Bedeutung | Maßnahme |
-| --- | --- | --- |
-| 404/410 | Abo ungültig (App gelöscht, Berechtigung entzogen) | nichts, das Abo wird automatisch gelöscht |
-| 401/403 | VAPID-Schlüssel passen nicht | Umgebung prüfen: dieselben Schlüssel wie bei der Anmeldung der Geräte? Schlüssel nie wechseln, sonst müssen alle Geräte Push neu einschalten |
-| 413 | Nachricht zu groß | Fehler im Code melden (Texte sind kurz, darf nicht vorkommen) |
-| 429/5xx/Netz | Dienst überlastet oder gestört | abwarten, pg-boss wiederholt; Statusseiten der Anbieter prüfen |
+| Status       | Bedeutung                                          | Maßnahme                                                                                                                                     |
+| ------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 404/410      | Abo ungültig (App gelöscht, Berechtigung entzogen) | nichts, das Abo wird automatisch gelöscht                                                                                                    |
+| 401/403      | VAPID-Schlüssel passen nicht                       | Umgebung prüfen: dieselben Schlüssel wie bei der Anmeldung der Geräte? Schlüssel nie wechseln, sonst müssen alle Geräte Push neu einschalten |
+| 413          | Nachricht zu groß                                  | Fehler im Code melden (Texte sind kurz, darf nicht vorkommen)                                                                                |
+| 429/5xx/Netz | Dienst überlastet oder gestört                     | abwarten, pg-boss wiederholt; Statusseiten der Anbieter prüfen                                                                               |
 
 ## Überbrücken
 

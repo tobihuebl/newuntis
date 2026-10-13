@@ -38,6 +38,15 @@ export function viennaMinutes(ms: number): number {
   return get('hour') * 60 + get('minute');
 }
 
+/**
+ * Begrüßung nach Tageszeit in Wien: Guten Morgen bis 11 Uhr, Guten Tag bis 17 Uhr, sonst Guten Abend.
+ * (Über viennaMinutes: "hour: numeric" liefert auf Deutsch "08 Uhr" und ist keine Zahl.)
+ */
+export function greetingKey(ms: number): 'greetingMorning' | 'greetingDay' | 'greetingEvening' {
+  const hour = Math.floor(viennaMinutes(ms) / 60);
+  return hour < 11 ? 'greetingMorning' : hour < 17 ? 'greetingDay' : 'greetingEvening';
+}
+
 /** "08:50" in Minuten. */
 export const clockMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);

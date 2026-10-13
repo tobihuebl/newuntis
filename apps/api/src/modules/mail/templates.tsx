@@ -51,7 +51,9 @@ function Layout({
       <Body style={{ backgroundColor: colors.bg, fontFamily: FONT, color: colors.text, margin: 0 }}>
         <Container style={{ maxWidth: 520, padding: '32px 16px' }}>
           {/* Wortmarke als Text (keine externen Bilder): PRO in Kobalt, fessor in Nacht, ohne Punkt */}
-          <Text style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.04em', margin: '0 0 24px' }}>
+          <Text
+            style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.04em', margin: '0 0 24px' }}
+          >
             <span style={{ color: colors.brand }}>PRO</span>
             <span style={{ color: colors.text }}>fessor</span>
           </Text>

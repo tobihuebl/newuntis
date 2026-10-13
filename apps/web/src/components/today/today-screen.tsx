@@ -41,6 +41,7 @@ import { SyncStatus } from '../sync-status';
 import { NowCard } from './now-card';
 import { LessonRow, PlanStatusBadge, lessonDetail, periodLabel } from './lesson-row';
 import { useT } from '../../lib/i18n';
+import { greetingKey } from '../../lib/now';
 
 /** Aktuelle Zeit, minütlich aktualisiert ("läuft gerade", "nächste Stunde"). */
 function useNow(): number {
@@ -98,18 +99,6 @@ function CachedHint({ result }: { result: Cached<unknown> }) {
   return <Banner icon={CloudOff}>{t('cachedAt', { time: dateTimeOf(result.savedAt) })}</Banner>;
 }
 
-/** Begrüßung nach Tageszeit (Wien): Guten Morgen bis 11 Uhr, Guten Tag bis 17 Uhr, sonst Guten Abend. */
-function greetingKey(now: number): 'greetingMorning' | 'greetingDay' | 'greetingEvening' {
-  const hour = Number(
-    new Intl.DateTimeFormat('de-AT', {
-      hour: 'numeric',
-      hour12: false,
-      timeZone: 'Europe/Vienna',
-    }).format(now),
-  );
-  return hour < 11 ? 'greetingMorning' : hour < 17 ? 'greetingDay' : 'greetingEvening';
-}
-
 /**
  * Heute (Design System, Screens "Heute"): Begrüßung in display-lg, die aktuelle bzw. nächste Stunde als
  * Nachtkarte, darunter die Tagesliste; ab 1024 px zweispaltig mit Hinweisen rechts.
@@ -162,7 +151,7 @@ export function TodayScreen({ firstName }: { firstName: string }) {
 /** Zweispaltig ab 1024 px: Tag links, Hinweise rechts; mobil untereinander. */
 function Columns({ main, aside }: { main: React.ReactNode; aside: React.ReactNode }) {
   return (
-    <div className="grid gap-6 lg:grid-cols-5">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
       <div className="flex min-w-0 flex-col gap-6 lg:col-span-3">{main}</div>
       <aside className="flex min-w-0 flex-col gap-4 lg:col-span-2">{aside}</aside>
     </div>

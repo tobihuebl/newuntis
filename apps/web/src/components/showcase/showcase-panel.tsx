@@ -129,7 +129,7 @@ function Panel({ theme }: { theme: 'light' | 'dark' }) {
         </Card>
         <Card tone="signal" flat>
           <CardTitle as="h4">{t('collisionTitle')}</CardTitle>
-          <CardSub className="font-semibold text-signal-ink">{t('collisionSub')}</CardSub>
+          <CardSub className="text-label text-signal-ink">{t('collisionSub')}</CardSub>
         </Card>
         <Card tone="brand" flat interactive asChild>
           <a href="#top">
@@ -178,7 +178,7 @@ function Panel({ theme }: { theme: 'light' | 'dark' }) {
       </Section>
 
       <Section id={id('kpis')} title={t('kpis')}>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <KpiTile value={3} label={t('kpiSubs')} href="#top" />
           <KpiTile value={5} label={t('kpiOpen')} />
           <KpiTile value={1} label={t('kpiCollision')} tone="signal" />
