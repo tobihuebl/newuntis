@@ -215,12 +215,12 @@ function ItemSection({
               className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 last:border-b-0"
               data-substitution={i.status}
             >
-              <div className="w-20 shrink-0 text-body-sm tabular-nums">
-                <p className="font-medium">{timeOf(i.occurrence.startsAt)}</p>
+              <div className="w-20 shrink-0">
+                <p className="text-mono">{timeOf(i.occurrence.startsAt)}</p>
                 <p className="text-caption text-ink-muted">{periodLabel(tt, i.occurrence)}</p>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium">
+                <p className="text-body-strong">
                   {i.occurrence.class?.name ?? i.occurrence.group?.name} ·{' '}
                   {i.occurrence.subject.name}
                 </p>
@@ -337,7 +337,7 @@ function ActionSheet({
                         className="size-4 accent-brand"
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block font-medium">{s.teacher.name}</span>
+                        <span className="block text-body-strong">{s.teacher.name}</span>
                         <span className="block text-caption text-ink-muted">
                           {t('fairness', { n: s.count })}
                         </span>
@@ -421,7 +421,7 @@ function AbsentTeachers({ day, onAdd }: { day: SubstitutionDay | undefined; onAd
                 className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2 last:border-b-0"
               >
                 <div>
-                  <p className="font-medium">{a.teacher.name}</p>
+                  <p className="text-body-strong">{a.teacher.name}</p>
                   <p className="text-body-sm text-ink-muted">
                     {t(`kinds.${a.kind}`)} · {dateTimeOf(a.fromAt)} – {dateTimeOf(a.toAt)}
                   </p>

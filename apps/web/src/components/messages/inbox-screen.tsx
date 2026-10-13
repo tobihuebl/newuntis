@@ -161,20 +161,22 @@ function ThreadList({ canSend }: { canSend: boolean }) {
               <li key={th.id} className="border-b border-line last:border-b-0">
                 <Link
                   href={`/nachrichten/${th.id}`}
-                  className={cn(
-                    'flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-bg-sunken',
-                    th.unread > 0 && 'bg-bg-sunken/60',
-                  )}
+                  className="pf-focusable flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-brand-soft"
                 >
                   <span
                     aria-hidden="true"
                     className={cn(
-                      'mt-2 h-2 w-2 shrink-0 rounded-full',
-                      th.unread > 0 ? 'bg-brand' : 'bg-transparent',
+                      'mt-2 size-2 shrink-0 rounded-pill',
+                      th.unread > 0 ? 'bg-signal' : 'bg-transparent',
                     )}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className={cn('block truncate', th.unread > 0 && 'font-semibold')}>
+                    <span
+                      className={cn(
+                        'block truncate',
+                        th.unread > 0 ? 'text-body-strong' : 'text-body',
+                      )}
+                    >
                       {th.subject}
                       {th.unread > 0 ? (
                         <span className="sr-only">, {t('unreadCount', { count: th.unread })}</span>
@@ -193,14 +195,14 @@ function ThreadList({ canSend }: { canSend: boolean }) {
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1">
                     {th.lastMessage ? (
-                      <span className="text-caption text-ink-muted tabular-nums">
+                      <span className="text-mono-sm text-ink-muted">
                         {dateTimeOf(th.lastMessage.at)}
                       </span>
                     ) : null}
                     {th.unread > 0 ? (
                       <span
                         aria-hidden="true"
-                        className="min-w-5 rounded-full bg-brand px-1.5 text-center text-caption font-semibold leading-5 text-on-brand tabular-nums"
+                        className="min-w-5 rounded-pill bg-brand px-1.5 text-center text-label text-on-brand"
                       >
                         {th.unread}
                       </span>
@@ -244,14 +246,19 @@ function AnnouncementList() {
             <li key={a.id} className="border-b border-line last:border-b-0">
               <Link
                 href={`/nachrichten/rundschreiben/${a.id}`}
-                className={cn(
-                  'flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-bg-sunken',
-                  !a.readAt && 'bg-bg-sunken/60',
-                )}
+                className="pf-focusable flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-brand-soft"
               >
-                <Megaphone aria-hidden="true" size={18} className="mt-1 shrink-0 text-ink-muted" />
+                <Megaphone
+                  aria-hidden="true"
+                  className={cn(
+                    'mt-1 size-4.5 shrink-0',
+                    a.readAt ? 'text-ink-muted' : 'text-signal-ink',
+                  )}
+                />
                 <span className="min-w-0 flex-1">
-                  <span className={cn('block truncate', !a.readAt && 'font-semibold')}>
+                  <span
+                    className={cn('block truncate', a.readAt ? 'text-body' : 'text-body-strong')}
+                  >
                     {a.title}
                     {!a.readAt ? <span className="sr-only">, {t('unread')}</span> : null}
                   </span>

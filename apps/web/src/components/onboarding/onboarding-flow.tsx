@@ -178,7 +178,10 @@ export function OnboardingFlow({
           <ul className="flex flex-col gap-2">
             {[1, 2, 3].map((n) => (
               <li key={n} className="flex gap-2">
-                <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-brand-text" />
+                <CheckCircle2
+                  aria-hidden="true"
+                  className="mt-0.5 size-5 shrink-0 text-brand-text"
+                />
                 <span className="text-body">{t(`tip_${kind}_${n}`)}</span>
               </li>
             ))}

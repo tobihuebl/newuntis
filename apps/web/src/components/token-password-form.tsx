@@ -1,9 +1,8 @@
 'use client';
-import Link from 'next/link';
 import { useState } from 'react';
 import { Button, Input } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
-import { FormError, useErrorText } from './form-bits';
+import { AuthDone, FormError, useErrorText } from './form-bits';
 import { useT } from '../lib/i18n';
 
 /** Gemeinsames Formular für Einladung ("invite") und Passwort-Reset ("reset"): Token aus dem Link plus neues Passwort. */
@@ -11,6 +10,7 @@ export function TokenPasswordForm({ token, kind }: { token: string; kind: 'invit
   const t = useT('auth');
   const errorText = useErrorText();
   const [error, setError] = useState<string | null>(null);
+  const [pwError, setPwError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
   const texts =
@@ -33,9 +33,10 @@ export function TokenPasswordForm({ token, kind }: { token: string; kind: 'invit
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const password = String(new FormData(e.currentTarget).get('password') ?? '');
-    if (password.length < 12) return setError(t('passwordTooShort'));
-    setBusy(true);
     setError(null);
+    if (password.length < 12) return setPwError(t('passwordTooShort'));
+    setPwError(null);
+    setBusy(true);
     try {
       await apiPost(texts.path, { token, password });
       setDone(true);
@@ -46,14 +47,7 @@ export function TokenPasswordForm({ token, kind }: { token: string; kind: 'invit
   }
 
   if (done) {
-    return (
-      <div className="flex flex-col gap-4">
-        <p role="status">{texts.done}</p>
-        <Link href="/login" className="text-brand-text underline">
-          {t('back')}
-        </Link>
-      </div>
-    );
+    return <AuthDone text={texts.done} action={t('toLogin')} />;
   }
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
@@ -65,9 +59,11 @@ export function TokenPasswordForm({ token, kind }: { token: string; kind: 'invit
         autoComplete="new-password"
         required
         minLength={12}
+        hint={t('passwordHint')}
+        error={pwError ?? undefined}
       />
       <FormError message={error} />
-      <Button type="submit" disabled={busy}>
+      <Button type="submit" block loading={busy}>
         {texts.submit}
       </Button>
     </form>

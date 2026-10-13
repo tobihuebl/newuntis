@@ -1,9 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Button, Input } from '@sp/ui';
+import { MailCheck } from 'lucide-react';
+import { Banner, Button, Input } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
-import { FormError, useErrorText } from './form-bits';
+import { FormError, authLinkClass, useErrorText } from './form-bits';
 import { useT } from '../lib/i18n';
 
 export function ResetRequestForm() {
@@ -31,19 +32,21 @@ export function ResetRequestForm() {
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <h1 className="text-h1">{t('resetRequestTitle')}</h1>
-      <p className="text-ink-muted">{t('resetRequestHelp')}</p>
+      <p className="text-body text-ink-muted">{t('resetRequestHelp')}</p>
       {done ? (
-        <p role="status">{t('resetRequestDone')}</p>
+        <Banner tone="brand" icon={MailCheck} role="status">
+          {t('resetRequestDone')}
+        </Banner>
       ) : (
         <>
           <Input label={t('email')} name="email" type="email" autoComplete="username" required />
           <FormError message={error} />
-          <Button type="submit" disabled={busy}>
+          <Button type="submit" block loading={busy}>
             {t('resetRequestSubmit')}
           </Button>
         </>
       )}
-      <Link href="/login" className="text-center text-body-sm text-brand-text underline">
+      <Link href="/login" className={authLinkClass}>
         {t('back')}
       </Link>
     </form>

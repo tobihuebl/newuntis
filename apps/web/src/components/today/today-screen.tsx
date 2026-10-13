@@ -215,6 +215,42 @@ function InboxHint({ data }: { data: TodayResponse }) {
 
 // ───────────── Lehrkraft ─────────────
 
+/** Supplierungen für mich (Design System, Supplierung): Amber weich, je Stunde mit Weg ins Klassenbuch. */
+function SubstitutionCard({
+  subs,
+  className,
+}: {
+  subs: NonNullable<TodayResponse['teacher']>['substitutions'];
+  className?: string;
+}) {
+  const t = useT('today');
+  return (
+    <Card tone="signal" flat className={cn('flex flex-col gap-3', className)}>
+      <p className="flex items-center gap-2 text-overline text-signal-ink">
+        <UserRoundCog aria-hidden="true" className="size-4" />
+        {t('substitutionsForYou', { count: subs.length })}
+      </p>
+      <ul className="flex flex-col gap-3">
+        {subs.map((s) => (
+          <li key={s.id} className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-body-strong">
+              {t('substituteFor', {
+                day: weekdayDate(s.date),
+                className: s.class?.name ?? s.group?.name ?? '',
+                period: periodLabel(t, s),
+                room: s.room?.name ?? '–',
+              })}
+            </span>
+            <Button size="sm" variant="secondary" asChild iconLeft={BookOpenCheck}>
+              <Link href={`/klassenbuch/${s.id}`}>{t('openClassbook')}</Link>
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boolean }) {
   const t = useT('today');
   const now = useNow();
@@ -251,6 +287,8 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
 
   const main = (
     <>
+      {/* Mobil steht "Du vertrittst …" ganz oben (Design System, Supplierung); ab 1024 px rechts */}
+      {subs.length > 0 ? <SubstitutionCard subs={subs} className="lg:hidden" /> : null}
       {hero ? (
         <NowCard
           overline={hero === current ? t('now') : t('next')}
@@ -329,31 +367,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
           label={t('openEntriesLabel', { count: openEntries })}
         />
       ) : null}
-      {subs.length > 0 ? (
-        <Card tone="signal" flat className="flex flex-col gap-3">
-          <p className="flex items-center gap-2 text-overline text-signal-ink">
-            <UserRoundCog aria-hidden="true" className="size-4" />
-            {t('substitutionsForYou', { count: subs.length })}
-          </p>
-          <ul className="flex flex-col gap-3">
-            {subs.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-body-strong">
-                  {t('substituteFor', {
-                    day: weekdayDate(s.date),
-                    className: s.class?.name ?? s.group?.name ?? '',
-                    period: periodLabel(t, s),
-                    room: s.room?.name ?? '–',
-                  })}
-                </span>
-                <Button size="sm" variant="secondary" asChild>
-                  <Link href={`/klassenbuch/${s.id}`}>{t('openClassbook')}</Link>
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
+      {subs.length > 0 ? <SubstitutionCard subs={subs} className="hidden lg:flex" /> : null}
       {openEntries === 0 && subs.length === 0 ? (
         <Card flat>
           <EmptyState as="h3" title={t('allDoneTitle')} description={t('allDoneText')} />

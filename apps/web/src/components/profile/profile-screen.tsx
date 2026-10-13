@@ -276,7 +276,9 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
     <Section title={t('security')}>
       <p className="text-body-sm">
         {t('twoFactor')}:{' '}
-        <strong className="text-body-strong">{twoFactor ? t('twoFactorOn') : t('twoFactorOff')}</strong>
+        <strong className="text-body-strong">
+          {twoFactor ? t('twoFactorOn') : t('twoFactorOff')}
+        </strong>
       </p>
       <div className="flex flex-col gap-2">
         <h3 className="text-label">{t('devices')}</h3>

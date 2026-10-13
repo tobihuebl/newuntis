@@ -48,11 +48,8 @@ export function AnnouncementView({ id }: { id: string }) {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <Button variant="ghost" asChild className="self-start">
-        <Link href="/nachrichten?ansicht=rundschreiben">
-          <ArrowLeft aria-hidden="true" size={18} />
-          {t('back')}
-        </Link>
+      <Button variant="ghost" asChild className="self-start" iconLeft={ArrowLeft}>
+        <Link href="/nachrichten?ansicht=rundschreiben">{t('back')}</Link>
       </Button>
       {q.isPending ? (
         <Skeleton className="h-64 w-full" />
@@ -69,19 +66,23 @@ export function AnnouncementView({ id }: { id: string }) {
             </p>
           </header>
           <Card>
-            <p className="whitespace-pre-wrap break-words">{a.body}</p>
+            <p className="text-body break-words whitespace-pre-wrap">{a.body}</p>
           </Card>
           {a.isRecipient && a.requiresRead ? (
             a.readAt ? (
               <p role="status" className="flex items-center gap-2 text-body-sm text-brand-text">
-                <CheckCircle2 aria-hidden="true" size={18} />
+                <CheckCircle2 aria-hidden="true" className="size-4.5" />
                 {t('confirmedAt', { time: dateTimeOf(a.readAt) })}
               </p>
             ) : (
-              <Card className="flex flex-col gap-3 border-signal">
+              <Card tone="signal" flat className="flex flex-col gap-3">
                 <p className="text-body-sm">{t('confirmText')}</p>
-                <Button onClick={() => void confirm()} disabled={busy} className="self-start">
-                  <CheckCircle2 aria-hidden="true" size={18} />
+                <Button
+                  onClick={() => void confirm()}
+                  loading={busy}
+                  iconLeft={CheckCircle2}
+                  className="self-start"
+                >
                   {t('confirm')}
                 </Button>
               </Card>

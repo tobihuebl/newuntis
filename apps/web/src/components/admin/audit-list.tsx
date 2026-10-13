@@ -1,9 +1,11 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, EmptyState, Input, Skeleton } from '@sp/ui';
+import { Button, Card, EmptyState, Input, Skeleton } from '@sp/ui';
+import { dateTimeOf } from '../../lib/dates';
 import { apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
+import { LoadError } from '../load-error';
 
 interface Entry {
   id: string;
@@ -57,18 +59,16 @@ export function AuditList() {
     <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="administration">{t('title')}</PageTitle>
       <Input
+        className="max-w-sm"
         label={t('filter')}
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
         type="search"
       />
-      <div
-        className="overflow-x-auto rounded-md border border-line bg-bg-raised"
-        aria-live="polite"
-        aria-busy={loading}
-      >
+      {error ? <LoadError onRetry={() => void load(null)} /> : null}
+      <Card className="overflow-x-auto p-0" aria-live="polite" aria-busy={loading}>
         <table className="w-full text-left text-body-sm">
-          <thead className="border-b border-line text-ink-muted">
+          <thead className="border-b border-line text-label text-ink-muted">
             <tr>
               <th scope="col" className="px-4 py-2">
                 {t('time')}
@@ -87,10 +87,10 @@ export function AuditList() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-line last:border-b-0">
-                <td className="whitespace-nowrap px-4 py-2 tabular-nums">
-                  {new Date(r.createdAt).toLocaleString('de-AT')}
+                <td className="px-4 py-2 text-mono-sm whitespace-nowrap">
+                  {dateTimeOf(r.createdAt)}
                 </td>
-                <td className="px-4 py-2 font-mono">{r.action}</td>
+                <td className="px-4 py-2 text-mono-sm">{r.action}</td>
                 <td className="px-4 py-2">{r.actor ?? t('system')}</td>
                 <td className="px-4 py-2">{r.entity}</td>
               </tr>
@@ -104,16 +104,10 @@ export function AuditList() {
           </div>
         ) : null}
         {!loading && !error && rows.length === 0 ? <EmptyState title={t('empty')} /> : null}
-        {error ? (
-          <EmptyState
-            title={c('error')}
-            action={<Button onClick={() => void load(null)}>{c('retry')}</Button>}
-          />
-        ) : null}
-      </div>
+      </Card>
       {cursor ? (
         <div className="flex justify-center">
-          <Button variant="secondary" onClick={() => void load(cursor)} disabled={loading}>
+          <Button variant="secondary" onClick={() => void load(cursor)} loading={loading}>
             {c('loadMore')}
           </Button>
         </div>

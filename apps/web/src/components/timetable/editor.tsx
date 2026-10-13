@@ -12,7 +12,7 @@ import {
   type ValidationContext,
   type WeekPattern,
 } from '@sp/shared';
-import { Chip, Button, Card, Checkbox, Input, Select, Sheet, cn } from '@sp/ui';
+import { Banner, Chip, Button, Card, Checkbox, Input, Select, Sheet, cn } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
@@ -640,7 +640,7 @@ export function TimetableEditor({
         {/* Pool der noch einzuplanenden Soll-Stunden */}
         <Card className="flex flex-col gap-2 self-start">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="font-semibold">{t('pool')}</h2>
+            <h2 className="text-h3">{t('pool')}</h2>
             {editable ? (
               <Button
                 variant="ghost"
@@ -825,7 +825,7 @@ export function TimetableEditor({
           className="flex flex-col gap-2 self-start lg:col-span-2 2xl:col-span-1"
           aria-live="polite"
         >
-          <h2 className="font-semibold">{t('conflicts')}</h2>
+          <h2 className="text-h3">{t('conflicts')}</h2>
           {conflicts.length === 0 ? (
             <p className="flex items-center gap-2 text-body-sm text-brand-text">
               <Check aria-hidden="true" className="size-4" />
@@ -844,8 +844,8 @@ export function TimetableEditor({
                 <li
                   key={i}
                   className={cn(
-                    'rounded-sm border p-2 text-body-sm',
-                    cf.severity === 'hard' ? 'border-danger' : 'border-signal',
+                    'rounded-md p-3 text-body-sm',
+                    cf.severity === 'hard' ? 'bg-danger-soft' : 'bg-signal-soft',
                   )}
                 >
                   <p>
@@ -1081,19 +1081,21 @@ export function TimetableEditor({
               required
             />
             {hardCount > 0 ? (
-              <p className="text-body-sm text-danger-ink">
+              <Banner tone="danger" icon={TriangleAlert}>
                 {t('publishBlocked')} ({t('hardCount', { n: hardCount })})
-              </p>
+              </Banner>
             ) : null}
             {publishResult?.error ? (
-              <div role="alert" className="text-body-sm text-danger-ink">
+              <Banner tone="danger" icon={TriangleAlert} role="alert">
                 <p>{publishResult.error}</p>
-                <ul className="list-disc pl-5">
-                  {publishResult.conflicts?.map((cf, i) => (
-                    <li key={i}>{cf.message}</li>
-                  ))}
-                </ul>
-              </div>
+                {publishResult.conflicts?.length ? (
+                  <ul className="list-disc pl-5 text-body-sm">
+                    {publishResult.conflicts.map((cf, i) => (
+                      <li key={i}>{cf.message}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </Banner>
             ) : null}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setSheet(null)}>

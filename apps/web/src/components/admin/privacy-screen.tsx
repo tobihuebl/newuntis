@@ -1,6 +1,6 @@
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download } from 'lucide-react';
+import { Check, Clock, Download, Lock, X } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import {
@@ -18,6 +18,7 @@ import { PersonPicker } from './person-picker';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
 
 /**
  * Datenschutz (Spec Abschnitt 13, /admin/datenschutz): Anfragen zu Betroffenenrechten erfassen und erledigen,
@@ -82,9 +83,8 @@ export function PrivacyScreen() {
   const exportLinks = (personId: string) => (
     <span className="flex flex-wrap gap-2">
       {(['json', 'pdf'] as const).map((f) => (
-        <Button key={f} variant="ghost" asChild>
+        <Button key={f} variant="ghost" size="sm" asChild iconLeft={Download}>
           <a href={`/api/v1/admin/privacy/persons/${personId}/export?format=${f}`} download>
-            <Download aria-hidden="true" size={16} />
             {t(`export_${f}`)}
           </a>
         </Button>
@@ -96,7 +96,7 @@ export function PrivacyScreen() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="administration">{t('title')}</PageTitle>
 
-      <section aria-labelledby="new-h" className="flex flex-col gap-2">
+      <section aria-labelledby="new-h" className="flex flex-col gap-3">
         <h2 id="new-h" className="text-h3">
           {t('newRequest')}
         </h2>
@@ -104,10 +104,10 @@ export function PrivacyScreen() {
           <form onSubmit={create} className="flex flex-col gap-4" noValidate>
             {person ? (
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p>
-                  {t('person')}: <strong>{person.name}</strong>
+                <p className="text-body">
+                  {t('person')}: <strong className="text-body-strong">{person.name}</strong>
                 </p>
-                <Button type="button" variant="ghost" onClick={() => setPerson(null)}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setPerson(null)}>
                   {t('otherPerson')}
                 </Button>
               </div>
@@ -141,15 +141,17 @@ export function PrivacyScreen() {
         </Card>
       </section>
 
-      <section aria-labelledby="list-h" className="flex flex-col gap-2">
+      <section aria-labelledby="list-h" className="flex flex-col gap-3">
         <h2 id="list-h" className="text-h3">
           {t('requests')}
         </h2>
         {q.isPending ? (
-          <Skeleton className="h-32 w-full" />
-        ) : !q.data || q.data.data.length === 0 ? (
-          <Card>
-            <EmptyState title={q.isError ? tc('error') : t('empty')} />
+          <Skeleton className="h-32 w-full rounded-lg" />
+        ) : q.isError ? (
+          <LoadError error={q.error} onRetry={() => void q.refetch()} />
+        ) : q.data.data.length === 0 ? (
+          <Card flat>
+            <EmptyState as="h3" title={t('empty')} />
           </Card>
         ) : (
           <Card className="p-0">
@@ -160,13 +162,13 @@ export function PrivacyScreen() {
                   className="flex flex-col gap-2 border-b border-line px-4 py-3 last:border-b-0"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-medium">
+                    <span className="text-body-strong">
                       {r.person.anonymized ? (
                         t('anonymized')
                       ) : (
                         <Link
                           href={`/admin/personen/${r.person.id}`}
-                          className="underline-offset-2 hover:underline"
+                          className="pf-focusable text-brand-text underline underline-offset-4"
                         >
                           {r.person.name}
                         </Link>
@@ -174,9 +176,14 @@ export function PrivacyScreen() {
                       <span className="text-body-sm text-ink-muted"> · {t(`kind_${r.kind}`)}</span>
                     </span>
                     <span className="flex items-center gap-2">
-                      {r.person.restricted ? <Chip tone="late">{t('restricted')}</Chip> : null}
+                      {r.person.restricted ? (
+                        <Chip tone="late" icon={Lock}>
+                          {t('restricted')}
+                        </Chip>
+                      ) : null}
                       <Chip
-                        tone={r.status === 'OPEN' ? 'late' : r.status === 'DONE' ? 'ok' : 'neutral'}
+                        tone={r.status === 'OPEN' ? 'late' : r.status === 'DONE' ? 'ok' : 'absent'}
+                        icon={r.status === 'OPEN' ? Clock : r.status === 'DONE' ? Check : X}
                       >
                         {t(`status_${r.status}`)}
                       </Chip>
@@ -191,7 +198,7 @@ export function PrivacyScreen() {
                   {r.note ? <p className="text-body-sm whitespace-pre-wrap">{r.note}</p> : null}
                   <div className="flex flex-wrap gap-2">
                     {r.status === 'OPEN' ? (
-                      <Button variant="secondary" onClick={() => setResolve(r)}>
+                      <Button variant="secondary" size="sm" onClick={() => setResolve(r)}>
                         {t('handle')}
                       </Button>
                     ) : null}
@@ -206,7 +213,7 @@ export function PrivacyScreen() {
         )}
       </section>
 
-      <section aria-labelledby="ret-h" className="flex flex-col gap-2">
+      <section aria-labelledby="ret-h" className="flex flex-col gap-3">
         <h2 id="ret-h" className="text-h3">
           {t('retention')}
         </h2>
@@ -225,7 +232,7 @@ export function PrivacyScreen() {
               ).map((k) => (
                 <div key={k} className="contents">
                   <dt>{t(`ret_${k}`)}</dt>
-                  <dd className="text-right tabular-nums">
+                  <dd className="text-right text-mono">
                     {t('days', { count: settings.data!.retention[k] })}
                   </dd>
                 </div>
@@ -234,7 +241,7 @@ export function PrivacyScreen() {
           ) : (
             <Skeleton className="h-24 w-full" />
           )}
-          <Button variant="ghost" asChild className="self-start">
+          <Button variant="ghost" size="sm" asChild className="self-start">
             <Link href="/admin/einstellungen#aufbewahrung">{t('changeRetention')}</Link>
           </Button>
         </Card>

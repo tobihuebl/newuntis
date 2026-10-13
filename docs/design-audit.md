@@ -96,7 +96,7 @@ Rot (`danger`) bleibt Fehlern vorbehalten; heute sind „abwesend“ und „Entf
 
 | Rolle | Tab-Leiste heute (Spec) | Tab-Leiste laut Design System (Mitte = Hauptaktion, Amber) |
 | --- | --- | --- |
-| Schüler | Heute, Plan, Aufgaben, Nachrichten, Profil | Heute, Plan, **Hausübungen**, Chat, Mehr |
+| Schüler | Heute, Plan, Aufgaben, Nachrichten, Profil | Heute, Plan, **Hausübungen**, Chat, Mehr (umgesetzt nach F5: Plan, Hausübungen, **Heute**, Chat, Mehr) |
 | Eltern | Heute, Plan, Abwesenheit, Nachrichten, Profil | Heute, Plan, **Abwesenheit melden**, Nachrichten, Mehr |
 | Lehrer | Heute, Klassenbuch, Klassen, Nachrichten, Profil | Heute, Plan, **Klassenbuch**, Chat, Mehr |
 | Klassenvorstand | Heute, Klassenbuch, Meine Klasse, Nachrichten, Profil | wie Lehrer (Meine Klasse in Sidebar/Mehr) |
@@ -138,6 +138,11 @@ Weitere Unterschiede:
 - **E11 Kontrast vor Referenz-CSS:** `bundle.css` dimmt die Zusatzzeile der Stundenplan-Kacheln (`opacity: .8`); axe meldet das als zu schwachen Kontrast. In `base.css` volle Deckkraft (Vorschlag zur Korrektur im Design System).
 - **E12 Klassenbuch-Felder sichtbar:** Stoff und Hausübung stehen ohne Aufklappen unter der Liste, "Stunde abschließen" ist unten angeheftet; so bleibt der Ablauf bei vier Taps (Playwright-Messung `classbook-speed.spec.ts`).
 - **E10 Wortmarke als Pfade:** bis zur Umwandlung (fonttools) ist die Wortmarke Live-Text in Bricolage Grotesque in der Komponente `Logo`; E-Mails und PDF nennen den Namen als Text.
+- **E13 „Stunde abschließen“ ohne Rückgängig:** Die API kennt kein Wiederöffnen einer abgeschlossenen Stunde (Verhalten bleibt gleich, Grundregel 3). Der Toast „Stunde abgeschlossen“ kommt ohne Aktion; Korrekturen laufen wie bisher über die Direktion. Vorschlag V1: Endpunkt zum Wiederöffnen innerhalb weniger Minuten.
+- **E14 Entschuldigungen prüfen:** „Entschuldigen“ (und Wischen nach rechts) blendet die Zeile sofort aus und speichert erst nach Ablauf des Toasts (5 s); „Rückgängig“ bricht ab, Verlassen der Seite speichert sofort. „Rückfrage“ gibt es als Status nicht; die zweite Aktion heißt „Mit Kommentar“ (Sheet mit Entschuldigen oder Ablehnen). Nach einer Ablehnung mit Kommentar können Eltern neu melden.
+- **E15 Supplierung für Lehrkräfte ohne „Annehmen“:** Supplierungen werden mit dem Veröffentlichen verbindlich (ADR 0008). Die Amber-Karte „Du vertrittst …“ steht mobil oben auf Heute (ab 1024 px rechts) und führt ins vorbelegte Klassenbuch.
+- **E16 Ohne API vorerst weggelassen:** „Zugang sperren“ bei Rechte und Einladungen sowie Schulname und Rolle auf der Einladungs-Landeseite (es gibt keine Abfrage zum Einladungs-Token). Beides ist Vorschlag für V1; Löschen bleibt Anonymisieren.
+- **E17 Abgeleitete Bausteine** (Lücke 6.1): `SegmentedNav` (Ansicht/Kind wählen als Links, Optik wie `SegmentedControl`), `ListRow` als ganze Zeile tippbar (`href`), Tabellen mobil als Karten-Liste mit zwei Feldern (`CrudManager`), `LoadError` (Banner mit „Erneut versuchen“) und `AuthDone` im App-Code.
 
 ### Entscheidungen der Produktverantwortung (am 12. Okt. 2026 bestätigt)
 
@@ -174,7 +179,7 @@ apps/web/public/icons/         erzeugte PWA-Icons
 - [x] **D2 Bausteine:** Komponenten aus Abschnitt 2 inkl. Toast-Provider, Showcase `/komponenten`, Tests.
 - [x] **D3 Shell:** Sidebar ab 1024px, Topbar mit Befehlspalette (nur Seiten der Rolle; Personensuche bleibt V1), Tab-Leiste mit erhobener Hauptaktion, Mehr-Sheet (Profil, Rolle wechseln, Theme, Abmelden), Navigation nach F2, Admin-Übersicht.
 - [x] **D4 Fachkomponenten:** `TimetableGrid`, `AttendanceRow`, Heute-Nachtkarte; Fächerfarben (F3); Playwright-Zeitmessung „Stunde abschließen“ (≤ 4 Taps, < 10 s).
-- [ ] **D5 Seiten:** in der Reihenfolge Anmeldung, Heute, Klassenbuch, Abwesenheit melden, Stundenplan, Lagebild, Supplierung, Editor, Admin, Nachrichten, Prüfungen, danach die übrigen; Anrede (F4), Texte ohne Ausrufezeichen, Leer-/Lade-/Fehler-/Offline-Zustände.
+- [x] **D5 Seiten:** in der Reihenfolge Anmeldung, Heute, Klassenbuch, Abwesenheit melden, Stundenplan, Lagebild, Supplierung, Editor, Admin, Nachrichten, Prüfungen, danach die übrigen; Anrede (F4), Texte ohne Ausrufezeichen, Leer-/Lade-/Fehler-/Offline-Zustände.
 - [ ] **D6 Härtung:** Token-Lint und Kontrast-Skript in CI, Screenshots hell/dunkel × 390/1280, axe, Tastatur, Reduced Motion, PWA-Test, LCP, Aufräumen (alte Tokens, `Badge`, Inter, alte Klassen), dieses Audit abhaken.
 
 Nicht Teil von M6.5: AI-Planung (M7), Personensuche (PL-06, V1), Schul-IT-Rolle, Hilfeseiten.

@@ -20,6 +20,10 @@ test('Administration veröffentlicht einen neuen Stundenplan', async ({ page }) 
   ).toBeVisible();
 
   await page.goto('/admin/stundenplan');
-  const row = page.getByRole('row', { name: /E2E Entwurf/ });
-  await expect(row).toContainText('Veröffentlicht');
+  // Versionen als Listenzeilen (Design System: Tabellen mobil als Karten-Liste)
+  const row = page
+    .getByRole('listitem')
+    .filter({ hasText: 'E2E Entwurf' })
+    .filter({ hasText: 'Veröffentlicht' });
+  await expect(row).toHaveCount(1);
 });

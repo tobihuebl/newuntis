@@ -1,5 +1,5 @@
 'use client';
-import { ArrowLeft, Check, Lock, TriangleAlert, X } from 'lucide-react';
+import { ArrowLeft, Check, Eye, Lock, TriangleAlert, X } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@sp/shared';
 import {
   AttendanceRow,
+  Banner,
   Chip,
   Button,
   Card,
@@ -203,24 +204,31 @@ function Loaded({
           <p>{t('cancelled')}</p>
         </Card>
       ) : !writable ? (
-        <Card>
-          <p className="text-ink-muted">{t('readOnly')}</p>
-        </Card>
+        <Banner tone="brand" icon={Eye}>
+          {t('readOnly')}
+        </Banner>
       ) : null}
 
       {conflicts.length > 0 ? <ConflictPanel detail={detail} conflicts={conflicts} /> : null}
       {failed.map((f) => (
-        <Card key={f.seq} className="flex flex-col gap-2 border-danger" role="alert">
-          <p className="text-danger-ink">{t('failed', { error: f.error ?? '' })}</p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => void sync.retry(f.seq!)}>
-              {t('retry')}
-            </Button>
-            <Button variant="ghost" onClick={() => void sync.discard(f.seq!)}>
-              {t('discard')}
-            </Button>
-          </div>
-        </Card>
+        <Banner
+          key={f.seq}
+          tone="danger"
+          icon={TriangleAlert}
+          role="alert"
+          action={
+            <span className="flex flex-wrap gap-2">
+              <Button size="sm" variant="secondary" onClick={() => void sync.retry(f.seq!)}>
+                {t('retry')}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => void sync.discard(f.seq!)}>
+                {t('discard')}
+              </Button>
+            </span>
+          }
+        >
+          {t('failed', { error: f.error ?? '' })}
+        </Banner>
       ))}
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
@@ -569,9 +577,9 @@ function ConflictPanel({
         </Button>
         <Button
           variant="secondary"
+          iconLeft={X}
           onClick={() => void sync.resolveConflict(detail.id, 'theirs', mine)}
         >
-          <X aria-hidden="true" size={16} />
           {t('takeTheirs')}
         </Button>
       </div>

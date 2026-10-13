@@ -287,10 +287,11 @@ export function YearsManager({
           label: t('name'),
           render: (r) => (
             <Link
+              aria-current={r.id === selectedId ? 'true' : undefined}
               className={
                 r.id === selectedId
-                  ? 'font-semibold text-brand-text underline'
-                  : 'text-brand-text underline'
+                  ? 'pf-focusable text-body-strong text-brand-text underline underline-offset-4'
+                  : 'pf-focusable text-brand-text underline underline-offset-4'
               }
               href={`/admin/schuljahr?year=${r.id}`}
             >

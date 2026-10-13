@@ -1,13 +1,16 @@
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
+import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { TenantSettings, TenantSettingsPatch } from '@sp/shared';
-import { Button, Card, Input, Skeleton } from '@sp/ui';
+import { Button, Card, Input, Skeleton, useToast } from '@sp/ui';
 import { apiRequest } from '../../lib/api-client';
 import { useApi, useProblemText } from '../../lib/use-api';
 import { useSession } from '../providers';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
+import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
 
 type SectionKey = keyof TenantSettingsPatch;
 type FieldKind = 'int' | 'intList' | 'url';
@@ -126,14 +129,17 @@ export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
   const qc = useQueryClient();
   const q = useApi<TenantSettings>(['admin', 'settings'], '/admin/settings');
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [status, setStatus] = useState<Record<string, { ok: boolean; text: string }>>({});
+  const toast = useToast();
+  const [failed, setFailed] = useState<Record<string, string | null>>({});
+  const [busy, setBusy] = useState<string | null>(null);
   useEffect(() => {
     if (q.data) setDraft(toDraft(q.data));
   }, [q.data]);
 
   async function save(sec: (typeof SECTIONS)[number]) {
     if (!draft) return;
-    setStatus((s) => ({ ...s, [sec.key]: { ok: true, text: '' } }));
+    setFailed((s) => ({ ...s, [sec.key]: null }));
+    setBusy(sec.key);
     try {
       const next = await apiRequest<TenantSettings>(
         'PATCH',
@@ -142,27 +148,31 @@ export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
         csrfToken,
       );
       qc.setQueryData(['admin', 'settings'], next);
-      setStatus((s) => ({ ...s, [sec.key]: { ok: true, text: tc('saved') } }));
+      toast({ text: `${t(`section_${sec.key}`)}: ${tc('saved')}`, icon: Check });
     } catch (err) {
-      setStatus((s) => ({ ...s, [sec.key]: { ok: false, text: problem(err) ?? tc('error') } }));
+      setFailed((s) => ({ ...s, [sec.key]: problem(err) ?? tc('error') }));
+    } finally {
+      setBusy(null);
     }
   }
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div>
+      <div className="flex flex-col gap-2">
         <PageTitle area="administration">{t('title')}</PageTitle>
         <p className="text-body-sm text-ink-muted">{readOnly ? t('readOnly') : t('intro')}</p>
       </div>
-      {!draft ? (
-        <Skeleton className="h-96 w-full" />
+      {q.isError ? (
+        <LoadError error={q.error} onRetry={() => void q.refetch()} />
+      ) : !draft ? (
+        <Skeleton className="h-96 w-full rounded-lg" />
       ) : (
         SECTIONS.map((sec) => (
           <section
             key={sec.key}
             id={sec.id}
             aria-labelledby={`${sec.id}-h`}
-            className="flex scroll-mt-4 flex-col gap-2"
+            className="flex scroll-mt-20 flex-col gap-3"
           >
             <h2 id={`${sec.id}-h`} className="text-h3">
               {t(`section_${sec.key}`)}
@@ -197,22 +207,16 @@ export function SettingsScreen({ readOnly }: { readOnly: boolean }) {
                     />
                   ))}
                 </div>
+                {failed[sec.key] ? <FormError message={failed[sec.key] ?? null} /> : null}
                 {readOnly ? null : (
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Button type="submit" variant="secondary">
-                      {tc('save')}
-                    </Button>
-                    <p
-                      role={status[sec.key]?.ok === false ? 'alert' : 'status'}
-                      className={
-                        status[sec.key]?.ok === false
-                          ? 'text-body-sm text-danger-ink'
-                          : 'text-body-sm text-brand-text'
-                      }
-                    >
-                      {status[sec.key]?.text ?? ''}
-                    </p>
-                  </div>
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    loading={busy === sec.key}
+                    className="self-start"
+                  >
+                    {tc('save')}
+                  </Button>
                 )}
               </form>
             </Card>

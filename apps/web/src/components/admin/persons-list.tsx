@@ -1,11 +1,12 @@
 'use client';
-import { Plus } from 'lucide-react';
+import { Eye, Mail, Plus, Upload, UserCheck, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Chip,
   Button,
+  Card,
   Checkbox,
   EmptyState,
   Input,
@@ -19,6 +20,7 @@ import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
 
 export interface PersonRow {
   id: string;
@@ -37,6 +39,19 @@ interface Page {
 }
 
 const KINDS = ['STUDENT', 'TEACHER', 'GUARDIAN', 'STAFF'] as const;
+
+/** Zugang als Chip: aktiv (ok), eingeladen (Hinweis), kein Konto (inaktiv). */
+export function AccountChip({ account }: { account: PersonRow['account'] }) {
+  const t = useT('admin.persons');
+  return (
+    <Chip
+      tone={account === 'active' ? 'ok' : account === 'invited' ? 'late' : 'absent'}
+      icon={account === 'active' ? UserCheck : account === 'invited' ? Mail : UserX}
+    >
+      {t(`account.${account}`)}
+    </Chip>
+  );
+}
 
 export function PersonsList({
   classes,
@@ -122,17 +137,18 @@ export function PersonsList({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <PageTitle area="stammdaten">{t('title')}</PageTitle>
         {readOnly ? (
-          <span className="text-body-sm text-ink-muted">{c('readOnly')}</span>
+          <Chip tone="absent" icon={Eye}>
+            {c('readOnly')}
+          </Chip>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" asChild>
+            <Button variant="secondary" asChild iconLeft={Upload}>
               <Link href="/admin/import">{t('importLink')}</Link>
             </Button>
-            <Button onClick={() => setCreating(true)}>
-              <Plus aria-hidden="true" size={18} />
+            <Button iconLeft={Plus} onClick={() => setCreating(true)}>
               {t('new')}
             </Button>
           </div>
@@ -163,33 +179,27 @@ export function PersonsList({
         />
       </div>
 
-      <div
-        className="rounded-md border border-line bg-bg-raised"
-        aria-live="polite"
-        aria-busy={loading}
-      >
-        {rows.map((p) => (
-          <ListRow
-            key={p.id}
-            title={
-              <Link className="text-brand-text underline" href={`/admin/personen/${p.id}`}>
-                {p.lastName} {p.firstName}
-              </Link>
-            }
-            subtitle={[t(`kinds.${p.kind}`), p.className, p.externalId, p.email]
-              .filter(Boolean)
-              .join(' · ')}
-            trailing={
-              <Chip
-                tone={p.account === 'active' ? 'ok' : p.account === 'invited' ? 'ok' : 'neutral'}
-              >
-                {t(`account.${p.account}`)}
-              </Chip>
-            }
-          />
-        ))}
+      {error ? <LoadError onRetry={() => void load(null)} /> : null}
+      <Card className="p-0" aria-live="polite" aria-busy={loading}>
+        {rows.length > 0 ? (
+          <ul aria-label={t('title')}>
+            {rows.map((p) => (
+              <ListRow
+                key={p.id}
+                as="li"
+                href={`/admin/personen/${p.id}`}
+                linkAs={Link}
+                title={`${p.lastName} ${p.firstName}`}
+                subtitle={[t(`kinds.${p.kind}`), p.className, p.externalId, p.email]
+                  .filter(Boolean)
+                  .join(' · ')}
+                trailing={<AccountChip account={p.account} />}
+              />
+            ))}
+          </ul>
+        ) : null}
         {loading && rows.length === 0 ? (
-          <div className="flex flex-col gap-2 p-4">
+          <div className="flex flex-col gap-2 p-4" aria-hidden="true">
             <Skeleton className="h-10" />
             <Skeleton className="h-10" />
             <Skeleton className="h-10" />
@@ -198,17 +208,11 @@ export function PersonsList({
         {!loading && !error && rows.length === 0 ? (
           <EmptyState title={t('emptyTitle')} description={t('emptyDescription')} />
         ) : null}
-        {error ? (
-          <EmptyState
-            title={c('error')}
-            action={<Button onClick={() => void load(null)}>{c('retry')}</Button>}
-          />
-        ) : null}
-      </div>
+      </Card>
       {cursor ? (
         <div className="flex justify-center">
-          <Button variant="secondary" onClick={() => void load(cursor)} disabled={loading}>
-            {loading ? c('loading') : c('loadMore')}
+          <Button variant="secondary" onClick={() => void load(cursor)} loading={loading}>
+            {c('loadMore')}
           </Button>
         </div>
       ) : null}

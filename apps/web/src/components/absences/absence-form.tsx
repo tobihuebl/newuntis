@@ -248,7 +248,7 @@ export function AbsenceForm({
           accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
           capture="environment"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="min-h-(--tap-comfort) text-body-sm file:mr-3 file:min-h-(--tap-comfort) file:rounded-md file:border-0 file:bg-bg-raised file:px-4 file:font-bold file:text-ink file:ring-control"
+          className="min-h-(--tap-comfort) text-body-sm file:mr-3 file:min-h-(--tap-comfort) file:rounded-md file:border-0 file:bg-bg-raised file:px-4 file:text-label file:text-ink file:ring-control"
         />
         <p className="pf-field__hint">{t('photoHelp')}</p>
       </div>

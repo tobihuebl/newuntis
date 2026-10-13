@@ -54,3 +54,44 @@ test('Eltern melden eine Abwesenheit, der Klassenvorstand nimmt sie an, Eltern w
   await parentCtx.close();
   await kvCtx.close();
 });
+
+/** Design System Screens 6: Entschuldigen in einem Tipp, mit Rückgängig; gespeichert wird nach dem Toast. */
+test('Klassenvorstand entschuldigt mit einem Tipp und kann es rückgängig machen', async ({
+  browser,
+}) => {
+  const parentCtx = await browser.newContext();
+  const parent = await parentCtx.newPage();
+  await login(parent, accounts().guardianEmail, /\/heute(\?.*)?$/);
+  await parent.goto('/abwesenheit/neu');
+  const d = new Date(Date.now() + 11 * 86_400_000).toISOString().slice(0, 10);
+  await parent.locator('fieldset label', { hasText: /^Zeitraum$/ }).click();
+  await parent.getByLabel('Von').fill(d);
+  await parent.getByLabel('Bis').fill(d);
+  const note = `Arzt (E2E ${Date.now().toString(36)})`;
+  await parent.getByLabel('Anmerkung (optional)').fill(note);
+  await parent.getByRole('button', { name: 'Melden' }).click();
+  await expect(parent.getByText('Abwesenheit gemeldet.')).toBeVisible();
+  await parentCtx.close();
+
+  const kvCtx = await browser.newContext();
+  const kv = await kvCtx.newPage();
+  await login(kv, accounts().teacherEmail, /\/heute$/);
+  await kv.goto('/klasse');
+  const row = kv.locator('li[data-absence="REPORTED"]', { hasText: note });
+  await row.getByRole('button', { name: /^Entschuldigen:/ }).click();
+  await expect(row).toBeHidden();
+  const toast = kv.getByRole('status').filter({ hasText: 'entschuldigt' });
+  await expect(toast).toBeVisible();
+  await toast.getByRole('button', { name: 'Rückgängig' }).click();
+  await expect(row).toBeVisible();
+
+  const saved = kv.waitForResponse(
+    (r) => r.url().includes('/review') && r.request().method() === 'PATCH',
+    { timeout: 10_000 },
+  );
+  await row.getByRole('button', { name: /^Entschuldigen:/ }).click();
+  expect((await saved).ok()).toBe(true);
+  await kv.reload();
+  await expect(kv.locator('li[data-absence="EXCUSED"]', { hasText: note })).toBeVisible();
+  await kvCtx.close();
+});

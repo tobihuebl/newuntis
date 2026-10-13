@@ -93,7 +93,9 @@ export function ClassDetailScreen({ id }: { id: string }) {
               <Link href={`/plan?class=${c.id}`}>{t('plan')}</Link>
             </Button>
             <Button variant="secondary" size="sm" asChild iconLeft={MessageSquare}>
-              <Link href={`/nachrichten/neu?klasse=${c.id}&zielgruppe=eltern`}>{t('messageGuardians')}</Link>
+              <Link href={`/nachrichten/neu?klasse=${c.id}&zielgruppe=eltern`}>
+                {t('messageGuardians')}
+              </Link>
             </Button>
             <Button variant="secondary" size="sm" asChild iconLeft={NotebookPen}>
               <Link href="/pruefungen">{t('exams')}</Link>
@@ -115,9 +117,7 @@ export function ClassDetailScreen({ id }: { id: string }) {
                     key={s.id}
                     className="flex min-h-13 flex-wrap items-center gap-3 border-b border-line px-4 py-2 last:border-b-0"
                   >
-                    <span className="w-6 text-right text-mono-sm text-ink-muted">
-                      {i + 1}
-                    </span>
+                    <span className="w-6 text-right text-mono-sm text-ink-muted">{i + 1}</span>
                     <span className="flex-1 text-body">{s.name}</span>
                     {!s.hasAccount ? (
                       <Chip tone="absent" icon={UserX}>

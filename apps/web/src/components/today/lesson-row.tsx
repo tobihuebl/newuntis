@@ -60,8 +60,8 @@ export function LessonRow({
   const cancelled = entry.status === 'CANCELLED';
   const body = (
     <>
-      <div className="w-16 shrink-0 text-body-sm tabular-nums">
-        <p className="font-medium">{timeOf(entry.startsAt)}</p>
+      <div className="w-16 shrink-0">
+        <p className="text-mono">{timeOf(entry.startsAt)}</p>
         <p className="text-caption text-ink-muted">{periodLabel(t, entry)}</p>
       </div>
       <div
@@ -69,7 +69,7 @@ export function LessonRow({
         className={cn('h-10 w-1.5 shrink-0 rounded-pill', FACH_BG[fachColorOf(entry.subject)])}
       />
       <div className="min-w-0 flex-1">
-        <p className={cn('truncate font-medium', cancelled && 'line-through')}>
+        <p className={cn('truncate text-body-strong', cancelled && 'line-through')}>
           {entry.subject.name}
         </p>
         <p className="truncate text-body-sm text-ink-muted">{lessonDetail(entry, perspective)}</p>

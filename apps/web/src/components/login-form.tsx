@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, Input } from '@sp/ui';
 import { apiPost } from '../lib/api-client';
-import { FormError, useErrorText } from './form-bits';
+import { FormError, authLinkClass, useErrorText } from './form-bits';
 import { useT } from '../lib/i18n';
 
 export function LoginForm() {
@@ -46,16 +46,10 @@ export function LoginForm() {
         {t('login')}
       </Button>
       <div className="flex flex-col items-center gap-1">
-        <Link
-          href="/passwort-vergessen"
-          className="inline-flex min-h-(--tap-min) items-center text-label text-brand-text underline-offset-4 hover:underline"
-        >
+        <Link href="/passwort-vergessen" className={authLinkClass}>
           {t('forgot')}
         </Link>
-        <Link
-          href="/eltern-code"
-          className="inline-flex min-h-(--tap-min) items-center text-center text-label text-brand-text underline-offset-4 hover:underline"
-        >
+        <Link href="/eltern-code" className={authLinkClass}>
           {t('guardianCode')}
         </Link>
       </div>

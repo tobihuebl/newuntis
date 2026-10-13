@@ -37,11 +37,11 @@ function Progress({ read, total, label }: { read: number; total: number; label: 
         aria-valuemin={0}
         aria-valuemax={total}
         aria-valuenow={read}
-        className="h-2 w-full overflow-hidden rounded-full bg-bg-sunken"
+        className="h-2 w-full overflow-hidden rounded-pill bg-bg-sunken"
       >
         <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-caption text-ink-muted tabular-nums">{label}</span>
+      <span className="text-mono-sm text-ink-muted">{label}</span>
     </div>
   );
 }
@@ -65,11 +65,8 @@ export function AnnouncementsAdmin() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <PageTitle area="kommunikation">{t('title')}</PageTitle>
-        <Button asChild>
-          <Link href="/rundschreiben/neu">
-            <Plus aria-hidden="true" size={18} />
-            {t('new')}
-          </Link>
+        <Button asChild iconLeft={Plus}>
+          <Link href="/rundschreiben/neu">{t('new')}</Link>
         </Button>
       </div>
       {q.isPending ? (
@@ -87,13 +84,9 @@ export function AnnouncementsAdmin() {
                   href={`/rundschreiben/${a.id}`}
                   className="flex min-h-16 items-start gap-3 px-4 py-3 hover:bg-bg-sunken"
                 >
-                  <Megaphone
-                    aria-hidden="true"
-                    size={18}
-                    className="mt-1 shrink-0 text-ink-muted"
-                  />
+                  <Megaphone aria-hidden="true" className="mt-1 size-4.5 shrink-0 text-ink-muted" />
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="truncate font-medium">{a.title}</span>
+                    <span className="truncate text-body-strong">{a.title}</span>
                     <span className="text-body-sm text-ink-muted">
                       {a.author} · {dateTimeOf(a.publishedAt)}
                     </span>
@@ -355,11 +348,8 @@ export function AnnouncementStats({ id }: { id: string }) {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <Button variant="ghost" asChild className="self-start">
-        <Link href="/rundschreiben">
-          <ArrowLeft aria-hidden="true" size={18} />
-          {t('back')}
-        </Link>
+      <Button variant="ghost" asChild className="self-start" iconLeft={ArrowLeft}>
+        <Link href="/rundschreiben">{t('back')}</Link>
       </Button>
       {q.isPending ? (
         <Skeleton className="h-64 w-full" />
@@ -383,8 +373,12 @@ export function AnnouncementStats({ id }: { id: string }) {
                 label={t('readOf', { read: a.stats.read, total: a.stats.recipients })}
               />
               {a.requiresRead && a.stats.read < a.stats.recipients ? (
-                <Button variant="secondary" onClick={() => void remind()} className="self-start">
-                  <BellRing aria-hidden="true" size={18} />
+                <Button
+                  variant="secondary"
+                  iconLeft={BellRing}
+                  onClick={() => void remind()}
+                  className="self-start"
+                >
                   {t('remind')}
                 </Button>
               ) : null}

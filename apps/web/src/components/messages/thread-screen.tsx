@@ -55,11 +55,8 @@ export function ThreadScreen({ id }: { id: string }) {
   }
 
   const back = (
-    <Button variant="ghost" asChild className="self-start">
-      <Link href="/nachrichten">
-        <ArrowLeft aria-hidden="true" size={18} />
-        {t('back')}
-      </Link>
+    <Button variant="ghost" asChild className="self-start" iconLeft={ArrowLeft}>
+      <Link href="/nachrichten">{t('back')}</Link>
     </Button>
   );
   if (q.isPending)
@@ -96,17 +93,17 @@ export function ThreadScreen({ id }: { id: string }) {
           <li key={m.id} className={cn('flex', m.own ? 'justify-end' : 'justify-start')}>
             <article
               className={cn(
-                'max-w-[85%] rounded-md border px-4 py-2',
-                m.own ? 'border-brand bg-bg-raised' : 'border-line bg-bg-sunken',
+                'max-w-[85%] rounded-lg px-4 py-3',
+                m.own ? 'bg-brand-soft' : 'bg-bg-raised shadow-card',
               )}
             >
               <header className="mb-1 flex flex-wrap items-baseline gap-x-2 text-caption text-ink-muted">
-                <span className="font-medium text-ink">{m.own ? t('you') : m.senderName}</span>
-                <time dateTime={m.at} className="tabular-nums">
+                <span className="text-label text-ink">{m.own ? t('you') : m.senderName}</span>
+                <time dateTime={m.at} className="text-mono-sm">
                   {dateTimeOf(m.at)}
                 </time>
               </header>
-              <p className="whitespace-pre-wrap break-words">{m.body}</p>
+              <p className="text-body break-words whitespace-pre-wrap">{m.body}</p>
             </article>
           </li>
         ))}
@@ -124,8 +121,12 @@ export function ThreadScreen({ id }: { id: string }) {
             }}
           />
           {error ? <FormError message={error} /> : null}
-          <Button type="submit" disabled={busy || !body.trim()} className="self-end">
-            <Send aria-hidden="true" size={18} />
+          <Button
+            type="submit"
+            disabled={busy || !body.trim()}
+            className="self-end"
+            iconLeft={Send}
+          >
             {t('send')}
           </Button>
         </form>

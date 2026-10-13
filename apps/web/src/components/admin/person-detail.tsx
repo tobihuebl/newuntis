@@ -1,18 +1,22 @@
 'use client';
+import { ArrowLeft, Pencil, Plus, Send, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
-  Chip,
   Button,
   Card,
   Checkbox,
+  EmptyState,
   Input,
   ListRow,
   Select,
   Sheet,
+  useToast,
   type SelectOption,
 } from '@sp/ui';
+import { dateTimeOf, shortDate } from '../../lib/dates';
+import { AccountChip } from './persons-list';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { GuardianCodes } from './guardian-codes';
 import { PersonPicker } from './person-picker';
@@ -77,7 +81,7 @@ export function PersonDetail({
   const router = useRouter();
   const [sheet, setSheet] = useState<'edit' | 'link' | 'anonymize' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
 
   const currentClass =
@@ -121,7 +125,6 @@ export function PersonDetail({
   }
 
   async function invite() {
-    setNotice(null);
     await run(async () => {
       const res = await apiRequest<{ sent: number; skipped: { reason: string }[] }>(
         'POST',
@@ -129,23 +132,26 @@ export function PersonDetail({
         { personIds: [person.id] },
         csrfToken,
       );
-      setNotice(
-        res.sent > 0
-          ? p('inviteSent')
-          : res.skipped[0]?.reason === 'activeAccount'
-            ? p('inviteActive')
-            : p('inviteNoEmail'),
-      );
+      toast({
+        text:
+          res.sent > 0
+            ? p('inviteSent')
+            : res.skipped[0]?.reason === 'activeAccount'
+              ? p('inviteActive')
+              : p('inviteNoEmail'),
+      });
     });
   }
 
   if (person.anonymized) {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-        <Link href="/admin/personen" className="text-body-sm text-brand-text underline">
-          {t('title')}
-        </Link>
-        <Card className="mt-2">{p('anonymized')}</Card>
+        <Button variant="ghost" size="sm" asChild iconLeft={ArrowLeft}>
+          <Link href="/admin/personen">{t('title')}</Link>
+        </Button>
+        <Card flat className="mt-2">
+          <EmptyState title={p('anonymized')} />
+        </Card>
       </div>
     );
   }
@@ -153,15 +159,16 @@ export function PersonDetail({
   const links = person.kind === 'GUARDIAN' ? person.children : person.guardians;
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div>
-        <Link href="/admin/personen" className="text-body-sm text-brand-text underline">
-          {t('title')}
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col gap-2">
+        <Button variant="ghost" size="sm" asChild iconLeft={ArrowLeft} className="self-start">
+          <Link href="/admin/personen">{t('title')}</Link>
+        </Button>
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <PageTitle area="stammdaten">{name}</PageTitle>
           {readOnly ? null : (
             <Button
               variant="secondary"
+              iconLeft={Pencil}
               onClick={() => {
                 setError(null);
                 setSheet('edit');
@@ -171,7 +178,7 @@ export function PersonDetail({
             </Button>
           )}
         </div>
-        <p className="text-ink-muted">{t(`kinds.${person.kind}`)}</p>
+        <p className="text-body-sm text-ink-muted">{t(`kinds.${person.kind}`)}</p>
       </div>
 
       <Card className="flex flex-col gap-1">
@@ -192,30 +199,31 @@ export function PersonDetail({
             <Row
               label={p('lastLogin')}
               value={
-                person.account.lastLoginAt
-                  ? person.account.lastLoginAt.slice(0, 16).replace('T', ' ')
-                  : p('never')
+                person.account.lastLoginAt ? dateTimeOf(person.account.lastLoginAt) : p('never')
               }
             />
           </>
         ) : person.pendingInvitation ? (
-          <p>
-            <Chip tone="ok">{t('account.invited')}</Chip> {p('pending')}{' '}
-            {person.pendingInvitation.expiresAt.slice(0, 10)}
+          <p className="flex flex-wrap items-center gap-2 text-body-sm">
+            <AccountChip account="invited" />
+            {p('pending')} {shortDate(person.pendingInvitation.expiresAt.slice(0, 10))}
           </p>
         ) : (
           <p>
-            <Chip>{t('account.none')}</Chip>
+            <AccountChip account="none" />
           </p>
         )}
         {readOnly || person.kind === 'STUDENT' || person.account?.active ? null : (
-          <div>
-            <Button variant="secondary" onClick={invite} disabled={busy}>
-              {p('invite')}
-            </Button>
-          </div>
+          <Button
+            variant="secondary"
+            iconLeft={Send}
+            onClick={invite}
+            loading={busy}
+            className="self-start"
+          >
+            {p('invite')}
+          </Button>
         )}
-        {notice ? <p role="status">{notice}</p> : null}
         {error && !sheet ? <FormError message={error} /> : null}
       </Card>
 
@@ -223,13 +231,13 @@ export function PersonDetail({
         <Card className="p-0">
           <h2 className="border-b border-line px-4 py-3 text-h3">{p('enrollments')}</h2>
           {person.enrollments.length === 0 ? (
-            <p className="p-4 text-ink-muted">{t('noClass')}</p>
+            <p className="p-4 text-body-sm text-ink-muted">{t('noClass')}</p>
           ) : null}
           {person.enrollments.map((e) => (
             <ListRow
               key={e.id}
               title={e.class.name}
-              subtitle={`${p('from')} ${e.fromDate ?? '–'}${e.toDate ? ` ${p('to')} ${e.toDate}` : ''}`}
+              subtitle={`${p('from')} ${e.fromDate ? shortDate(e.fromDate) : '–'}${e.toDate ? ` ${p('to')} ${shortDate(e.toDate)}` : ''}`}
             />
           ))}
         </Card>
@@ -244,6 +252,8 @@ export function PersonDetail({
             {readOnly ? null : (
               <Button
                 variant="secondary"
+                size="sm"
+                iconLeft={Plus}
                 onClick={() => {
                   setError(null);
                   setSheet('link');
@@ -254,7 +264,7 @@ export function PersonDetail({
             )}
           </div>
           {links.filter(active).length === 0 ? (
-            <p className="p-4 text-ink-muted">{p('linkNone')}</p>
+            <p className="p-4 text-body-sm text-ink-muted">{p('linkNone')}</p>
           ) : null}
           {links.filter(active).map((l) => {
             const other = l.student ?? l.guardian!;
@@ -263,15 +273,16 @@ export function PersonDetail({
                 key={l.id}
                 title={
                   <Link
-                    className="text-brand-text underline"
+                    className="pf-focusable text-brand-text underline underline-offset-4"
                     href={`/admin/personen/${other.id}`}
                   >{`${other.lastName} ${other.firstName}`}</Link>
                 }
-                subtitle={`${p('from')} ${l.validFrom ?? '–'}${l.canExcuse ? ` · ${p('canExcuse')}` : ''}`}
+                subtitle={`${p('from')} ${l.validFrom ? shortDate(l.validFrom) : '–'}${l.canExcuse ? ` · ${p('canExcuse')}` : ''}`}
                 trailing={
                   readOnly ? null : (
                     <Button
                       variant="ghost"
+                      size="sm"
                       onClick={() =>
                         run(() =>
                           apiRequest(
@@ -306,19 +317,19 @@ export function PersonDetail({
 
       {readOnly || person.id === currentPersonId ? null : (
         <Card className="flex flex-col gap-2">
-          <h2 className="text-h3 text-danger-ink">{p('anonymize')}</h2>
+          <h2 className="text-h3">{p('anonymize')}</h2>
           <p className="text-body-sm text-ink-muted">{p('anonymizeHelp')}</p>
-          <div>
-            <Button
-              variant="danger"
-              onClick={() => {
-                setError(null);
-                setSheet('anonymize');
-              }}
-            >
-              {p('anonymize')}
-            </Button>
-          </div>
+          <Button
+            variant="danger"
+            iconLeft={UserX}
+            className="self-start"
+            onClick={() => {
+              setError(null);
+              setSheet('anonymize');
+            }}
+          >
+            {p('anonymize')}
+          </Button>
         </Card>
       )}
 
@@ -374,7 +385,7 @@ export function PersonDetail({
             <Button type="button" variant="secondary" onClick={() => setSheet(null)}>
               {c('cancel')}
             </Button>
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" loading={busy}>
               {c('save')}
             </Button>
           </div>
@@ -422,7 +433,7 @@ export function PersonDetail({
           </Button>
           <Button
             variant="danger"
-            disabled={busy}
+            loading={busy}
             onClick={() =>
               run(
                 () => apiRequest('DELETE', `/admin/persons/${person.id}`, undefined, csrfToken),
@@ -440,9 +451,9 @@ export function PersonDetail({
 
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div className="flex flex-wrap justify-between gap-2 border-b border-line py-2 last:border-b-0">
+    <div className="flex flex-wrap justify-between gap-2 border-b border-line py-2 text-body-sm last:border-b-0">
       <span className="text-ink-muted">{label}</span>
-      <span>{value || '–'}</span>
+      <span className="text-label">{value || '–'}</span>
     </div>
   );
 }

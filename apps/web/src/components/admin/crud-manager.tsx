@@ -1,8 +1,19 @@
 'use client';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button, Checkbox, EmptyState, Input, Select, Sheet, type SelectOption } from '@sp/ui';
+import {
+  Button,
+  Card,
+  Checkbox,
+  Chip,
+  EmptyState,
+  Input,
+  Select,
+  Sheet,
+  type SelectOption,
+} from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
@@ -51,6 +62,9 @@ export interface CrudManagerProps<Row extends { id: string }> {
   /** Platz für weitere Aktionen in der Kopfzeile. */
   headerExtra?: React.ReactNode;
 }
+
+/** Ab so vielen Zeilen gibt es ein Suchfeld (Design System: Tabelle mit Filter). */
+const FILTER_FROM = 8;
 
 function convert(field: Field, raw: string | boolean | undefined): unknown {
   if (field.type === 'checkbox') return raw === true;
@@ -134,99 +148,161 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
   }
 
   const values = editing?.row ? toForm(editing.row) : {};
+  const [query, setQuery] = useState('');
+  const needle = query.trim().toLocaleLowerCase('de');
+  const shown = needle
+    ? rows.filter((row) =>
+        Object.values(toForm(row)).some(
+          (v) => typeof v === 'string' && v.toLocaleLowerCase('de').includes(needle),
+        ),
+      )
+    : rows;
+
+  const actions = (row: Row) => (
+    <div className="flex shrink-0 justify-end">
+      {canEdit ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={t('edit')}
+          onClick={() => {
+            setError(null);
+            setFieldErrors({});
+            setEditing({ row });
+          }}
+        >
+          <Pencil aria-hidden="true" />
+        </Button>
+      ) : null}
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-label={t('delete')}
+        onClick={() => {
+          setError(null);
+          setDeleting(row);
+        }}
+      >
+        <Trash2 aria-hidden="true" />
+      </Button>
+    </div>
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <PageTitle area="stammdaten">{props.title}</PageTitle>
         <div className="flex flex-wrap gap-2">
           {props.headerExtra}
           {readOnly ? (
-            <span className="self-center text-body-sm text-ink-muted">{t('readOnly')}</span>
+            <Chip tone="absent" icon={Eye} className="self-center">
+              {t('readOnly')}
+            </Chip>
           ) : (
             <Button
+              iconLeft={Plus}
               onClick={() => {
                 setError(null);
                 setFieldErrors({});
                 setEditing({ row: null });
               }}
             >
-              <Plus aria-hidden="true" size={18} />
               {props.newLabel}
             </Button>
           )}
         </div>
       </div>
 
+      {rows.length > FILTER_FROM ? (
+        <Input
+          label={t('search')}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="max-w-sm"
+        />
+      ) : null}
+
       {rows.length === 0 ? (
-        <div className="rounded-md border border-line bg-bg-raised">
+        <Card flat>
           <EmptyState title={props.emptyTitle} description={props.emptyDescription} />
-        </div>
+        </Card>
+      ) : shown.length === 0 ? (
+        <Card flat>
+          <EmptyState title={t('noMatch')} />
+        </Card>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-line bg-bg-raised">
-          <table className="w-full text-left text-body-sm">
-            <thead className="border-b border-line text-ink-muted">
-              <tr>
-                {columns.map((c) => (
-                  <th key={c.key} scope="col" className="px-4 py-3 font-medium">
-                    {c.label}
-                  </th>
-                ))}
-                {readOnly ? null : (
-                  <th scope="col" className="w-28 px-4 py-3">
-                    <span className="sr-only">{t('edit')}</span>
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="border-b border-line last:border-b-0">
-                  {columns.map((c, i) => (
-                    <td key={c.key} className="px-4 py-3">
-                      {i === 0 && detailHref ? (
-                        <a className="text-brand-text underline" href={detailHref(row)}>
-                          {c.render(row)}
-                        </a>
-                      ) : (
-                        c.render(row)
-                      )}
-                    </td>
+        <Card className="p-0">
+          {/* Mobil: Karten-Liste mit zwei Feldern (Design System, Responsive Muster) */}
+          <ul className="md:hidden">
+            {shown.map((row) => (
+              <li
+                key={row.id}
+                className="flex min-h-14 items-center gap-2 border-b border-line py-2 pr-2 pl-4 last:border-b-0"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-body-strong">
+                    {detailHref ? (
+                      <Link
+                        className="pf-focusable text-brand-text underline underline-offset-4"
+                        href={detailHref(row)}
+                      >
+                        {columns[0]?.render(row)}
+                      </Link>
+                    ) : (
+                      columns[0]?.render(row)
+                    )}
+                  </div>
+                  {columns[1] ? (
+                    <div className="truncate text-body-sm text-ink-muted">
+                      {columns[1].label}: {columns[1].render(row)}
+                    </div>
+                  ) : null}
+                </div>
+                {readOnly ? null : actions(row)}
+              </li>
+            ))}
+          </ul>
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full text-left text-body-sm">
+              <thead className="border-b border-line text-label text-ink-muted">
+                <tr>
+                  {columns.map((c) => (
+                    <th key={c.key} scope="col" className="px-4 py-3">
+                      {c.label}
+                    </th>
                   ))}
                   {readOnly ? null : (
-                    <td className="px-2 py-1">
-                      <div className="flex justify-end">
-                        {canEdit ? (
-                          <Button
-                            variant="ghost"
-                            aria-label={t('edit')}
-                            onClick={() => {
-                              setError(null);
-                              setFieldErrors({});
-                              setEditing({ row });
-                            }}
-                          >
-                            <Pencil aria-hidden="true" size={18} />
-                          </Button>
-                        ) : null}
-                        <Button
-                          variant="ghost"
-                          aria-label={t('delete')}
-                          onClick={() => {
-                            setError(null);
-                            setDeleting(row);
-                          }}
-                        >
-                          <Trash2 aria-hidden="true" size={18} />
-                        </Button>
-                      </div>
-                    </td>
+                    <th scope="col" className="w-28 px-4 py-3">
+                      <span className="sr-only">{t('edit')}</span>
+                    </th>
                   )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {shown.map((row) => (
+                  <tr key={row.id} className="border-b border-line last:border-b-0">
+                    {columns.map((c, i) => (
+                      <td key={c.key} className="px-4 py-3">
+                        {i === 0 && detailHref ? (
+                          <Link
+                            className="pf-focusable text-label text-brand-text underline underline-offset-4"
+                            href={detailHref(row)}
+                          >
+                            {c.render(row)}
+                          </Link>
+                        ) : (
+                          c.render(row)
+                        )}
+                      </td>
+                    ))}
+                    {readOnly ? null : <td className="px-2 py-1">{actions(row)}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
       <Sheet
@@ -294,7 +370,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
               <Button type="button" variant="secondary" onClick={() => setEditing(null)}>
                 {t('cancel')}
               </Button>
-              <Button type="submit" disabled={busy}>
+              <Button type="submit" loading={busy}>
                 {t('save')}
               </Button>
             </div>
@@ -313,7 +389,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
           <Button variant="secondary" onClick={() => setDeleting(null)}>
             {t('cancel')}
           </Button>
-          <Button variant="danger" onClick={remove} disabled={busy}>
+          <Button variant="danger" onClick={remove} loading={busy}>
             {t('delete')}
           </Button>
         </div>

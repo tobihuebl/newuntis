@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Download, Upload } from 'lucide-react';
+import { Download, TriangleAlert, Upload } from 'lucide-react';
 import { Chip, Button, Card, Checkbox, Select, cn } from '@sp/ui';
 import { FormError } from '../form-bits';
 import { IMPORT_FIELDS, type ImportField, type ImportPreview } from '@sp/shared';
@@ -329,16 +329,19 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                         {r.record.lastName} {r.record.firstName}
                       </td>
                       <td className="px-4 py-2">
-                        {r.messages.map((m) => (
-                          <p
-                            key={m}
-                            className={
-                              m.startsWith('Hinweis') ? 'text-ink-muted' : 'text-danger-ink'
-                            }
-                          >
-                            {m}
-                          </p>
-                        ))}
+                        <span className="flex flex-col items-start gap-1">
+                          {r.messages.map((m) =>
+                            m.startsWith('Hinweis') ? (
+                              <span key={m} className="text-body-sm text-ink-muted">
+                                {m}
+                              </span>
+                            ) : (
+                              <Chip key={m} tone="danger" icon={TriangleAlert}>
+                                {m}
+                              </Chip>
+                            ),
+                          )}
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -362,7 +365,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
                 checked={sendInvitations}
                 onChange={(e) => setSendInvitations(e.target.checked)}
               />
-              {blocked ? <p className="text-body-sm text-danger-ink">{t('errorsBlock')}</p> : null}
+              {blocked ? <FormError message={t('errorsBlock')} /> : null}
               <div>
                 <Button onClick={commit} disabled={busy || blocked || s.create + s.update === 0}>
                   {skipErrors && s.errors > 0 ? t('commitSkip') : t('commit')}

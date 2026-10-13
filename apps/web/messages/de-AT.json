@@ -113,7 +113,7 @@
     "greetingDay": "Guten Tag, {name}.",
     "greetingEvening": "Guten Abend, {name}.",
     "openEntriesLabel": "{count, plural, one {Offener Eintrag} other {Offene Einträge}}",
-    "substituteFor": "{day}: {className}, {period}, {room}",
+    "substituteFor": "{day}: Du vertrittst {className}, {period}, {room}",
     "allDoneTitle": "Alles eingetragen",
     "allDoneText": "Heute keine offenen Einträge und keine Supplierungen."
   },
@@ -132,7 +132,7 @@
   "auth": {
     "email": "E-Mail",
     "password": "Passwort",
-    "newPassword": "Neues Passwort (mindestens 12 Zeichen)",
+    "newPassword": "Neues Passwort",
     "login": "Anmelden",
     "loginTitle": "Anmelden",
     "loginFailed": "Die Anmeldung hat nicht geklappt. Prüfen Sie E-Mail und Passwort.",
@@ -170,7 +170,9 @@
     "useRecovery": "Wiederherstellungscode verwenden",
     "useCode": "Code aus der App verwenden",
     "recoveryCode": "Wiederherstellungscode",
-    "codeIncomplete": "Der Code muss sechs Ziffern haben."
+    "codeIncomplete": "Der Code muss sechs Ziffern haben.",
+    "passwordHint": "Mindestens 12 Zeichen. Ein Satz lässt sich gut merken.",
+    "toLogin": "Zur Anmeldung"
   },
   "status": {
     "present": "Anwesend",
@@ -204,7 +206,8 @@
     "conflict": "Dieser Eintrag existiert schon oder wird noch verwendet.",
     "forbidden": "Dafür fehlt die Berechtigung. Die Administration der Schule kann sie vergeben.",
     "required": "Pflichtfeld",
-    "undo": "Rückgängig"
+    "undo": "Rückgängig",
+    "noMatch": "Keine Treffer."
   },
   "admin": {
     "subjects": {
@@ -403,12 +406,15 @@
     "firstName": "Vorname",
     "lastName": "Nachname",
     "email": "E-Mail",
-    "password": "Passwort (mindestens 12 Zeichen)",
+    "password": "Passwort",
     "submit": "Konto anlegen",
     "invalid": "Der Code ist ungültig oder abgelaufen. Bitte fragen Sie in der Schule nach einem neuen Code.",
     "exists": "Für diese E-Mail-Adresse gibt es schon ein Konto. Bitte melden Sie sich an und lösen Sie den Code im Profil ein.",
     "done": "Ihr Konto ist angelegt. Sie können sich jetzt anmelden.",
-    "link": "Elternzugang mit Code"
+    "link": "Elternzugang mit Code",
+    "passwordHint": "Mindestens 12 Zeichen. Ein Satz lässt sich gut merken.",
+    "passwordTooShort": "Das Passwort braucht mindestens 12 Zeichen.",
+    "toLogin": "Zur Anmeldung"
   },
   "days": {
     "1": "Montag",

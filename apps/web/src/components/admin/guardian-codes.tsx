@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
+import { Download, KeyRound, Printer } from 'lucide-react';
 import { Button } from '@sp/ui';
+import { shortDate } from '../../lib/dates';
 import { ApiError, apiPost } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
 import { FormError } from '../form-bits';
@@ -76,11 +78,16 @@ export function GuardianCodes({
       <div className="flex flex-col gap-2">
         <p className="text-body-sm text-ink-muted">{t('codesHelp')}</p>
         {error ? <FormError message={error} /> : null}
-        <div>
-          <Button variant="secondary" onClick={generate} disabled={busy || studentIds.length === 0}>
-            {label ?? t('codes')}
-          </Button>
-        </div>
+        <Button
+          variant="secondary"
+          iconLeft={KeyRound}
+          onClick={generate}
+          loading={busy}
+          disabled={studentIds.length === 0}
+          className="self-start"
+        >
+          {label ?? t('codes')}
+        </Button>
       </div>
     );
   }
@@ -90,23 +97,23 @@ export function GuardianCodes({
         <h2 className="text-h3">
           {t('codesFor')} {scope}
         </h2>
-        <Button variant="secondary" onClick={() => window.print()}>
+        <Button variant="secondary" size="sm" iconLeft={Printer} onClick={() => window.print()}>
           {t('codesPrint')}
         </Button>
-        <Button variant="secondary" onClick={downloadCsv}>
+        <Button variant="secondary" size="sm" iconLeft={Download} onClick={downloadCsv}>
           {t('codesCsv')}
         </Button>
       </div>
       <ul className="grid gap-2 sm:grid-cols-2">
         {rows.map((r) => (
-          <li key={r.studentId} className="rounded-sm border border-line p-3">
-            <p className="font-medium">
+          <li key={r.studentId} className="flex flex-col gap-1 rounded-md bg-bg-sunken p-4">
+            <p className="text-body-strong">
               {r.lastName} {r.firstName}
               {r.className ? ` (${r.className})` : ''}
             </p>
-            <p className="font-mono text-body-lg tracking-wider">{r.code}</p>
+            <p className="font-mono text-h3 tracking-widest">{r.code}</p>
             <p className="text-caption text-ink-muted">
-              {t('codesValid')} {r.expiresAt.slice(0, 10)}
+              {t('codesValid')} {shortDate(r.expiresAt.slice(0, 10))}
             </p>
           </li>
         ))}

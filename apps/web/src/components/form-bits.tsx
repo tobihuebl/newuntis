@@ -1,5 +1,7 @@
 'use client';
-import { TriangleAlert } from 'lucide-react';
+import { CircleCheck, TriangleAlert } from 'lucide-react';
+import Link from 'next/link';
+import { Banner, Button } from '@sp/ui';
 import { ApiError } from '../lib/api-client';
 import { useT } from '../lib/i18n';
 
@@ -14,6 +16,24 @@ export function FormError({ message }: { message: string | null }) {
       <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
       {message}
     </p>
+  );
+}
+
+/** Textlink unter Anmeldeformularen: tippbar (44 px), Kobalt-Text, Unterstreichung beim Zeigen. */
+export const authLinkClass =
+  'pf-focusable inline-flex min-h-(--tap-min) items-center justify-center text-center text-label text-brand-text underline-offset-4 hover:underline';
+
+/** Erfolg nach einem Anmelde-Schritt (Passwort gesetzt, Konto angelegt): Banner und Weg zur Anmeldung. */
+export function AuthDone({ text, action }: { text: string; action: string }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <Banner tone="brand" icon={CircleCheck} role="status">
+        {text}
+      </Banner>
+      <Button asChild block>
+        <Link href="/login">{action}</Link>
+      </Button>
+    </div>
   );
 }
 

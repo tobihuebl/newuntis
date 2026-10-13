@@ -80,11 +80,8 @@ export function ComposeScreen() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
-      <Button variant="ghost" asChild className="self-start">
-        <Link href="/nachrichten">
-          <ArrowLeft aria-hidden="true" size={18} />
-          {t('back')}
-        </Link>
+      <Button variant="ghost" asChild className="self-start" iconLeft={ArrowLeft}>
+        <Link href="/nachrichten">{t('back')}</Link>
       </Button>
       <PageTitle area="kommunikation">{t('new')}</PageTitle>
       {!options.data && options.isPending ? (
@@ -112,10 +109,10 @@ export function ComposeScreen() {
                       <button
                         type="button"
                         onClick={() => setSelected(selected.filter((x) => x.id !== r.id))}
-                        className="inline-flex min-h-11 items-center gap-1 rounded-full border border-line bg-bg-sunken px-3 text-body-sm hover:border-danger"
+                        className="pf-focusable inline-flex min-h-11 items-center gap-1.5 rounded-pill bg-brand-soft px-3 text-label text-ink transition-colors duration-150 hover:bg-bg-sunken"
                       >
                         {r.name}
-                        <X aria-hidden="true" size={14} />
+                        <X aria-hidden="true" className="size-4" />
                         <span className="sr-only">{t('remove')}</span>
                       </button>
                     </li>
@@ -210,8 +207,8 @@ export function ComposeScreen() {
             type="submit"
             disabled={busy || !subject.trim() || !body.trim()}
             className="self-start"
+            iconLeft={Send}
           >
-            <Send aria-hidden="true" size={18} />
             {t('send')}
           </Button>
         </form>
