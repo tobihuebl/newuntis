@@ -132,7 +132,7 @@ export function DashboardScreen() {
       ) : (
         <>
           {/* Drei Spalten ab 1280 px (Design System, Lagebild); mobil als Stapel */}
-          <div className="grid items-start gap-6 xl:grid-cols-3">
+          <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
             <section aria-labelledby="kpi-h" className="flex flex-col gap-3">
               <h2 id="kpi-h" className="sr-only">
                 {t('kpis')}

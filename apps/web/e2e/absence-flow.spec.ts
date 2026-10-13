@@ -16,7 +16,9 @@ test('Eltern melden eine Abwesenheit, der Klassenvorstand nimmt sie an, Eltern w
   await expect(parent.getByRole('radio', { name: 'Zeitraum' })).toBeChecked();
   await parent.getByLabel('Von').fill(d);
   await parent.getByLabel('Bis').fill(d);
-  await parent.getByLabel('Grund').selectOption('ILLNESS');
+  // Grund als Segment-Auswahl (Design System): Radio im Fieldset „Grund“
+  await parent.getByRole('group', { name: 'Grund' }).getByText('Krankheit').click();
+  await expect(parent.getByRole('radio', { name: 'Krankheit' })).toBeChecked();
   const note = `Fieber (E2E ${Date.now().toString(36)})`;
   await parent.getByLabel('Anmerkung (optional)').fill(note);
   await parent.getByRole('button', { name: 'Melden' }).click();

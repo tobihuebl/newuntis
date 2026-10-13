@@ -114,7 +114,17 @@ test.describe('Umbruch bei 320 px', () => {
     const overflow = await page.evaluate(
       () => document.scrollingElement!.scrollWidth - document.documentElement.clientWidth,
     );
-    expect(overflow, path).toBeLessThanOrEqual(1);
+    // Bei Fehlschlag die Elemente nennen, die über den Rand ragen (erleichtert die Suche)
+    const offenders =
+      overflow > 1
+        ? await page.evaluate(() =>
+            [...document.querySelectorAll('body *')]
+              .filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1)
+              .slice(-5)
+              .map((el) => `${el.tagName.toLowerCase()}.${el.className}`.slice(0, 120)),
+          )
+        : [];
+    expect(overflow, `${path} ${offenders.join(' | ')}`).toBeLessThanOrEqual(1);
   }
 
   test('Eltern', async ({ page }) => {
