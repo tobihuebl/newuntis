@@ -155,6 +155,8 @@ async function main() {
       slug: SLUG,
       settings: tenantSettingsSchema.parse({
         abWeekReferenceMonday: '2026-09-07',
+        // Demoschule zeigt alle Pakete, auch den Stundenplan-Assistenten (ADR 0012)
+        features: { autoPlanning: true },
       }) as Prisma.InputJsonValue,
     },
   });

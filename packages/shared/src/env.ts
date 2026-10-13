@@ -31,6 +31,15 @@ export const serverEnvSchema = z.object({
   S3_ACCESS_KEY: z.string().min(1),
   S3_SECRET_KEY: z.string().min(1),
   DEFAULT_TIMEZONE: z.string().default('Europe/Vienna'),
+  /**
+   * Stundenplan-Assistent (ADR 0012): Wünsche in Worten zusätzlich über das Vercel AI Gateway übersetzen
+   * (EU-Region, Zero Data Retention). Ohne Schlüssel nur der regelbasierte Übersetzer.
+   */
+  AI_GATEWAY_API_KEY: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().min(10).optional(),
+  ),
+  AI_GATEWAY_MODEL: z.string().default('anthropic/claude-sonnet-5.5'),
 });
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 

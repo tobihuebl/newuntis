@@ -1,5 +1,14 @@
 import type { Prisma, Tx } from '@sp/db';
-import type { LessonRule, PeriodInfo, ValidationContext } from '@sp/shared';
+import {
+  checkConstraints,
+  tenantSettingsSchema,
+  validateTimetable,
+  type Conflict,
+  type LessonRule,
+  type PeriodInfo,
+  type PlanningConstraint,
+  type ValidationContext,
+} from '@sp/shared';
 import { DateTime } from 'luxon';
 
 export const lessonInclude = {
@@ -15,7 +24,7 @@ export function todayIn(timezone: string): string {
   return DateTime.now().setZone(timezone).toISODate()!;
 }
 
-export function toRule(l: LessonRow): LessonRule & { version: number } {
+export function toRule(l: LessonRow): LessonRule & { version: number; pinned: boolean } {
   return {
     id: l.id,
     weekday: l.weekday,
@@ -28,6 +37,7 @@ export function toRule(l: LessonRow): LessonRule & { version: number } {
     roomId: l.roomId,
     teacherIds: l.teachers.map((t) => t.teacherId).sort(),
     version: l.version,
+    pinned: l.pinned,
   };
 }
 
@@ -80,4 +90,59 @@ export async function loadValidationContext(
     groupMembers,
     roomCapacity: Object.fromEntries(rooms.map((r) => [r.id, r.capacity])),
   };
+}
+
+/** Aktive Planungswünsche des Schuljahres (M7). */
+export async function loadPlanningConstraints(
+  tx: Tx,
+  schoolYearId: string,
+): Promise<PlanningConstraint[]> {
+  const rows = await tx.planningConstraint.findMany({ where: { schoolYearId, active: true } });
+  return rows.map((r) => ({
+    id: r.id,
+    kind: r.kind,
+    hard: r.hard,
+    active: r.active,
+    teacherId: r.teacherId,
+    classId: r.classId,
+    subjectId: r.subjectId,
+    roomIds: r.roomIds,
+    weekday: r.weekday,
+    periods: r.periods,
+    max: r.max,
+    source: r.source,
+    text: r.text,
+  }));
+}
+
+/**
+ * Vollständige Prüfung für Editor und Veröffentlichung: harte Regeln (Spec Abschnitt 10), weiche Regeln (SP-06,
+ * Tagesbelastung aus den Schuleinstellungen) und Planungswünsche. Wünsche sind im Editor Warnungen: Der Solver
+ * hält harte Wünsche ein, eine Hand-Korrektur darf bewusst abweichen (ADR 0012).
+ */
+export async function fullConflicts(
+  tx: Tx,
+  tenantId: string,
+  schoolYearId: string,
+  lessons: LessonRule[],
+  ctx: ValidationContext,
+  change?: { lesson: LessonRule },
+): Promise<Conflict[]> {
+  const [tenant, constraints] = await Promise.all([
+    tx.tenant.findUniqueOrThrow({ where: { id: tenantId }, select: { settings: true } }),
+    loadPlanningConstraints(tx, schoolYearId),
+  ]);
+  const { timetable } = tenantSettingsSchema.parse(tenant.settings);
+  const all = change
+    ? [...lessons.filter((l) => l.id !== change.lesson.id), change.lesson]
+    : lessons;
+  const wishes = checkConstraints(all, constraints).map((c) => ({
+    ...c,
+    severity: 'soft' as const,
+  }));
+  const result = [
+    ...validateTimetable(lessons, { ...ctx, soft: { dayLoadMax: timetable.dayLoadMax } }, change),
+    ...(change ? wishes.filter((c) => c.lessonIds.includes(change.lesson.id)) : wishes),
+  ];
+  return result;
 }

@@ -57,6 +57,15 @@ export const tenantSettingsSchema = z.object({
     .default({ announcementReminderAfterDays: 2 }),
   /** Link auf den vollständigen Datenschutzhinweis der Schule (in der Einführung angezeigt). */
   privacy: z.object({ noticeUrl: z.url().optional() }).default({}),
+  /** Stundenplan: Tagesbelastung je Klasse, ab der die weiche Regel DAY_LOAD warnt (SP-06). */
+  timetable: z
+    .object({ dayLoadMax: z.number().int().min(1).max(12).default(6) })
+    .default({ dayLoadMax: 6 }),
+  /**
+   * Freigeschaltete Pakete (ADR 0012): setzt der Betrieb (pnpm tenant:feature), nicht die Schule selbst; deshalb
+   * nicht in tenantSettingsPatch.
+   */
+  features: z.object({ autoPlanning: z.boolean().default(false) }).default({ autoPlanning: false }),
 });
 export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
 
@@ -74,5 +83,6 @@ export const tenantSettingsPatch = z.object({
   communication: sections.communication.unwrap().optional(),
   privacy: sections.privacy.unwrap().optional(),
   security: sections.security.unwrap().optional(),
+  timetable: sections.timetable.unwrap().optional(),
 });
 export type TenantSettingsPatch = z.infer<typeof tenantSettingsPatch>;

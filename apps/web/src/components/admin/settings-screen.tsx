@@ -41,6 +41,11 @@ const SECTIONS: { key: SectionKey; id: string; fields: Field[] }[] = [
     ],
   },
   {
+    key: 'timetable',
+    id: 'stundenplan',
+    fields: [{ key: 'dayLoadMax', kind: 'int', min: 1, max: 12 }],
+  },
+  {
     key: 'communication',
     id: 'kommunikation',
     fields: [{ key: 'announcementReminderAfterDays', kind: 'int', min: 0, max: 30 }],

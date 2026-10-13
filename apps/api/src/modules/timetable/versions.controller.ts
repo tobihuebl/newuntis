@@ -15,11 +15,15 @@ import type { Tx } from '@sp/db';
 import {
   hasHardConflicts,
   lessonInput,
+  lessonPinInput,
+  requirementCoverage,
   lessonPatchInput,
   mondayOf,
   publishInput,
   requirementInput,
   requirementPatchInput,
+  requirementsImportInput,
+  type RequirementsImportResponse,
   validateTimetable,
   versionCreateInput,
   versionPatchInput,
@@ -35,6 +39,7 @@ import { bad } from '../admin/util';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   asDate,
+  fullConflicts,
   iso,
   lessonInclude,
   loadRules,
@@ -45,6 +50,7 @@ import {
 import { EventsService } from '../events/events.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { OccurrencesService } from './occurrences.service';
+import { parseRequirementsCsv } from './requirements-csv';
 
 const validateInput = z.object({
   /** Optional: eine geänderte oder neue Regel live prüfen (nur ihre Konflikte). */
@@ -157,6 +163,7 @@ export class VersionsController {
             periodStart: l.periodStart,
             periodCount: l.periodCount,
             weekPattern: l.weekPattern,
+            pinned: l.pinned,
           },
         });
         if (l.teachers.length)
@@ -254,7 +261,8 @@ export class VersionsController {
       groups,
       rooms,
       teachers,
-      conflicts: validateTimetable(lessons, context),
+      conflicts: await fullConflicts(tx, tenantId, v.schoolYearId, lessons, context),
+      coverage: requirementCoverage(v.requirements, lessons),
     };
   }
 
@@ -379,6 +387,23 @@ export class VersionsController {
     return this.withConflicts(tx, tenantId, v.schoolYearId, id, lessonId);
   }
 
+  /** Festpinnen (M7, Teilplanung): Der Assistent lässt diese Stunde bei einem Lauf unverändert. */
+  @Can('timetable.edit')
+  @Patch(':id/lessons/:lessonId/pin')
+  async pinLesson(
+    @Param('id') id: string,
+    @Param('lessonId') lessonId: string,
+    @Body(new ZodPipe(lessonPinInput)) body: z.infer<typeof lessonPinInput>,
+  ) {
+    await this.draft(id);
+    const res = await this.prisma.tx.lesson.updateMany({
+      where: { id: lessonId, versionId: id },
+      data: { pinned: body.pinned },
+    });
+    if (res.count === 0) throw new NotFoundException({ title: 'Regel nicht gefunden' });
+    return { id: lessonId, pinned: body.pinned };
+  }
+
   @Can('timetable.edit')
   @Delete(':id/lessons/:lessonId')
   @HttpCode(204)
@@ -405,6 +430,76 @@ export class VersionsController {
     });
     const row = await tx.lessonRequirement.create({ data: { tenantId, versionId: id, ...body } });
     return { id: row.id };
+  }
+
+  /**
+   * Lehrfächerverteilung als CSV (M7): Vorschau mit Fehlern je Zeile; Übernehmen nur ohne Fehler und ersetzt alle
+   * Soll-Stunden dieses Entwurfs.
+   */
+  @Can('timetable.edit')
+  @Post(':id/requirements/import')
+  @HttpCode(200)
+  async importRequirements(
+    @TenantId() tenantId: string,
+    @Actor() actor: Principal,
+    @Param('id') id: string,
+    @Body(new ZodPipe(requirementsImportInput)) body: z.infer<typeof requirementsImportInput>,
+  ): Promise<RequirementsImportResponse> {
+    const tx = this.prisma.tx;
+    const v = await this.draft(id);
+    const [teachers, subjects, classes, groups] = await Promise.all([
+      tx.person.findMany({
+        where: { kind: 'TEACHER', anonymizedAt: null },
+        select: { id: true, firstName: true, lastName: true, email: true },
+      }),
+      tx.subject.findMany({ select: { id: true, name: true, code: true } }),
+      tx.schoolClass.findMany({
+        where: { schoolYearId: v.schoolYearId },
+        select: { id: true, name: true },
+      }),
+      tx.group.findMany({
+        where: { schoolYearId: v.schoolYearId },
+        select: { id: true, name: true },
+      }),
+    ]);
+    const { rows, missingColumns } = parseRequirementsCsv(body.csv, {
+      teachers,
+      subjects,
+      classes,
+      groups,
+    });
+    const invalid = rows.filter((r) => r.errors.length).length;
+    const commit = body.commit && !missingColumns.length && invalid === 0 && rows.length > 0;
+    if (commit) {
+      await tx.lessonRequirement.deleteMany({ where: { versionId: id } });
+      await tx.lessonRequirement.createMany({
+        data: rows.map((r) => ({
+          tenantId,
+          versionId: id,
+          subjectId: r.subjectId!,
+          classId: r.classId,
+          groupId: r.groupId,
+          teacherId: r.teacherId!,
+          hoursPerWeek: r.hoursPerWeek!,
+          preferDouble: r.preferDouble,
+        })),
+      });
+      await this.log(tenantId, actor, 'timetableVersion.requirements.import', id, {
+        rows: rows.length,
+      });
+    }
+    return {
+      missingColumns,
+      rows: rows.map((r) => ({
+        line: r.line,
+        raw: r.raw,
+        preferDouble: r.preferDouble,
+        errors: r.errors,
+      })),
+      valid: rows.length - invalid,
+      invalid,
+      committed: commit,
+    };
   }
 
   @Can('timetable.edit')
@@ -461,7 +556,10 @@ export class VersionsController {
       loadRules(tx, id),
       loadValidationContext(tx, v.schoolYearId, todayIn(tz)),
     ]);
-    const conflicts = validateTimetable(
+    const conflicts = await fullConflicts(
+      tx,
+      tenantId,
+      v.schoolYearId,
       lessons,
       ctx,
       body.change ? { lesson: body.change as LessonRule } : undefined,
@@ -505,6 +603,15 @@ export class VersionsController {
       throw new UnprocessableEntityException({
         title: 'Harte Konflikte verhindern die Veröffentlichung',
         conflicts: conflicts.filter((c) => c.severity === 'hard'),
+      });
+    // Soll gegen Ist (M7): zu wenige oder zu viele Stunden nur mit ausdrücklicher Bestätigung
+    const requirements = await tx.lessonRequirement.findMany({ where: { versionId: id } });
+    const coverage = requirementCoverage(requirements, lessons).filter((c) => c.diff !== 0);
+    if (coverage.length && !body.acceptCoverage)
+      throw new UnprocessableEntityException({
+        title: 'Soll und Ist stimmen nicht überein',
+        code: 'COVERAGE',
+        coverage,
       });
 
     await tx.timetableVersion.updateMany({
@@ -619,7 +726,9 @@ export class VersionsController {
     const lesson = lessons.find((l) => l.id === lessonId)!;
     return {
       lesson,
-      conflicts: validateTimetable(lessons, ctx).filter((c) => c.lessonIds.includes(lessonId)),
+      conflicts: (await fullConflicts(tx, tenantId, schoolYearId, lessons, ctx)).filter((c) =>
+        c.lessonIds.includes(lessonId),
+      ),
     };
   }
 }

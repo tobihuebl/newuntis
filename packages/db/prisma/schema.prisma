@@ -143,6 +143,7 @@ model Person {
   announcements           Announcement[]
   consents                Consent[]
   privacyRequests         PrivacyRequest[]         @relation("PrivacySubject")
+  planningConstraints     PlanningConstraint[]
 
   @@unique([tenantId, externalId])
   @@index([tenantId, kind])
@@ -221,10 +222,12 @@ model SchoolYear {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  freeDays   SchoolFreeDay[]
-  classes    SchoolClass[]
-  groups     Group[]
-  timetables TimetableVersion[]
+  freeDays            SchoolFreeDay[]
+  classes             SchoolClass[]
+  groups              Group[]
+  timetables          TimetableVersion[]
+  planningConstraints PlanningConstraint[]
+  planningRuns        PlanningRun[]
 
   @@unique([tenantId, name])
   @@index([tenantId, isCurrent])
@@ -254,14 +257,15 @@ model SchoolClass {
   createdAt         DateTime @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime @updatedAt @db.Timestamptz(3)
 
-  schoolYear      SchoolYear          @relation(fields: [schoolYearId], references: [id])
-  homeroomTeacher Person?             @relation("Homeroom", fields: [homeroomTeacherId], references: [id])
-  enrollments     Enrollment[]
-  roleAssignments RoleAssignment[]
-  lessons         Lesson[]
-  requirements    LessonRequirement[]
-  occurrences     Occurrence[]
-  exams           Exam[]
+  schoolYear          SchoolYear           @relation(fields: [schoolYearId], references: [id])
+  homeroomTeacher     Person?              @relation("Homeroom", fields: [homeroomTeacherId], references: [id])
+  enrollments         Enrollment[]
+  roleAssignments     RoleAssignment[]
+  lessons             Lesson[]
+  requirements        LessonRequirement[]
+  occurrences         Occurrence[]
+  exams               Exam[]
+  planningConstraints PlanningConstraint[]
 
   @@unique([tenantId, schoolYearId, name])
   @@index([tenantId, schoolYearId])
@@ -326,10 +330,11 @@ model Subject {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  lessons      Lesson[]
-  requirements LessonRequirement[]
-  occurrences  Occurrence[]
-  exams        Exam[]
+  lessons             Lesson[]
+  requirements        LessonRequirement[]
+  occurrences         Occurrence[]
+  exams               Exam[]
+  planningConstraints PlanningConstraint[]
 
   @@unique([tenantId, code])
 }
@@ -396,6 +401,7 @@ model Lesson {
   periodStart Int
   periodCount Int         @default(1) // 2 = Doppelstunde
   weekPattern WeekPattern @default(EVERY)
+  pinned      Boolean     @default(false) // Teilplanung (M7): bleibt bei einem Lauf des Assistenten unverändert
   version     Int         @default(1) // optimistische Sperre im Editor
   createdAt   DateTime    @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime    @updatedAt @db.Timestamptz(3)
@@ -941,4 +947,81 @@ model Consent {
 
   @@unique([personId, kind, version])
   @@index([tenantId, personId])
+}
+
+// ───────────────────────── Stundenplan-Assistent (M7, ADR 0012) ─────────────────────────
+
+enum PlanningConstraintKind {
+  TEACHER_UNAVAILABLE
+  TEACHER_MAX_PER_DAY
+  CLASS_MAX_PER_DAY
+  SUBJECT_ROOMS
+  CLASS_HOME_ROOM
+  SUBJECT_NOT_PERIODS
+  NO_STUDENT_GAPS
+}
+
+enum PlanningSource {
+  FORM
+  TEXT
+  AI
+}
+
+enum PlanningRunStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+/// Planungswunsch je Schuljahr (Sperrzeiten, freie Tage, Fachräume, Höchststunden …); hart oder weich.
+model PlanningConstraint {
+  id           String                 @id @default(cuid())
+  tenantId     String
+  schoolYearId String
+  kind         PlanningConstraintKind
+  hard         Boolean                @default(true)
+  active       Boolean                @default(true)
+  teacherId    String?
+  classId      String?
+  subjectId    String?
+  roomIds      String[]
+  weekday      Int?
+  periods      Int[]
+  max          Int?
+  source       PlanningSource         @default(FORM)
+  text         String? // ursprünglicher Satz bei Wünschen in Worten
+  createdById  String
+  createdAt    DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime               @updatedAt @db.Timestamptz(3)
+
+  schoolYear SchoolYear   @relation(fields: [schoolYearId], references: [id])
+  teacher    Person?      @relation(fields: [teacherId], references: [id])
+  class      SchoolClass? @relation(fields: [classId], references: [id])
+  subject    Subject?     @relation(fields: [subjectId], references: [id])
+
+  @@index([tenantId, schoolYearId])
+}
+
+/// Ein Lauf des Solvers: Startwert, Umfang, Ergebnis-Entwurf, Kennzahlen und nicht einplanbare Stunden.
+model PlanningRun {
+  id              String            @id @default(cuid())
+  tenantId        String
+  schoolYearId    String
+  sourceVersionId String? // Grundlage: feste Stunden (gepinnt oder außerhalb des Umfangs) und Soll-Stunden
+  resultVersionId String? // neuer Entwurf
+  status          PlanningRunStatus @default(QUEUED)
+  scope           Json // { kind: "all" } | { kind: "classes", ids } | { kind: "teachers", ids }
+  seed            Int
+  stats           Json?
+  unplaced        Json?
+  error           String?
+  createdById     String
+  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
+  startedAt       DateTime?         @db.Timestamptz(3)
+  finishedAt      DateTime?         @db.Timestamptz(3)
+
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id])
+
+  @@index([tenantId, schoolYearId, createdAt])
 }

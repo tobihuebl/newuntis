@@ -6,7 +6,7 @@ die Spezifikation anpassen, dann bauen.
 ## Befehle
 
 - pnpm install, pnpm dev, pnpm lint, pnpm typecheck, pnpm test, pnpm e2e (ab M4)
-- pnpm db:migrate, pnpm db:seed, pnpm db:reset, pnpm tenant:create (ab M1)
+- pnpm db:migrate, pnpm db:seed, pnpm db:reset, pnpm tenant:create (ab M1), pnpm tenant:feature (M7)
 - Schule anlegen: pnpm tenant:create --name "…" --slug … --admin-email … --admin-first … --admin-last …
 - Lokale Dienste: docker compose up -d (Postgres, Mailpit, S3-kompatibler Speicher)
 
@@ -91,6 +91,14 @@ die Spezifikation anpassen, dann bauen.
   rounded-full, Raster ohne grid-cols für mobil) und pnpm design:contrast (schreibt docs/kontrast.md; CI prüft mit --check).
 - Responsive Raster immer mit Grundspalte: grid grid-cols-1 lg:grid-cols-3 (sonst wächst das Raster bei 320 px über den Rand).
 - e2e/design.spec.ts: Screenshots hell/dunkel × 390/1280 nach test-results/design, axe, Tastatur, Reduced Motion, PWA, LCP.
+
+## Stundenplan-Assistent (M7, siehe ADR 0012)
+
+- Planungslogik rein in packages/shared/src/planning: solveTimetable (deterministisch, seed), checkConstraints (Wünsche), requirementCoverage (Soll/Ist), translateWishes (regelbasiert).
+- API unter /admin/planning/* (timetable.edit) nur mit features.autoPlanning der Schule; freischalten: pnpm tenant:feature --slug <schule> --auto-planning on|off.
+- Ergebnis eines Laufs ist immer ein neuer Entwurf; Lesson.pinned bleibt bei Teilplanung unverändert. Wünsche sind im Editor Warnungen, für den Solver (hart) bindend.
+- KI nur über das Vercel AI Gateway (AI_GATEWAY_API_KEY in .env, EU-Region, Zero Data Retention); an die KI gehen nur Kürzel (pseudonymize in ai-translate.ts), nie Namen.
+- Veröffentlichen prüft Soll gegen Ist (422 COVERAGE, mit acceptCoverage bestätigen).
 
 ## Hinweise zur Umgebung
 

@@ -23,7 +23,8 @@
     "design:check": "node scripts/gen-theme.mjs --check",
     "design:icons": "node scripts/gen-icons.mjs",
     "design:lint": "node scripts/check-tokens.mjs",
-    "design:contrast": "node scripts/check-contrast.mjs"
+    "design:contrast": "node scripts/check-contrast.mjs",
+    "tenant:feature": "pnpm --filter @sp/shared build >/dev/null && pnpm --filter @sp/db tenant:feature"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

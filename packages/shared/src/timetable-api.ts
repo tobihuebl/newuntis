@@ -72,7 +72,11 @@ export const requirementPatchInput = z
   })
   .partial();
 
-export const publishInput = z.object({ validFrom: dateSchema });
+export const publishInput = z.object({
+  validFrom: dateSchema,
+  /** Soll und Ist weichen ab (zu wenige/zu viele Stunden): bewusst trotzdem veröffentlichen (M7). */
+  acceptCoverage: z.boolean().default(false),
+});
 
 export const timetableRangeQuery = z
   .object({ from: dateSchema.optional(), to: dateSchema.optional(), studentId: id.optional() })

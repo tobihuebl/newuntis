@@ -1149,7 +1149,10 @@
     "field_noticeUrl": "Link zum vollständigen Datenschutzhinweis",
     "hint_reminderAfterDays": "Mehrere Werte mit Komma, z. B. 1, 4",
     "hint_announcementReminderAfterDays": "0 = keine automatische Erinnerung",
-    "hint_noticeUrl": "Wird in der Einführung nach dem ersten Login verlinkt."
+    "hint_noticeUrl": "Wird in der Einführung nach dem ersten Login verlinkt.",
+    "section_timetable": "Stundenplan",
+    "field_dayLoadMax": "Stunden je Tag für eine Klasse, ab denen gewarnt wird",
+    "hint_dayLoadMax": "Gilt für den Editor und den Stundenplan-Assistenten (Tagesbelastung)."
   },
   "rolesAdmin": {
     "title": "Rollen und Rechte",

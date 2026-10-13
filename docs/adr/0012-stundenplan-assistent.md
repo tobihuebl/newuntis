@@ -26,7 +26,9 @@ Regelprüfung, Feinschliff, Freigabe) mit dem Satz "Die AI schlägt vor, die Sch
    Editor zeigt sie als Warnungen.
 4. **Planungswünsche als Daten** (`PlanningConstraint`, je Schuljahr): Art, betroffene Lehrkraft, Klasse, Fach
    oder Räume, Wochentag, Stunden, Höchstwert, hart oder weich, Herkunft (Formular, Text, KI) und der
-   ursprüngliche Satz. Jede Regel ist sichtbar, prüfbar und abschaltbar.
+   ursprüngliche Satz. Jede Regel ist sichtbar, prüfbar und abschaltbar. Für den
+   Solver sind harte Wünsche bindend; im Editor erscheinen Verstöße als Warnung, damit eine Hand-Korrektur
+   bewusst abweichen kann. Veröffentlichen blockieren nur die harten Regeln aus Abschnitt 10.
 5. **Teilplanung:** Stunden einer Version lassen sich festpinnen (`Lesson.pinned`). Ein Lauf plant nur den
    gewählten Umfang (alles, eine Klasse, eine Lehrkraft) neu; festgepinnte und nicht betroffene Stunden bleiben.
 6. **Ergebnis ist immer ein neuer Entwurf** (`TimetableVersion` mit Status `DRAFT`), nie direkt live. Der Lauf

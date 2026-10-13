@@ -235,3 +235,50 @@ export function checkConstraints(
   }
   return out;
 }
+
+const DAY_LONG = ['', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+const list = (ps: number[]) =>
+  ps.length === 1
+    ? `${ps[0]}. Stunde`
+    : `${ps.slice(0, -1).join('., ')}. und ${ps[ps.length - 1]}. Stunde`;
+
+/** Lesbarer Satz zu einem Wunsch, z. B. "Huber: Freitag nicht verfügbar". Namen liefert der Aufrufer. */
+export function describeConstraint(
+  c: Pick<
+    PlanningConstraint,
+    | 'kind'
+    | 'hard'
+    | 'teacherId'
+    | 'classId'
+    | 'subjectId'
+    | 'roomIds'
+    | 'weekday'
+    | 'periods'
+    | 'max'
+  >,
+  name: {
+    teacher: (id: string) => string;
+    subject: (id: string) => string;
+    cls: (id: string) => string;
+    room: (id: string) => string;
+  },
+): string {
+  const day = c.weekday ? DAY_LONG[c.weekday] : 'an allen Tagen';
+  const soft = c.hard ? '' : ' (möglichst)';
+  switch (c.kind) {
+    case 'TEACHER_UNAVAILABLE':
+      return `${name.teacher(c.teacherId!)}: ${day} ${c.periods.length ? `in der ${list(c.periods)} ` : ''}nicht verfügbar${soft}`;
+    case 'TEACHER_MAX_PER_DAY':
+      return `${name.teacher(c.teacherId!)}: höchstens ${c.max} Stunden am Tag${soft}`;
+    case 'CLASS_MAX_PER_DAY':
+      return `${c.classId ? name.cls(c.classId) : 'Alle Klassen'}: höchstens ${c.max} Stunden am Tag${soft}`;
+    case 'SUBJECT_ROOMS':
+      return `${name.subject(c.subjectId!)}: nur in ${c.roomIds.map(name.room).join(', ')}${soft}`;
+    case 'CLASS_HOME_ROOM':
+      return `${name.cls(c.classId!)}: Stammraum ${name.room(c.roomIds[0]!)}`;
+    case 'SUBJECT_NOT_PERIODS':
+      return `${name.subject(c.subjectId!)}: nicht in der ${list(c.periods)}${c.weekday ? ` am ${day}` : ''}${soft}`;
+    case 'NO_STUDENT_GAPS':
+      return `Keine Hohlstunden für Schüler:innen${soft}`;
+  }
+}
