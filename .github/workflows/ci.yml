@@ -72,13 +72,13 @@ jobs:
         env:
           CI: 'true'
       # Design-Screenshots hell/dunkel × 390/1280 (e2e/design.spec.ts) zur Durchsicht
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: design-screenshots
           path: apps/web/test-results/design
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
