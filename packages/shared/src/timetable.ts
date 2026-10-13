@@ -33,6 +33,11 @@ export interface ValidationContext {
   groupMembers: Record<string, string[]>;
   /** Plätze je Raum (null = unbekannt). */
   roomCapacity: Record<string, number | null>;
+  /**
+   * Weiche Regeln (SP-06, Hohlstunden, Tagesbelastung, gleiches Fach zweimal am Tag). Ohne Angabe werden sie
+   * nicht geprüft; Editor und Solver geben sie an.
+   */
+  soft?: { dayLoadMax: number };
 }
 
 export const CONFLICT_CODES = [
@@ -42,6 +47,11 @@ export const CONFLICT_CODES = [
   'OUT_OF_GRID',
   'MISSING_RESOURCE',
   'ROOM_CAPACITY',
+  'GAP_STUDENT',
+  'GAP_TEACHER',
+  'DAY_LOAD',
+  'SAME_SUBJECT_TWICE',
+  'WISH_VIOLATED',
 ] as const;
 export type ConflictCode = (typeof CONFLICT_CODES)[number];
 
@@ -58,6 +68,8 @@ export interface Conflict {
   weekday: number | null;
   period: number | null;
   message: string;
+  /** Bei WISH_VIOLATED: der verletzte Planungswunsch. */
+  constraintId?: string;
 }
 
 const DAY = ['', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -235,8 +247,112 @@ export function validateTimetable(
     }
   }
 
+  if (ctx.soft) for (const c of softConflicts(all, ctx, ctx.soft.dayLoadMax)) add(c);
+
   const result = [...conflicts.values()];
   return change ? result.filter((c) => c.lessonIds.includes(change.lesson.id)) : result;
+}
+
+/**
+ * Weiche Regeln je Wochentag und Wochenhälfte: Hohlstunden von Klassen und Lehrkräften, mehr Stunden als
+ * `dayLoadMax` für eine Klasse, dasselbe Fach zweimal am Tag (außer direkt hintereinander, also Doppelstunde).
+ * Gruppenstunden zählen für jede Klasse, aus der Mitglieder in der Gruppe sind.
+ */
+function softConflicts(all: LessonRule[], ctx: ValidationContext, dayLoadMax: number): Conflict[] {
+  const out: Conflict[] = [];
+  const classOf = new Map<string, string>();
+  for (const [classId, students] of Object.entries(ctx.classStudents))
+    for (const s of students) classOf.set(s, classId);
+  const classesOf = (l: LessonRule): string[] => {
+    if (l.classId) return [l.classId];
+    if (!l.groupId) return [];
+    return [...new Set((ctx.groupMembers[l.groupId] ?? []).flatMap((s) => classOf.get(s) ?? []))];
+  };
+
+  // Belegte Stunden je (Ressource, Tag, Hälfte)
+  type Day = { periods: Set<number>; lessons: Set<string> };
+  const days = new Map<string, Day>();
+  const mark = (key: string, l: LessonRule) => {
+    let d = days.get(key);
+    if (!d) days.set(key, (d = { periods: new Set(), lessons: new Set() }));
+    for (let p = l.periodStart; p < l.periodStart + Math.max(1, l.periodCount); p++)
+      d.periods.add(p);
+    d.lessons.add(l.id);
+  };
+  for (const l of all)
+    for (const half of halves(l.weekPattern)) {
+      for (const c of classesOf(l)) mark(`class|${c}|${l.weekday}|${half}`, l);
+      for (const t of l.teacherIds) mark(`teacher|${t}|${l.weekday}|${half}`, l);
+    }
+
+  const seen = new Set<string>();
+  for (const [key, d] of days) {
+    const [kind, id, wd] = key.split('|') as ['class' | 'teacher', string, string];
+    const weekday = Number(wd);
+    const sorted = [...d.periods].sort((a, b) => a - b);
+    const gaps = sorted.length ? sorted[sorted.length - 1]! - sorted[0]! + 1 - sorted.length : 0;
+    const dedupe = (code: string) => {
+      const k = `${code}|${kind}|${id}|${weekday}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    };
+    if (gaps > 0 && dedupe('GAP'))
+      out.push({
+        code: kind === 'class' ? 'GAP_STUDENT' : 'GAP_TEACHER',
+        severity: 'soft',
+        lessonIds: [...d.lessons],
+        resource: { kind, id },
+        weekday,
+        period: null,
+        message: `${gaps} ${gaps === 1 ? 'Hohlstunde' : 'Hohlstunden'} am ${DAY[weekday]}`,
+      });
+    if (kind === 'class' && sorted.length > dayLoadMax && dedupe('LOAD'))
+      out.push({
+        code: 'DAY_LOAD',
+        severity: 'soft',
+        lessonIds: [...d.lessons],
+        resource: { kind, id },
+        weekday,
+        period: null,
+        message: `${sorted.length} Stunden am ${DAY[weekday]} (mehr als ${dayLoadMax})`,
+      });
+  }
+
+  // Gleiches Fach zweimal am Tag je Klasse bzw. Gruppe (getrennte Stunden, nicht direkt hintereinander)
+  const bySubject = new Map<string, LessonRule[]>();
+  for (const l of all) {
+    const who = l.classId ? `class|${l.classId}` : l.groupId ? `group|${l.groupId}` : null;
+    if (!who) continue;
+    for (const half of halves(l.weekPattern)) {
+      const k = `${who}|${l.subjectId}|${l.weekday}|${half}`;
+      bySubject.set(k, [...(bySubject.get(k) ?? []), l]);
+    }
+  }
+  for (const [key, list] of bySubject) {
+    if (list.length < 2) continue;
+    const blocks = [...list].sort((a, b) => a.periodStart - b.periodStart);
+    let separate = 1;
+    for (let i = 1; i < blocks.length; i++) {
+      const prev = blocks[i - 1]!;
+      if (blocks[i]!.periodStart !== prev.periodStart + prev.periodCount) separate++;
+    }
+    if (separate < 2) continue;
+    const [kind, id, , wd] = key.split('|') as ['class' | 'group', string, string, string];
+    const k = `SAME|${kind}|${id}|${key.split('|')[2]}|${wd}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push({
+      code: 'SAME_SUBJECT_TWICE',
+      severity: 'soft',
+      lessonIds: list.map((l) => l.id),
+      resource: { kind, id },
+      weekday: Number(wd),
+      period: null,
+      message: `Gleiches Fach ${separate}-mal am ${DAY[Number(wd)]}`,
+    });
+  }
+  return out;
 }
 
 export const hasHardConflicts = (conflicts: Conflict[]) =>

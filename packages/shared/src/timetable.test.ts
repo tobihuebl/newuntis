@@ -387,3 +387,58 @@ describe('Terminerzeugung', () => {
     expect(weekB).toEqual([every.id, b.id]);
   });
 });
+
+describe('Weiche Regeln (SP-06)', () => {
+  const soft = (over: Partial<ValidationContext> = {}) => ctx({ soft: { dayLoadMax: 3 }, ...over });
+  it('ohne Angabe keine weichen Regeln (bestehende Prüfung unverändert)', () => {
+    expect(
+      validateTimetable(
+        [rule({ periodStart: 1 }), rule({ periodStart: 3, subjectId: 'x' })],
+        ctx(),
+      ),
+    ).toEqual([]);
+  });
+  it('Hohlstunden für Klasse und Lehrkraft', () => {
+    const cs = validateTimetable(
+      [rule({ periodStart: 1 }), rule({ periodStart: 4, subjectId: 'x' })],
+      soft(),
+    );
+    expect(codes(cs)).toEqual(['GAP_STUDENT', 'GAP_TEACHER']);
+    expect(cs.find((c) => c.code === 'GAP_STUDENT')?.message).toBe('2 Hohlstunden am Mo');
+  });
+  it('Tagesbelastung über dem Höchstwert', () => {
+    const day = [1, 2, 3, 4].map((p) =>
+      rule({ periodStart: p, subjectId: `s${p}`, teacherIds: [`t${p}`] }),
+    );
+    expect(codes(validateTimetable(day, soft()))).toEqual(['DAY_LOAD']);
+  });
+  it('gleiches Fach zweimal am Tag, Doppelstunde und direkt anschließend ausgenommen', () => {
+    const twice = [
+      rule({ periodStart: 1 }),
+      rule({ periodStart: 3, teacherIds: ['t2'] }),
+      rule({ periodStart: 2, subjectId: 'x', teacherIds: ['t3'] }),
+    ];
+    expect(codes(validateTimetable(twice, soft()))).toEqual(['SAME_SUBJECT_TWICE']);
+    const double = [rule({ periodStart: 3, periodCount: 2 })];
+    expect(validateTimetable(double, soft())).toEqual([]);
+    const adjacent = [rule({ periodStart: 3 }), rule({ periodStart: 4, teacherIds: ['t2'] })];
+    expect(validateTimetable(adjacent, soft())).toEqual([]);
+  });
+  it('Gruppenstunden zählen für die Klassen ihrer Mitglieder', () => {
+    const c = soft({ classStudents: { c1: ['s1', 's2'] }, groupMembers: { g1: ['s1'] } });
+    const cs = validateTimetable(
+      [
+        rule({ periodStart: 1 }),
+        rule({
+          classId: null,
+          groupId: 'g1',
+          periodStart: 3,
+          subjectId: 'rel',
+          teacherIds: ['t2'],
+        }),
+      ],
+      c,
+    );
+    expect(codes(cs)).toEqual(['GAP_STUDENT']);
+  });
+});
