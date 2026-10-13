@@ -127,7 +127,7 @@ describe('Navigation', () => {
   });
   it('Hauptaktion je Rolle wie im Design System', () => {
     const main = (r: Role) => navigationFor([r]).tabs[2]?.href;
-    expect(main('STUDENT')).toBe('/aufgaben');
+    expect(main('STUDENT')).toBe('/heute'); // Entscheidung F5: Heute in der Mitte, Startseite
     expect(main('GUARDIAN')).toBe('/abwesenheit/neu');
     expect(main('TEACHER')).toBe('/klassenbuch');
     expect(main('HOMEROOM')).toBe('/klassenbuch');

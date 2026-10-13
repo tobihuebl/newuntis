@@ -27,6 +27,22 @@ test.describe('Shell mobil (390 px)', () => {
     await tabs.locator('.pf-tab--primary').click();
     await expect(page).toHaveURL(/\/klassenbuch/);
   });
+
+  test('Schüler:in: startet auf Heute, Heute ist die Hauptaktion in der Mitte (F5)', async ({
+    page,
+  }) => {
+    await login(page, accounts().studentEmail, /\/heute$/);
+    const tabs = page.locator('nav.pf-tabbar');
+    const middle = tabs.locator('.pf-tab').nth(2);
+    await expect(middle).toHaveClass(/pf-tab--primary/);
+    await expect(middle).toHaveAccessibleName(/Heute/);
+    await expect(middle).toHaveAttribute('aria-current', 'page');
+
+    await tabs.getByRole('link', { name: 'Plan' }).click();
+    await expect(page).toHaveURL(/\/plan/);
+    await middle.click();
+    await expect(page).toHaveURL(/\/heute$/);
+  });
 });
 
 test.describe('Shell Desktop (1280 px)', () => {

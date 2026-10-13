@@ -145,6 +145,7 @@ Weitere Unterschiede:
 - **F2 Navigation nach Design System** (Tabelle 5) statt Spec Abschnitt 5. Schul-IT entfällt vorerst (wäre eine neue Rolle mit Rechte-Matrix); ihre Punkte bleiben bei der Administration. Neu: Admin-„Übersicht“ mit Checkliste „Schule einrichten“ aus vorhandenen Daten.
 - **F3 Fächerfarben:** `Subject.color` speichert künftig eine der acht Fächerfarben (`kobalt`, `mint`, … statt Hex). Migration ordnet bestehende Fächer nach Name/Kürzel der Standardzuordnung zu (Mathe Kobalt, Deutsch Koralle …). Kleine Änderung an Validierung und Daten, sonst kein Verhalten.
 - **F4 Anrede Sie** für Eltern, Direktion und Administration: Texte bekommen eine zweite Fassung (ICU `select` nach Rolle), auch E-Mails und Einführung.
+- **F5 Schüler-Tab-Leiste (13. Okt. 2026):** Heute ist für Schüler:innen die Hauptaktion in der Mitte und die Startseite; Reihenfolge Plan, Hausübungen, **Heute**, Chat, Mehr. Bewusste Abweichung von der Tabelle im Design System (dort Hausübungen in der Mitte) (`packages/shared/src/navigation.ts`).
 
 ### Pfade
 

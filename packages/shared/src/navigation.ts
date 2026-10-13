@@ -90,7 +90,8 @@ const TEACHER_ROUTES = [
 const NAV: Record<Role, RoleNav> = {
   STUDENT: {
     home: '/heute',
-    tabs: [heute, plan, primary(item('hausuebungen', '/aufgaben', 'list-checks')), chat, mehr],
+    // Abweichung vom Design System (Entscheidung F5 im Design-Audit): Heute ist Hauptaktion und Startseite
+    tabs: [plan, item('hausuebungen', '/aufgaben', 'list-checks'), primary(heute), chat, mehr],
     sections: [
       {
         items: [heute, stundenplan, item('hausuebungen', '/aufgaben', 'list-checks'), nachrichten],

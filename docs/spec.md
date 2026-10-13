@@ -184,7 +184,7 @@ Navigation nach dem Design System (`docs/design-system/README.md`, Abschnitt "We
 
 | Rolle | Tab-Leiste (mobil, Mitte = Hauptaktion) | Startseite | Seitenleiste (zusätzlich) |
 | --- | --- | --- | --- |
-| Schüler | Heute, Plan, **Hausübungen**, Chat, Mehr | `/heute` | Stundenplan, Hausübungen, Nachrichten |
+| Schüler | Plan, Hausübungen, **Heute**, Chat, Mehr (F5) | `/heute` | Stundenplan, Hausübungen, Nachrichten |
 | Eltern | Heute, Plan, **Abwesenheit**, Nachrichten, Mehr | `/heute` | Abwesenheit, Termine |
 | Lehrer | Heute, Plan, **Klassenbuch**, Chat, Mehr | `/heute` | Prüfungen; Schule: Klassen, Räume, Krankmeldung |
 | Klassenvorstand | wie Lehrer | `/heute` | Meine Klasse; Schule: Auswertung |
