@@ -33,6 +33,7 @@ export const ACTIONS = [
   'exam.write',
   'grade.write',
   'grade.read',
+  'promotion.decide',
   'message.send',
   'announcement.send',
   'substitution.manage',
@@ -90,6 +91,8 @@ export const PERMISSION_MATRIX: Matrix = {
     PRINCIPAL: 'ALL',
     ADMIN: 'ALL', // lesen (Entscheidung 14.10., abweichend von der ersten Matrix)
   },
+  // Schuljahreswechsel (SD-05): Entscheidung am Schuljahresende je Schüler:in
+  'promotion.decide': { HOMEROOM: 'OWN_CLASS', PRINCIPAL: 'ALL', ADMIN: 'ALL' },
   'message.send': {
     GUARDIAN: 'TO_TEACHERS',
     TEACHER: 'ALL',

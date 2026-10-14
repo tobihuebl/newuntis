@@ -161,6 +161,7 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
       '/klasse/[id]/vermerke',
+      '/klasse/[id]/aufstieg', // SD-05: Schuljahresende
       '/noten/klasse/[id]',
       '/klassen',
       '/auswertung',
@@ -205,6 +206,7 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/vermerke', // KB-07: Vermerke (nicht für die Administration)
       '/noten/kurs', // PN-02: Noten lesen, über die Klassenseite
       '/noten/klasse/[id]',
+      '/klasse/[id]/aufstieg', // SD-05: Schuljahresende
       // Stammdaten: Direktion darf lesen
       '/admin/personen/[id]',
       '/admin/klassen/[id]',
@@ -264,6 +266,8 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/fehlzeiten',
       '/noten/kurs', // PN-02: Noten lesen, über die Klassenseite
       '/noten/klasse/[id]',
+      '/klasse/[id]/aufstieg', // SD-05
+      '/admin/schuljahreswechsel',
       // Lagebild verlinkt Prüfungen und offene Klassenbucheinträge (lesen)
       '/pruefungen',
       '/klassenbuch/[occurrenceId]',

@@ -22,6 +22,7 @@ import { TimetableModule } from './modules/timetable/timetable.module';
 import { PlanningModule } from './modules/planning/planning.module';
 import { SearchModule } from './modules/search/search.module';
 import { GradesModule } from './modules/grades/grades.module';
+import { TransitionModule } from './modules/transition/transition.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
@@ -48,6 +49,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     PlanningModule,
     SearchModule,
     GradesModule,
+    TransitionModule,
     EventsModule,
     NotificationsModule,
     AbsencesModule,

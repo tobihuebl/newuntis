@@ -131,6 +131,7 @@ model Person {
   remarksWritten          ClassbookRemark[]        @relation("RemarkAuthor")
   absenceWarnings         AbsenceWarning[]
   grades                  Grade[]
+  promotions              PromotionDecision[]
   requirements            LessonRequirement[]
   attendances             Attendance[]
   absences                Absence[]
@@ -238,6 +239,7 @@ model SchoolYear {
   absenceWarnings     AbsenceWarning[]
   gradeWeightings     GradeWeighting[]
   assessments         Assessment[]
+  promotionDecisions  PromotionDecision[]
 
   @@unique([tenantId, name])
   @@index([tenantId, isCurrent])
@@ -264,11 +266,14 @@ model SchoolClass {
   schoolYearId      String
   name              String // "3A"
   homeroomTeacherId String? // Person
+  previousClassId   String? // Vorgängerklasse im vorigen Schuljahr (Schuljahreswechsel, SD-05)
   createdAt         DateTime @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime @updatedAt @db.Timestamptz(3)
 
   schoolYear          SchoolYear           @relation(fields: [schoolYearId], references: [id])
   homeroomTeacher     Person?              @relation("Homeroom", fields: [homeroomTeacherId], references: [id])
+  previousClass       SchoolClass?         @relation("ClassSuccession", fields: [previousClassId], references: [id], onDelete: SetNull)
+  successors          SchoolClass[]        @relation("ClassSuccession")
   enrollments         Enrollment[]
   roleAssignments     RoleAssignment[]
   lessons             Lesson[]
@@ -787,6 +792,36 @@ model Grade {
 
   @@unique([assessmentId, studentId])
   @@index([tenantId, studentId])
+}
+
+// ───────────────────────── Schuljahreswechsel (SD-05, ADR 0019) ─────────────────────────
+
+enum PromotionDecisionKind {
+  PROMOTE // steigt auf (letzte Stufe: schließt ab)
+  REPEAT // wiederholt die Stufe
+  EXAM // Wiederholungsprüfung: steigt vorläufig auf
+  LEAVE // verlässt die Schule
+}
+
+/// Entscheidung am Ende eines Schuljahres je Schüler:in; ohne Eintrag gilt "steigt auf".
+model PromotionDecision {
+  id           String                @id @default(cuid())
+  tenantId     String
+  schoolYearId String // Schuljahr, das endet
+  studentId    String
+  decision     PromotionDecisionKind
+  note         String?
+  /// Nur bei EXAM: Ergebnis im neuen Schuljahr (null = offen).
+  examPassed   Boolean?
+  decidedById  String
+  createdAt    DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime              @updatedAt @db.Timestamptz(3)
+
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+  student    Person     @relation(fields: [studentId], references: [id])
+
+  @@unique([schoolYearId, studentId])
+  @@index([tenantId, schoolYearId])
 }
 
 // ───────────────────────── Kommunikation ─────────────────────────

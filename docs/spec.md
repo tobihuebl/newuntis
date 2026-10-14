@@ -108,7 +108,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - SD-02 MVP: Klassen, Gruppen (z. B. Wahlfach), Fächer, Räume
 - SD-03 MVP: Personen per CSV importieren mit Vorschau und Fehlerbericht
 - SD-04 MVP: Eltern-Kind-Verknüpfung per Einladungscode
-- SD-05 V1: Schuljahreswechsel-Assistent
+- SD-05 V1: Schuljahreswechsel-Assistent — umgesetzt: Entscheidung je Schüler:in (aufsteigen, wiederholen, Wiederholungsprüfung, verlassen), Folgeklassen und Übernahme durch die Administration (ADR 0019)
 - SD-06 V2: Sokrates- und Untis-Import
 - SD-07 V1: Lehrkräfte mit Fächern (Lehrbefähigung) und Stundenausmaß (Beschäftigungsausmaß, davon Unterricht); Grundlage für die Auslastung in der Lehrfächerverteilung und für Supplier-Vorschläge (ADR 0013)
 

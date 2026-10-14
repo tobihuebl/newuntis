@@ -129,6 +129,11 @@ export class SchoolController {
         data: { isCurrent: false },
         where: { isCurrent: true, NOT: { id } },
       });
+    // Schuljahreswechsel (SD-05): Klassenvorstand-Rollen gelten nur für Klassen des aktuellen Schuljahres
+    if (body.isCurrent && !current.isCurrent)
+      await tx.roleAssignment.deleteMany({
+        where: { role: 'HOMEROOM', class: { schoolYearId: { not: id } } },
+      });
     const row = await tx.schoolYear.update({
       where: { id },
       data: {

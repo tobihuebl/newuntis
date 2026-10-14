@@ -3,5 +3,5 @@ import { GradesController } from './grades.controller';
 import { GradesService } from './grades.service';
 
 /** Noten (PN-02, ADR 0018). */
-@Module({ controllers: [GradesController], providers: [GradesService] })
+@Module({ controllers: [GradesController], providers: [GradesService], exports: [GradesService] })
 export class GradesModule {}

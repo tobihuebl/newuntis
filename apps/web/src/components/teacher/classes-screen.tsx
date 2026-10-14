@@ -14,6 +14,7 @@ import type { MyClass, MyClassDetail, TodayStatus } from '@sp/shared';
 import { Chip, Button, Card, EmptyState, Skeleton, cn } from '@sp/ui';
 import { weekdayDate } from '../../lib/dates';
 import { ClassTabs } from '../absences/class-absences';
+import { TransitionCard } from '../transition/transition-card';
 import { useApi } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
@@ -136,6 +137,7 @@ export function ClassDetailScreen({ id }: { id: string }) {
           </nav>
 
           <TodayCard c={c} label={label} />
+          {c.canReview ? <TransitionCard classId={c.id} /> : null}
 
           <section aria-labelledby="students-h" className="flex flex-col gap-3">
             <h2 id="students-h" className="text-h3">
