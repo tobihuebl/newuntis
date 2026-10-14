@@ -11,9 +11,13 @@ export default async function ProfilPage() {
     <ProfileScreen
       name={`${me.user.firstName} ${me.user.lastName}`}
       email={me.user.email}
+      username={me.user.username}
+      avatar={me.user.avatar}
       roleLabels={roles.map((r) => t(r))}
       twoFactor={me.user.twoFactorEnabled}
       isTeacher={roles.includes('TEACHER') || roles.includes('HOMEROOM')}
+      isStudent={roles.includes('STUDENT')}
+      isGuardian={roles.includes('GUARDIAN')}
     />
   );
 }

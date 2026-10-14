@@ -33,7 +33,17 @@ export function LoginForm() {
   return (
     <form method="post" onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <h1 className="text-h1">{t('loginTitle')}</h1>
-      <Input label={t('email')} name="email" type="email" autoComplete="username" required />
+      {/* E-Mail oder Benutzername (Schüler:innen mit Zugangscode, ADR 0020) */}
+      <Input
+        label={t('loginName')}
+        name="email"
+        type="text"
+        inputMode="email"
+        autoCapitalize="none"
+        spellCheck={false}
+        autoComplete="username"
+        required
+      />
       <Input
         label={t('password')}
         name="password"
@@ -51,6 +61,9 @@ export function LoginForm() {
         </Link>
         <Link href="/eltern-code" className={authLinkClass}>
           {t('guardianCode')}
+        </Link>
+        <Link href="/zugang" className={authLinkClass}>
+          {t('accessCode')}
         </Link>
       </div>
     </form>

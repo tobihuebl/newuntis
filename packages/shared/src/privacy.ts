@@ -66,7 +66,7 @@ export interface PersonExport {
     restricted: boolean;
   };
   account: {
-    email: string;
+    email: string | null;
     twoFactor: boolean;
     lastLoginAt: string | null;
     createdAt: string;

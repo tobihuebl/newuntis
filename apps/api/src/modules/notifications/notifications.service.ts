@@ -192,7 +192,7 @@ export class NotificationsService implements OnModuleInit {
         where: { personId },
         select: { role: true },
       });
-      return user
+      return user?.email
         ? {
             kind: 'email' as const,
             email: user.email,

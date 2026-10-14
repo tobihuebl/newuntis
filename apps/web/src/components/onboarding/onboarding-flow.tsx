@@ -1,202 +1,225 @@
 'use client';
-import { BellRing, BookOpenCheck, CheckCircle2, ShieldCheck, Smartphone } from 'lucide-react';
+import { Check, MonitorSmartphone, PartyPopper } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { PRIVACY_NOTICE_VERSION, type PreferencesResponse, type Role } from '@sp/shared';
-import { Banner, Button, Card, Checkbox, Skeleton, cn } from '@sp/ui';
-import { apiRequest } from '../../lib/api-client';
-import { useApi, useProblemText } from '../../lib/use-api';
-import { PushToggle } from '../profile/push-toggle';
-import { useSession } from '../providers';
+import { useEffect, useRef, useState } from 'react';
+import type { OnboardingFlowId, OnboardingStepState } from '@sp/shared';
+import { Banner, Button, Skeleton, cn } from '@sp/ui';
 import { useT } from '../../lib/i18n';
-import { FormError } from '../form-bits';
+import { LoadError } from '../load-error';
+import {
+  GuardianChildrenStep,
+  NotifyStep,
+  PrivacyStep,
+  PushStep,
+  StudentClassStep,
+  StudentProfileStep,
+  TeacherDataStep,
+  TeacherTimetableStep,
+  type StepProps,
+} from './steps';
+import {
+  isFlowScreen,
+  tourHref,
+  useOnboarding,
+  useStepUpdate,
+  useStepViewed,
+} from './use-onboarding';
 
-type Step = 'privacy' | 'notifications' | 'role';
+const PUSH_KIND: Record<OnboardingFlowId, string> = {
+  admin: 'office',
+  principal: 'office',
+  teacher: 'teacher',
+  guardian: 'guardian',
+  student: 'student',
+};
 
 /**
- * Einführung nach dem ersten Login (M6, Onboarding für Eltern und Lehrkräfte): Datenschutzhinweis bestätigen
- * (mit Version), Push einrichten (iOS in zwei Schritten, E-Mail als Rückfall), kurze Hinweise je Rolle.
+ * Ablauf /willkommen (Onboarding-Engine, ADR 0020): rendert die offenen Schritte aus Willkommen und Einrichtung
+ * aller Rollen der Person, am Ende den Aha-Moment der Startrolle mit Weg zur echten Seite (Coachmark).
+ * Am Computer mit Schrittliste links, auf dem Handy als Vollbild mit fixierter Aktionsleiste.
+ * Mit `replay` (Hilfe und Tour) erscheinen alle Schritte, auch erledigte.
  */
 export function OnboardingFlow({
   firstName,
+  lastName,
   school,
-  roles,
   home,
   noticeUrl,
+  replay,
 }: {
   firstName: string;
+  lastName: string;
   school: string;
-  roles: Role[];
   home: string;
   noticeUrl: string | null;
+  replay: boolean;
 }) {
   const t = useT('onboarding');
-  const problem = useProblemText();
-  const { csrfToken } = useSession();
   const router = useRouter();
-  const [step, setStep] = useState<Step>('privacy');
-  const [accepted, setAccepted] = useState(false);
+  const q = useOnboarding();
+  const update = useStepUpdate();
+  const [screens, setScreens] = useState<OnboardingStepState[] | null>(null);
+  const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const prefs = useApi<PreferencesResponse>(
-    ['preferences'],
-    step === 'notifications' ? '/me/preferences' : null,
-  );
-  const kind: 'guardian' | 'teacher' | 'student' | 'office' = roles.some(
-    (r) => r === 'TEACHER' || r === 'HOMEROOM',
-  )
-    ? 'teacher'
-    : roles.includes('GUARDIAN')
-      ? 'guardian'
-      : roles.includes('STUDENT')
-        ? 'student'
-        : 'office';
-  const steps: Step[] = ['privacy', 'notifications', 'role'];
-  const index = steps.indexOf(step);
+  const viewed = useRef(new Set<string>());
+  const heading = useRef<HTMLDivElement>(null);
+  const d = q.data;
 
-  async function finish() {
+  // Liste beim ersten Laden festhalten: erledigte Schritte sollen nicht unter den Füßen verschwinden
+  useEffect(() => {
+    if (d && screens === null)
+      setScreens(d.steps.filter((s) => isFlowScreen(s) && (replay || s.status === 'OPEN')));
+  }, [d, screens, replay]);
+
+  const current = screens && index < screens.length ? screens[index]! : null;
+  const { mutate } = useStepViewed();
+  useEffect(() => {
+    const id = current?.id ?? 'final';
+    if (!screens || viewed.current.has(id)) return;
+    viewed.current.add(id);
+    if (current) mutate({ stepId: current.id, status: 'VIEWED' });
+    heading.current?.querySelector<HTMLElement>('#ob-h')?.focus();
+  }, [current, screens, mutate]);
+
+  if (q.isError) return <LoadError error={q.error} onRetry={() => void q.refetch()} />;
+  if (!d || !screens) return <Skeleton className="h-96 w-full rounded-lg" />;
+
+  const primary = d.primary ?? 'student';
+  const aha = d.steps.find((s) => s.phase === 'aha' && s.flow === primary) ?? null;
+  const total = screens.length + 1;
+
+  async function mark(s: OnboardingStepState, status: 'DONE' | 'SKIPPED') {
     setBusy(true);
-    setError(null);
     try {
-      await apiRequest(
-        'POST',
-        '/me/onboarding',
-        { privacyNoticeVersion: PRIVACY_NOTICE_VERSION },
-        csrfToken,
-      );
-      router.replace(home);
-      router.refresh();
-    } catch (err) {
-      setError(problem(err));
+      if (s.id !== 'privacy') await update.mutateAsync({ stepId: s.id, status });
+      setIndex((i) => i + 1);
+    } finally {
       setBusy(false);
     }
   }
 
-  return (
-    <div className="flex flex-col gap-5">
-      {/* Fortschritt als Kachel-Leiste (Design System): erledigt und aktuell Kobalt, offen bg-sunken */}
-      <div className="flex flex-col gap-2">
-        <div aria-hidden="true" className="grid grid-cols-3 gap-2">
-          {steps.map((s, i) => (
-            <span
-              key={s}
-              className={cn('h-2 rounded-xs', i <= index ? 'bg-brand' : 'bg-bg-sunken')}
-            />
-          ))}
-        </div>
-        <p className="text-overline text-ink-muted" aria-live="polite">
-          {t('step', { n: index + 1, total: steps.length })}
-        </p>
-      </div>
+  function finish(href: string) {
+    router.replace(href);
+    router.refresh();
+  }
 
-      {step === 'privacy' ? (
-        <section aria-labelledby="ob-h" className="flex flex-col gap-4">
-          <ShieldCheck aria-hidden="true" className="size-8 text-brand-text" />
-          <h1 id="ob-h" className="text-h1">
-            {t('welcome', { name: firstName })}
-          </h1>
-          <p className="text-body-lg">{t('intro', { school })}</p>
-          <Card flat className="flex flex-col gap-2 text-body-sm">
-            <h2 className="text-h3">{t('privacyTitle')}</h2>
-            <p>{t('privacyWho', { school })}</p>
-            <ul className="list-disc pl-5">
-              <li>{t('privacyWhat')}</li>
-              <li>{t('privacyWhere')}</li>
-              <li>{t('privacyDevice')}</li>
-              <li>{t('privacyRights')}</li>
-            </ul>
-            {noticeUrl ? (
-              <a
-                href={noticeUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="pf-focusable self-start text-label text-brand-text underline underline-offset-4"
-              >
-                {t('privacyFull')}
-              </a>
-            ) : null}
-            <p className="text-caption text-ink-muted">
-              {t('version', { version: PRIVACY_NOTICE_VERSION })}
-            </p>
-          </Card>
-          <Checkbox
-            label={t('accept')}
-            checked={accepted}
-            onChange={(e) => setAccepted(e.target.checked)}
-          />
-          <Button
-            onClick={() => setStep('notifications')}
-            disabled={!accepted}
-            className="self-start"
-          >
+  const stepProps = (s: OnboardingStepState): StepProps => ({
+    next: () => mark(s, 'DONE'),
+    back: index > 0 ? () => setIndex((i) => i - 1) : null,
+    skip: s.required || replay ? null : () => mark(s, 'SKIPPED'),
+    busy,
+    context: d.context,
+    replay,
+  });
+
+  function screen(s: OnboardingStepState) {
+    const p = stepProps(s);
+    switch (s.id) {
+      case 'privacy':
+        return <PrivacyStep {...p} firstName={firstName} school={school} noticeUrl={noticeUrl} />;
+      case 'push':
+        return <PushStep {...p} kind={PUSH_KIND[primary]} />;
+      case 'notify':
+        return <NotifyStep {...p} />;
+      case 'teacherData':
+        return <TeacherDataStep {...p} />;
+      case 'teacherTimetable':
+        return <TeacherTimetableStep {...p} />;
+      case 'studentProfile':
+        return <StudentProfileStep {...p} firstName={firstName} lastName={lastName} />;
+      case 'studentClass':
+        return <StudentClassStep {...p} />;
+      case 'guardianChildren':
+        return <GuardianChildrenStep {...p} onLinked={() => void q.refetch()} />;
+      default:
+        // Unbekannter Schritt (neuere Version der Konfiguration): nicht blockieren
+        return (
+          <Button onClick={() => void p.next()} className="self-start">
             {t('next')}
           </Button>
-        </section>
-      ) : null}
+        );
+    }
+  }
 
-      {step === 'notifications' ? (
-        <section aria-labelledby="ob-h" className="flex flex-col gap-4">
-          <BellRing aria-hidden="true" className="size-8 text-brand-text" />
-          <h1 id="ob-h" className="text-h1">
-            {t('notifyTitle')}
-          </h1>
-          <p className="text-body-lg">{t(`notify_${kind}`)}</p>
-          {prefs.data ? (
-            <PushToggle vapidPublicKey={prefs.data.vapidPublicKey} />
-          ) : prefs.isError ? null : (
-            <Skeleton className="h-12 w-full" />
-          )}
-          <Banner tone="brand" icon={Smartphone}>
-            <div className="flex flex-col gap-1 text-body-sm">
-              <p className="text-body-strong">{t('iosTitle')}</p>
-              <ol className="list-decimal pl-5">
-                <li>{t('ios1')}</li>
-                <li>{t('ios2')}</li>
-              </ol>
-              <p className="text-ink-muted">{t('emailFallback')}</p>
-            </div>
-          </Banner>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setStep('role')}>{t('next')}</Button>
-            <Button variant="ghost" onClick={() => setStep('privacy')}>
-              {t('back')}
-            </Button>
-          </div>
-        </section>
-      ) : null}
+  const finalHref = primary === 'admin' ? '/admin' : aha ? (tourHref(aha) ?? home) : home;
 
-      {step === 'role' ? (
-        <section aria-labelledby="ob-h" className="flex flex-col gap-4">
-          {kind === 'teacher' ? (
-            <BookOpenCheck aria-hidden="true" className="size-8 text-brand-text" />
-          ) : (
-            <CheckCircle2 aria-hidden="true" className="size-8 text-brand-text" />
-          )}
-          <h1 id="ob-h" className="text-h1">
-            {t(`roleTitle_${kind}`)}
-          </h1>
-          <ul className="flex flex-col gap-2">
-            {[1, 2, 3].map((n) => (
-              <li key={n} className="flex gap-2">
-                <CheckCircle2
-                  aria-hidden="true"
-                  className="mt-0.5 size-5 shrink-0 text-brand-text"
-                />
-                <span className="text-body">{t(`tip_${kind}_${n}`)}</span>
-              </li>
+  return (
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-3 lg:gap-8">
+      {/* Am Computer: Schrittliste (Stepper); auf dem Handy: Kachel-Leiste */}
+      <nav aria-label={t('stepsLabel')} className="hidden lg:block">
+        <ol className="flex flex-col gap-1">
+          {[...screens.map((s) => s.id), 'final'].map((id, i) => (
+            <li
+              key={id}
+              aria-current={i === index ? 'step' : undefined}
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-body-sm',
+                i === index ? 'bg-brand-soft text-ink' : 'text-ink-muted',
+              )}
+            >
+              <span
+                className={cn(
+                  'flex size-6 shrink-0 items-center justify-center rounded-xs text-label',
+                  i < index ? 'bg-brand text-on-brand' : 'bg-bg-sunken',
+                )}
+                aria-hidden="true"
+              >
+                {i < index ? <Check className="size-4" /> : i + 1}
+              </span>
+              {t(`title_${id}`)}
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <div ref={heading} className="flex flex-col gap-5 lg:col-span-2">
+        <div className="flex flex-col gap-2 lg:hidden">
+          <div aria-hidden="true" className="flex gap-2">
+            {Array.from({ length: total }, (_, i) => (
+              <span
+                key={i}
+                className={cn('h-2 flex-1 rounded-xs', i <= index ? 'bg-brand' : 'bg-bg-sunken')}
+              />
             ))}
-          </ul>
-          {error ? <FormError message={error} /> : null}
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => void finish()} disabled={busy}>
-              {t('done')}
-            </Button>
-            <Button variant="ghost" onClick={() => setStep('notifications')}>
-              {t('back')}
-            </Button>
           </div>
-        </section>
-      ) : null}
+        </div>
+        <p className="text-overline text-ink-muted" aria-live="polite">
+          {t('step', { n: index + 1, total })}
+        </p>
+
+        {current ? (
+          <section key={current.id} aria-labelledby="ob-h" className="flex flex-col gap-4">
+            {screen(current)}
+          </section>
+        ) : (
+          <section aria-labelledby="ob-h" className="flex flex-col gap-4">
+            <PartyPopper aria-hidden="true" className="size-8 text-brand-text" />
+            <h1 id="ob-h" className="text-h1" tabIndex={-1}>
+              {t(`aha_${primary}_title`)}
+            </h1>
+            <p className="text-body-lg">{t(`aha_${primary}_text`)}</p>
+            {primary === 'admin' ? (
+              <Banner tone="brand" icon={MonitorSmartphone} className="lg:hidden">
+                {t('desktopHint')}
+              </Banner>
+            ) : null}
+            <p className="text-body-sm text-ink-muted">{t('checklistHint')}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => finish(finalHref)}>{t(`aha_${primary}_action`)}</Button>
+              {index > 0 ? (
+                <Button variant="ghost" onClick={() => setIndex((i) => i - 1)}>
+                  {t('back')}
+                </Button>
+              ) : null}
+              {finalHref !== home ? (
+                <Button variant="ghost" onClick={() => finish(home)} className="ml-auto">
+                  {t('later')}
+                </Button>
+              ) : null}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

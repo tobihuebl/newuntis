@@ -72,6 +72,12 @@ describe('Datenschutz: Einführung, Export, Anfragen, Aufbewahrung, Einstellunge
       (await student.post('/me/onboarding', { privacyNoticeVersion: PRIVACY_NOTICE_VERSION }))
         .status,
     ).toBe(204);
+    // Onboarding (ADR 0020): Schüler:innen bestätigen danach noch Avatar und Klasse
+    expect((await student.get('/me')).json.needsOnboarding).toBe(true);
+    for (const stepId of ['studentProfile', 'studentClass'])
+      expect((await student.post('/me/onboarding/steps', { stepId, status: 'DONE' })).status).toBe(
+        204,
+      );
     expect((await student.get('/me')).json.needsOnboarding).toBe(false);
     const c = await h.owner.consent.findFirstOrThrow({ where: { personId: ids.student } });
     expect(c).toMatchObject({ kind: 'privacy-notice', version: PRIVACY_NOTICE_VERSION });

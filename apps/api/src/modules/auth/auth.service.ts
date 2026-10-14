@@ -47,7 +47,10 @@ export class AuthService {
     const now = new Date();
     const user = await this.prisma.runAsTenant(tenant.id, (tx) =>
       tx.user.findUnique({
-        where: { tenantId_email: { tenantId: tenant.id, email } },
+        // Anmeldung mit E-Mail-Adresse oder Benutzername (Zugangscode, ADR 0020)
+        where: email.includes('@')
+          ? { tenantId_email: { tenantId: tenant.id, email } }
+          : { tenantId_username: { tenantId: tenant.id, username: email } },
         include: { person: { include: { roles: true } } },
       }),
     );
@@ -201,7 +204,14 @@ export class AuthService {
         },
       }),
     );
-    return { secret, otpauthUri: this.totp.uri(secret, principal.email, tenant.name) };
+    return {
+      secret,
+      otpauthUri: this.totp.uri(
+        secret,
+        principal.email ?? principal.username ?? principal.personId,
+        tenant.name,
+      ),
+    };
   }
 
   /** Schließt die Einrichtung ab, erzeugt Wiederherstellungscodes (Klartext nur jetzt) und aktiviert die Sitzung. */
@@ -412,6 +422,8 @@ export class AuthService {
         id: p.userId,
         personId: p.personId,
         email: p.email,
+        username: p.username,
+        avatar: p.avatar,
         firstName: p.firstName,
         lastName: p.lastName,
         roles: p.roles,

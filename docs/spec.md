@@ -76,6 +76,7 @@ Rollen sind additiv: Eine Person kann Lehrer und Klassenvorstand sein, oder Lehr
 | Supplierung planen und veröffentlichen | nein | nein | nein | nein | ja | ja |
 | Stundenplan bearbeiten | nein | nein | nein | nein | freigeben | ja |
 | Personen, Klassen, Fächer, Räume verwalten | nein | nein | nein | nein | lesen | ja |
+| Zugangsbriefe für Schüler:innen ausstellen | nein | nein | nein | eigene Klasse | nein | ja |
 | Auswertungen der Schule | nein | nein | nein | Klasse | ja | ja |
 | Audit-Log einsehen | nein | nein | nein | nein | ja | ja |
 | Rollen vergeben, Datenschutz-Anfragen | nein | nein | nein | nein | nein | ja |
@@ -94,7 +95,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 
 ### Konto und Plattform (PL)
 
-- PL-01 MVP: Login mit E-Mail und Passwort, Passwort-Reset, Einladung per Link oder Code
+- PL-01 MVP: Login mit E-Mail und Passwort, Passwort-Reset, Einladung per Link oder Code; Schüler:innen ohne E-Mail mit Benutzername und persönlichem Zugangscode (Zugangsbrief mit QR-Code vom Klassenvorstand, ADR 0020)
 - PL-02 MVP: Zwei-Faktor-Login (TOTP), Pflicht für Lehrer, Direktion und Administration
 - PL-03 MVP: Profil, Benachrichtigungseinstellungen, Dark Mode, Sprache
 - PL-04 MVP: Eltern mit mehreren Kindern: Umschalten mit einem Tap
@@ -194,7 +195,7 @@ Navigation nach dem Design System (`docs/design-system/README.md`, Abschnitt "We
 
 Die Rolle Schul-IT aus dem Design System gibt es im Datenmodell nicht; ihre Punkte (Import, Datenschutz, Protokoll) liegen bei der Administration. `/admin` ist die Übersicht mit der Checkliste "Schule einrichten" (Schuljahr und Ferien, Raster, Klassen/Fächer/Räume, Personen, Rechte und Einladungen, Stundenplan veröffentlicht).
 
-Für alle Rollen zusätzlich `/profil` und `/benachrichtigungen` (Glocke in der Kopfzeile), dazu `/nachrichten/neu`, `/nachrichten/[id]` (Gespräch) und `/nachrichten/rundschreiben/[id]` (Rundschreiben lesen und bestätigen). Nach dem ersten Login führt `/willkommen` durch Datenschutzhinweis, Push-Einrichtung und kurze Hinweise je Rolle (M6, ADR 0009).
+Für alle Rollen zusätzlich `/profil` und `/benachrichtigungen` (Glocke in der Kopfzeile), dazu `/nachrichten/neu`, `/nachrichten/[id]` (Gespräch) und `/nachrichten/rundschreiben/[id]` (Rundschreiben lesen und bestätigen). Nach dem ersten Login führt `/willkommen` durch das Onboarding der Rolle (ADR 0020): Datenschutzhinweis und Benachrichtigungen, dann die Einrichtung der Rolle (Lehrkraft: Fächer, Stunden und Stundenplan bestätigen; Schüler:in: Avatar und Klasse; Eltern: Kinder und Benachrichtigungen; Direktion: Benachrichtigungen), am Ende der Weg zur ersten echten Aktion. Danach zeigt die Startseite die Checkliste "Erste Schritte" mit Coachmarks (`?tour=`), am Computer zusätzlich in der Seitenleiste. "Hilfe und Tour" im Profil wiederholt die Einführung (`/willkommen?wiederholen`). Öffentlich: `/zugang` (Zugangscode einlösen). Klassenvorstand: `/klasse/[id]/zugang` (Zugangsbriefe).
 
 **Klassenseite (ADR 0017):** Es gibt eine Klassenseite `/klassen/[id]` für Lehrkräfte, Klassenvorstand, Direktion und Administration. Oben steht "Heute" (wer ist da, fehlt, gemeldet, verspätet, noch nicht erfasst), darunter die Schülerliste mit dem Stand von heute sowie Fächer und Lehrkräfte. Klassenvorstand, Direktion und Administration sehen die Reiter Übersicht, Entschuldigungen, Fehlzeiten und (KV, Direktion) Vermerke. "Meine Klasse" führt dorthin.
 
@@ -597,8 +598,8 @@ Noten (`Grade`, `GradeCategory`) kommen in V1 hinzu und folgen denselben Regeln.
 
 | Bereich | Endpunkte | Rollen |
 | --- | --- | --- |
-| Konto | `POST /auth/login`, `POST /auth/2fa/verify`, `POST /auth/logout`, `POST /auth/invite/accept`, `POST /auth/password/reset-request`, `POST /auth/password/reset` | alle |
-| Profil | `GET /me`, `GET/PATCH /me/preferences`, `GET /me/sessions`, `DELETE /me/sessions/:id`, `GET /me/homework`, `GET /me/export?format=json\|pdf`, `POST /me/onboarding` | alle |
+| Konto | `POST /auth/login`, `POST /auth/2fa/verify`, `POST /auth/logout`, `POST /auth/invite/accept`, `POST /auth/password/reset-request`, `POST /auth/password/reset`, `POST /auth/access-code/check`, `POST /auth/access-code/redeem` | alle |
+| Profil | `GET /me`, `GET/PATCH /me/preferences`, `GET /me/sessions`, `DELETE /me/sessions/:id`, `GET /me/homework`, `GET /me/export?format=json\|pdf`, `POST /me/onboarding`, `GET /me/onboarding`, `POST /me/onboarding/steps`, `PUT /me/avatar` | alle |
 | Heute | `GET /today` (rollenabhängige Zusammenfassung) | alle |
 | Pläne | `GET /me/timetable?from&to`, `GET /classes/:id/timetable`, `GET /teachers/:id/timetable`, `GET /rooms/:id/timetable`, `GET /calendar/:token.ics` | alle, je nach Recht |
 | Klassenbuch | `GET /occurrences/:id`, `PUT /occurrences/:id/classbook`, `PUT /occurrences/:id/attendance`, `POST /occurrences/:id/close`, `GET /classbook/open` | Lehrer, Klassenvorstand, Direktion |
@@ -864,7 +865,7 @@ zusammen, was gebaut wurde und was als Nächstes folgt.
 - [ ] Direktions-Lagebild und Basis-Auswertungen
 - [ ] Datenschutzfunktionen (Export, Anonymisierung, Aufbewahrungsjobs)
 - [ ] Barrierefreiheits-Durchlauf, Lasttest, Sicherheitsdurchlauf, Betriebshandbuch
-- [ ] Onboarding-Abläufe für Eltern und Lehrer
+- [x] Onboarding-Abläufe für alle Rollen (Engine mit Flows je Rolle, ADR 0020)
 
 **Fertig wenn:** Eine Pilotschule kann den Alltag ohne WebUntis-Klassenbuch und ohne WhatsApp-Gruppen abbilden.
 
@@ -915,11 +916,11 @@ die Spezifikation anpassen, dann bauen.
 - [ ] Produktname und Marke (Abschnitt 2), Domain, Markenrecherche
 - [ ] Pilotschule: Schulform, Größe, Bereitschaft, den Stundenplan direkt in der Plattform zu pflegen
 - [ ] Rechtliche Vorgaben: digitales Klassenbuch, Entschuldigungsfristen, Aufbewahrungsfristen, Datenschutz im Schulbereich, nötige Freigaben von Schulerhalter oder Bildungsdirektion
-- [ ] Identität der Eltern: Wie bekommen sie ihren Zugang (Brief mit Code, Einladung per E-Mail durch die Schule)?
-- [ ] Ab welchem Alter dürfen Schüler eigene Logins und eigene Rechte haben?
+- [x] Identität der Eltern: Brief mit Code (Eltern-Code, auch im Zugangsbrief des Klassenvorstands) oder Einladung per E-Mail (ADR 0020)
+- [ ] Ab welchem Alter dürfen Schüler eigene Logins und eigene Rechte haben? Derzeit: eigener Zugang per Zugangsbrief ohne eigenen Schritt für unter 14-Jährige (ADR 0020); die Einwilligung unter 14 Jahren ist juristisch zu prüfen
 - [x] Notensystem und Gewichtungen für V1: österreichisch 1 bis 5, Gewichtung je Notenart (ADR 0018); verbale Beurteilung folgt mit PN-03
 - [ ] Hosting und Betrieb: Anbieter, Selbstbetrieb oder verwaltet, Kosten, Support-Zeiten
-- [ ] Native Apps nötig oder reicht die PWA (Einschränkungen von Push auf iOS)?
+- [ ] Native Apps nötig oder reicht die PWA (Einschränkungen von Push auf iOS)? Das Onboarding ist für die PWA gebaut (Push-Erklärung vor dem System-Dialog, "Zum Home-Bildschirm" statt Widgets, ADR 0020)
 - [ ] Sokrates- und Untis-Schnittstellen für V2: Exportformate und Zugang erst klären, wenn eine Schule Testdaten liefert
 
 **Risiken:**

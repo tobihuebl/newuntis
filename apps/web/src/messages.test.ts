@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ACTIONS } from '@sp/shared';
 import messages from '../messages/de-AT.json';
 
 /** next-intl verbietet Punkte in Schlüsseln (Punkt = Verschachtelung); sonst bricht die ganze App. */
@@ -14,6 +15,11 @@ describe('Übersetzungen', () => {
     };
     walk(messages, '');
     expect(bad).toEqual([]);
+  });
+
+  it('jede Aktion der Rechte-Matrix hat eine Beschriftung (Seite Rechte)', () => {
+    const labels = messages.rolesAdmin as Record<string, string>;
+    expect(ACTIONS.filter((a) => !labels[`a_${a.replaceAll('.', '_')}`])).toEqual([]);
   });
 });
 

@@ -146,6 +146,7 @@ model Person {
   calendarTokens          CalendarToken[]
   invitations             Invitation[]
   guardianCodes           GuardianCode[]
+  accessCodes             AccessCode[]
   messages                Message[]
   threadsAbout            Thread[]                 @relation("ThreadAbout")
   announcements           Announcement[]
@@ -163,7 +164,9 @@ model User {
   id               String    @id @default(cuid())
   tenantId         String
   personId         String    @unique
-  email            String
+  email            String? // Anmeldung per E-Mail; Schüler:innen ohne Adresse melden sich mit username an
+  username         String? // Benutzername aus dem Zugangscode (z. B. lena.huber), kleingeschrieben
+  avatar           String? // Symbol und Farbe ("cat:brand"), kein Foto (Onboarding Schüler:innen)
   passwordHash     String?
   totpSecret       String? // verschlüsselt gespeichert
   totpEnabled      Boolean   @default(false)
@@ -175,12 +178,14 @@ model User {
   createdAt        DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt        DateTime  @updatedAt @db.Timestamptz(3)
 
-  person        Person               @relation(fields: [personId], references: [id])
-  sessions      Session[]
-  recoveryCodes RecoveryCode[]
-  resetTokens   PasswordResetToken[]
+  person             Person               @relation(fields: [personId], references: [id])
+  sessions           Session[]
+  recoveryCodes      RecoveryCode[]
+  resetTokens        PasswordResetToken[]
+  onboardingProgress OnboardingProgress[]
 
   @@unique([tenantId, email])
+  @@unique([tenantId, username])
   @@index([tenantId])
 }
 
@@ -1089,6 +1094,52 @@ model GuardianCode {
   student Person @relation(fields: [studentId], references: [id])
 
   @@index([tenantId, studentId])
+}
+
+/// Persönlicher Zugangscode (Onboarding, ADR 0020): Schüler:innen ohne E-Mail-Adresse bekommen vom
+/// Klassenvorstand einen Zugangsbrief mit Code und QR-Code. Einlösen setzt das Passwort; ein neuer Code ersetzt
+/// alle offenen (auch zum Zurücksetzen eines vergessenen Passworts). In der Datenbank nur der Hash.
+model AccessCode {
+  id          String    @id @default(cuid())
+  tenantId    String
+  personId    String
+  codeHash    String    @unique
+  expiresAt   DateTime  @db.Timestamptz(3)
+  usedAt      DateTime? @db.Timestamptz(3)
+  createdById String?
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+
+  person Person @relation(fields: [personId], references: [id])
+
+  @@index([tenantId, personId])
+}
+
+enum OnboardingStepStatus {
+  OPEN
+  DONE
+  SKIPPED
+}
+
+/// Fortschritt im Onboarding je Person und Schritt (Konfiguration der Flows in @sp/shared/onboarding.ts).
+/// viewedAt = erste Anzeige, doneAt = erledigt oder übersprungen; daraus entstehen die Auswertungen.
+model OnboardingProgress {
+  id          String               @id @default(cuid())
+  tenantId    String
+  userId      String
+  flow        String // admin, principal, teacher, guardian, student
+  flowVersion Int
+  stepId      String
+  status      OnboardingStepStatus @default(OPEN)
+  viewedAt    DateTime?            @db.Timestamptz(3)
+  doneAt      DateTime?            @db.Timestamptz(3)
+  createdAt   DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stepId])
+  @@index([tenantId, flow, stepId])
 }
 
 enum PrivacyRequestKind {

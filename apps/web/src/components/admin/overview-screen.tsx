@@ -1,7 +1,7 @@
 'use client';
-import { ArrowRight, Check, Circle, TriangleAlert } from 'lucide-react';
+import { ArrowRight, Check, Circle, MonitorSmartphone, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import type { Role } from '@sp/shared';
+import type { OnboardingFlowStats, Role } from '@sp/shared';
 import { Banner, Button, Card, CardSub, CardTitle, Chip, Skeleton, cn } from '@sp/ui';
 import { useApi } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
@@ -58,6 +58,8 @@ export function OverviewScreen() {
   };
   const steps = Object.keys(HREF) as Step[];
   const doneCount = steps.filter((s) => done[s]).length;
+  // Stepper: der erste offene Schritt ist "Als Nächstes" (Onboarding der Administration, ADR 0020)
+  const nextStep = steps.find((s) => !done[s]);
 
   return (
     <div className="mx-auto flex max-w-(--content-max) flex-col gap-8 px-4 py-6 lg:px-6">
@@ -66,6 +68,13 @@ export function OverviewScreen() {
         <h1 className="text-h1">{t('title')}</h1>
         <p className="text-body-sm text-ink-muted">{t('intro')}</p>
       </header>
+
+      {/* Onboarding: Einrichtung am Computer, am Handy nur Stand und Freigaben */}
+      {!loading && doneCount < steps.length ? (
+        <Banner tone="brand" icon={MonitorSmartphone} className="lg:hidden">
+          {t('mobileHint')}
+        </Banner>
+      ) : null}
 
       {failed ? (
         <Banner
@@ -118,6 +127,10 @@ export function OverviewScreen() {
                         <Chip tone="ok" icon={Check}>
                           {t('done')}
                         </Chip>
+                      ) : s === nextStep ? (
+                        <Chip tone="late" icon={ArrowRight}>
+                          {t('next')}
+                        </Chip>
                       ) : (
                         <Chip tone="absent" icon={Circle}>
                           {t('open')}
@@ -133,6 +146,76 @@ export function OverviewScreen() {
           ))}
         </ol>
       </section>
+
+      <OnboardingStats />
     </div>
+  );
+}
+
+/** Auswertung des Onboardings (ADR 0020): je Rolle begonnen, am Ziel, Median bis zum Aha-Moment, Absprünge je Schritt. */
+function OnboardingStats() {
+  const t = useT('adminOverview');
+  const to = useT('onboarding');
+  const q = useApi<{ data: OnboardingFlowStats[] }>(
+    ['admin', 'onboarding'],
+    '/admin/onboarding/stats',
+  );
+  const flows = (q.data?.data ?? []).filter((f) => f.started > 0);
+  if (flows.length === 0) return null;
+  return (
+    <section aria-labelledby="ob-stats" className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <h2 id="ob-stats" className="text-h2">
+          {t('statsTitle')}
+        </h2>
+        <p className="text-body-sm text-ink-muted">{t('statsIntro')}</p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {flows.map((f) => (
+          <Card key={f.flow} className="flex flex-col gap-3">
+            <CardTitle as="h3">{t(`flow_${f.flow}`)}</CardTitle>
+            <p className="flex flex-wrap gap-2">
+              <Chip tone="ok">{t('statsStarted', { count: f.started })}</Chip>
+              <Chip tone="ok">{t('statsAha', { count: f.reachedAha })}</Chip>
+            </p>
+            <p className="text-body-sm text-ink-muted">
+              {f.medianHoursToAha === null
+                ? t('statsNoMedian')
+                : t('statsMedian', { hours: f.medianHoursToAha.toLocaleString('de-AT') })}
+            </p>
+            <table className="w-full text-body-sm">
+              <thead>
+                <tr className="text-left text-caption text-ink-muted">
+                  <th scope="col" className="py-1">
+                    {t('statsStep')}
+                  </th>
+                  <th scope="col" className="py-1 text-right">
+                    {t('statsViewed')}
+                  </th>
+                  <th scope="col" className="py-1 text-right">
+                    {t('statsDone')}
+                  </th>
+                  <th scope="col" className="py-1 text-right">
+                    {t('statsSkipped')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {f.steps.map((s) => (
+                  <tr key={s.stepId} className="border-t border-line">
+                    <th scope="row" className="py-1 text-left">
+                      {to(`title_${s.stepId}`)}
+                    </th>
+                    <td className="py-1 text-right text-mono-sm">{s.viewed}</td>
+                    <td className="py-1 text-right text-mono-sm">{s.done}</td>
+                    <td className="py-1 text-right text-mono-sm">{s.skipped}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        ))}
+      </div>
+    </section>
   );
 }

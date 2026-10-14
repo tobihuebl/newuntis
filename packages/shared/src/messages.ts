@@ -165,6 +165,8 @@ export interface MyClassDetail {
   canSeeRemarks: boolean;
   /** Stammdaten der Klasse bearbeiten (Administration). */
   canEdit: boolean;
+  /** Zugangsbriefe ausstellen (KV der Klasse, Administration; Onboarding). */
+  canIssueAccess: boolean;
   /** Heute: begonnene Stunden der Klasse (0 = noch kein Unterricht oder schulfrei). */
   today: { date: string; lessonsStarted: number; lessonsTotal: number };
   students: {

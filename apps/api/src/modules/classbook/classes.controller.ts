@@ -164,6 +164,7 @@ export class MyClassesController {
       homeroomTeacher: c.homeroomTeacher ? fullName(c.homeroomTeacher) : null,
       isHomeroom,
       canReview: can(user, 'absence.review', { classId: id }),
+      canIssueAccess: can(user, 'access.issue', { classId: id }),
       canSeeRemarks: isHomeroom || can(user, 'classbook.write', { teacherIds: [] }),
       canEdit: can(user, 'masterdata.write'),
       today: {

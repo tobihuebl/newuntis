@@ -2,14 +2,20 @@
 import { Ellipsis, Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, Suspense, useContext, useEffect, useMemo, useState } from 'react';
 import { countSession } from '../../lib/install';
 import { InstallHint } from './install-hint';
+import { ChecklistCard, ChecklistProgress } from '../onboarding/checklist';
+import { Coachmark } from '../onboarding/coachmark';
+import { Avatar } from '../onboarding/avatar';
+import { ONBOARDING_KEY } from '../onboarding/use-onboarding';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   moreSections,
   type NavCount,
   type NavItem,
   type NavSection,
+  type OnboardingState,
   type PrincipalDashboard,
   type Role,
   type TodayResponse,
@@ -44,6 +50,11 @@ export interface AppShellProps {
   roleLabel: string;
   schoolName: string;
   csrfToken: string;
+  /** Startseite der Ansicht: dort steht die Checkliste des Onboardings. */
+  home: string;
+  avatar: string | null;
+  /** Stand des Onboardings vom Server (Startwert der Abfrage). */
+  onboarding: OnboardingState | null;
   children: React.ReactNode;
 }
 
@@ -80,8 +91,15 @@ export function AppShell({
   roleLabel,
   schoolName,
   csrfToken,
+  home,
+  avatar,
+  onboarding,
   children,
 }: AppShellProps) {
+  const qc = useQueryClient();
+  useState(() => {
+    if (onboarding && !qc.getQueryData(ONBOARDING_KEY)) qc.setQueryData(ONBOARDING_KEY, onboarding);
+  });
   const t = useT('nav');
   const to = useT('offline');
   const pathname = usePathname();
@@ -149,9 +167,9 @@ export function AppShell({
             {t('skip')}
           </a>
 
-          <div className="sticky top-0 hidden h-dvh p-3 pr-0 lg:block">
+          <div className="sticky top-0 hidden h-dvh flex-col gap-3 p-3 pr-0 lg:flex">
             <Sidebar
-              className="h-full w-full overflow-y-auto"
+              className="min-h-0 w-full flex-1 overflow-y-auto"
               ariaLabel={t('main')}
               linkAs={Link as LinkComponent}
               brand={<Logo onNight size="sm" />}
@@ -160,6 +178,7 @@ export function AppShell({
                 items: s.items.map(entry),
               }))}
             />
+            <ChecklistProgress home={home} />
           </div>
 
           <div className="flex min-w-0 flex-col pb-[calc(var(--tabbar-h)+env(safe-area-inset-bottom))] lg:pb-0">
@@ -215,9 +234,7 @@ export function AppShell({
                   aria-label={t('openMenu')}
                   className="hidden min-h-(--tap-min) items-center gap-3 rounded-md px-2 text-left hover:bg-brand-soft lg:flex"
                 >
-                  <span className="pf-att__avatar bg-brand-soft" aria-hidden="true">
-                    {userName.slice(0, 1)}
-                  </span>
+                  <Avatar value={avatar} name={userName} />
                   <span className="flex max-w-48 flex-col">
                     <span className="truncate text-label">{userName}</span>
                     <span className="truncate text-caption text-ink-muted">
@@ -229,10 +246,14 @@ export function AppShell({
             </header>
             <OfflineBanner />
             <main id="main" tabIndex={-1} className="min-w-0 flex-1 outline-none">
-              <div className="mx-auto w-full max-w-(--content-max) px-4 pt-4 empty:hidden lg:px-6">
+              <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-4 px-4 pt-4 empty:hidden lg:px-6">
                 <InstallHint variant="once" />
+                {pathname === home ? <ChecklistCard /> : null}
               </div>
               {children}
+              <Suspense fallback={null}>
+                <Coachmark />
+              </Suspense>
             </main>
           </div>
 

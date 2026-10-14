@@ -6,17 +6,24 @@ import { getMe } from '../../src/lib/api-server';
 import { isFormalView } from '../../src/lib/formal';
 import { navigationOf, getT } from '../../src/lib/nav-server';
 
-/** Einführung nach dem ersten Login; außerhalb des App-Rahmens, damit dessen Umleitung nicht kreist. */
-export default async function WillkommenPage() {
+/**
+ * Onboarding (ADR 0020): offene Pflichtschritte führen hierher; mit ?wiederholen (Hilfe und Tour) jederzeit alle
+ * Schritte. Außerhalb des App-Rahmens, damit dessen Umleitung nicht kreist.
+ */
+export default async function WillkommenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ wiederholen?: string }>;
+}) {
   const r = await getMe();
   if (!r.ok) redirect('/login');
   const { me } = r;
   if (me.stage === 'NEEDS_2FA_VERIFY') redirect('/2fa');
   if (me.stage === 'NEEDS_2FA_SETUP') redirect('/2fa/einrichten');
-  const roles = [...new Set(me.user.roles.map((x) => x.role))];
   const nav = await navigationOf(me);
   const home = nav.home;
-  if (!me.needsOnboarding) redirect(home);
+  const replay = (await searchParams).wiederholen !== undefined && !me.needsOnboarding;
+  if (!me.needsOnboarding && !replay) redirect(home);
   const t = await getT('app');
   return (
     <AppProviders
@@ -26,15 +33,16 @@ export default async function WillkommenPage() {
       clearAfterIdleDays={me.tenant.offlineClearAfterIdleDays}
       formal={isFormalView(nav.view)}
     >
-      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col justify-center gap-6 px-4 py-8">
+      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-6 px-4 pt-6 lg:max-w-4xl lg:justify-center lg:py-8">
         <Logo className="self-center" label={t('name')} />
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6 lg:p-8">
           <OnboardingFlow
             firstName={me.user.firstName}
+            lastName={me.user.lastName}
             school={me.tenant.name}
-            roles={roles}
             home={home}
             noticeUrl={me.tenant.privacyNoticeUrl}
+            replay={replay}
           />
         </Card>
       </main>

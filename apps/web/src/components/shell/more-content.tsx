@@ -1,5 +1,5 @@
 'use client';
-import { ChevronRight, LogOut, UserRound } from 'lucide-react';
+import { ChevronRight, LifeBuoy, LogOut, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -118,9 +118,17 @@ export function MoreContent({
             { value: 'dark', label: tp('themes.dark') },
           ]}
         />
-        <Button variant="secondary" iconLeft={LogOut} onClick={onLogout} className="self-start">
-          {t('logout')}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" iconLeft={LogOut} onClick={onLogout}>
+            {t('logout')}
+          </Button>
+          {/* Onboarding (ADR 0020): Einführung jederzeit wiederholen */}
+          <Button variant="ghost" iconLeft={LifeBuoy} asChild>
+            <Link href="/willkommen?wiederholen" onClick={onNavigate}>
+              {t('help')}
+            </Link>
+          </Button>
+        </div>
       </section>
     </div>
   );

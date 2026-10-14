@@ -4,7 +4,15 @@ import { Download, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import type { Channel, NotificationType, PreferencesResponse } from '@sp/shared';
+import {
+  CHECKLIST_HIDDEN,
+  avatarOf,
+  type AvatarColor,
+  type AvatarSymbol,
+  type Channel,
+  type NotificationType,
+  type PreferencesResponse,
+} from '@sp/shared';
 import { Button, Card, Input, SegmentedControl, Skeleton, Switch, useToast } from '@sp/ui';
 import { dateTimeOf } from '../../lib/dates';
 import { useApi, useApiMutation, useProblemText } from '../../lib/use-api';
@@ -13,6 +21,9 @@ import { LoadError } from '../load-error';
 import { clearOfflineData } from '../../offline/db';
 import { applyTheme, readTheme, type Theme } from '../../lib/theme';
 import { PushToggle } from './push-toggle';
+import { AvatarPicker } from '../onboarding/avatar';
+import { LinkChildForm } from '../onboarding/steps';
+import { ONBOARDING_KEY, useOnboarding, useStepUpdate } from '../onboarding/use-onboarding';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 
@@ -30,10 +41,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export interface ProfileProps {
   name: string;
-  email: string;
+  email: string | null;
+  username: string | null;
+  avatar: string | null;
   roleLabels: string[];
   twoFactor: boolean;
   isTeacher: boolean;
+  isStudent: boolean;
+  isGuardian: boolean;
 }
 
 export function ProfileScreen(p: ProfileProps) {
@@ -49,8 +64,18 @@ export function ProfileScreen(p: ProfileProps) {
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body-sm">
           <dt className="text-ink-muted">{t('name')}</dt>
           <dd>{p.name}</dd>
-          <dt className="text-ink-muted">{t('email')}</dt>
-          <dd className="break-all">{p.email}</dd>
+          {p.email ? (
+            <>
+              <dt className="text-ink-muted">{t('email')}</dt>
+              <dd className="break-all">{p.email}</dd>
+            </>
+          ) : null}
+          {p.username ? (
+            <>
+              <dt className="text-ink-muted">{t('username')}</dt>
+              <dd className="text-mono">{p.username}</dd>
+            </>
+          ) : null}
           <dt className="text-ink-muted">{t('roles')}</dt>
           <dd>{p.roleLabels.join(', ')}</dd>
         </dl>
@@ -63,6 +88,10 @@ export function ProfileScreen(p: ProfileProps) {
           </div>
         ) : null}
       </Section>
+
+      {p.isStudent ? <AvatarSection avatar={p.avatar} /> : null}
+
+      {p.isGuardian ? <ChildrenSection /> : null}
 
       <NotificationSettings />
 
@@ -87,6 +116,8 @@ export function ProfileScreen(p: ProfileProps) {
       </Section>
 
       <Devices twoFactor={p.twoFactor} />
+
+      <HelpSection />
 
       <MyData />
     </div>
@@ -120,7 +151,7 @@ function NotificationSettings() {
         <Skeleton className="h-40 w-full" />
       ) : (
         <>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1" data-tour="push">
             <h3 className="text-label">{t('push')}</h3>
             <PushToggle vapidPublicKey={q.data.vapidPublicKey} />
           </div>
@@ -328,6 +359,99 @@ function Devices({ twoFactor }: { twoFactor: boolean }) {
           {t('signOutAll')}
         </Button>
         <p className="text-body-sm text-ink-muted">{t('signOutAllHelp')}</p>
+      </div>
+    </Section>
+  );
+}
+
+/** Avatar der Schüler:innen: Symbol und Farbe, kein Foto. */
+function AvatarSection({ avatar }: { avatar: string | null }) {
+  const t = useT('profile');
+  const toast = useToast();
+  const router = useRouter();
+  const problem = useProblemText();
+  const [value, setValue] = useState<{ symbol: AvatarSymbol; color: AvatarColor }>(
+    avatarOf(avatar) ?? { symbol: 'star', color: 'kobalt' },
+  );
+  const save = useApiMutation<typeof value>('PUT', () => '/me/avatar');
+  return (
+    <Section title={t('avatar')}>
+      <AvatarPicker symbol={value.symbol} color={value.color} onChange={setValue} />
+      {save.error ? <FormError message={problem(save.error) ?? ''} /> : null}
+      <Button
+        className="self-start"
+        loading={save.isPending}
+        onClick={() =>
+          save.mutate(value, {
+            onSuccess: () => {
+              toast({ text: t('avatarSaved') });
+              router.refresh();
+            },
+          })
+        }
+      >
+        {t('save')}
+      </Button>
+    </Section>
+  );
+}
+
+/** Eltern: verknüpfte Kinder und weiteres Kind mit Code aus dem Elternbrief (PL-04). */
+function ChildrenSection() {
+  const t = useT('profile');
+  const q = useOnboarding();
+  const qc = useQueryClient();
+  const children = q.data?.context.guardian?.children ?? [];
+  return (
+    <section aria-labelledby="s-children" className="flex flex-col gap-3" data-tour="children">
+      <h2 id="s-children" className="text-h3">
+        {t('children')}
+      </h2>
+      <Card className="flex flex-col gap-4">
+        {q.data ? (
+          <ul className="flex flex-col gap-1 text-body">
+            {children.map((c) => (
+              <li key={c.id}>
+                {c.firstName} {c.lastName}
+                {c.className ? <span className="text-ink-muted"> · {c.className}</span> : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Skeleton className="h-12 w-full" />
+        )}
+        <LinkChildForm
+          onLinked={() => {
+            void qc.invalidateQueries({ queryKey: ONBOARDING_KEY });
+            void qc.invalidateQueries({ queryKey: ['children'] });
+          }}
+        />
+      </Card>
+    </section>
+  );
+}
+
+/** Hilfe und Tour: Einführung wiederholen, ausgeblendete Checkliste zurückholen. */
+function HelpSection() {
+  const t = useT('profile');
+  const q = useOnboarding();
+  const update = useStepUpdate();
+  return (
+    <Section title={t('help')}>
+      <p className="text-body-sm text-ink-muted">{t('helpText')}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" asChild>
+          <Link href="/willkommen?wiederholen">{t('helpReplay')}</Link>
+        </Button>
+        {q.data?.checklistHidden ? (
+          <Button
+            variant="ghost"
+            loading={update.isPending}
+            onClick={() => update.mutate({ stepId: CHECKLIST_HIDDEN, status: 'OPEN' })}
+          >
+            {t('helpChecklist')}
+          </Button>
+        ) : null}
       </div>
     </Section>
   );

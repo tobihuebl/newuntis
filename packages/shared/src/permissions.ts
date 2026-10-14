@@ -34,6 +34,7 @@ export const ACTIONS = [
   'grade.write',
   'grade.read',
   'promotion.decide',
+  'access.issue',
   'message.send',
   'announcement.send',
   'substitution.manage',
@@ -93,6 +94,8 @@ export const PERMISSION_MATRIX: Matrix = {
   },
   // Schuljahreswechsel (SD-05): Entscheidung am Schuljahresende je Schüler:in
   'promotion.decide': { HOMEROOM: 'OWN_CLASS', PRINCIPAL: 'ALL', ADMIN: 'ALL' },
+  // Onboarding (ADR 0020): Zugangsbriefe mit persönlichem Code für Schüler:innen der Klasse
+  'access.issue': { HOMEROOM: 'OWN_CLASS', ADMIN: 'ALL' },
   'message.send': {
     GUARDIAN: 'TO_TEACHERS',
     TEACHER: 'ALL',

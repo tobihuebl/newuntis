@@ -14,7 +14,9 @@ export interface Principal {
   csrfToken: string;
   userId: string;
   personId: string;
-  email: string;
+  email: string | null;
+  username: string | null;
+  avatar: string | null;
   firstName: string;
   lastName: string;
   roles: { role: Role; classId: string | null }[];

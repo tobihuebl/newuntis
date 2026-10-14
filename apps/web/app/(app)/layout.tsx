@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
-import { navViews, navigationFor } from '@sp/shared';
+import { navViews, navigationFor, type OnboardingState } from '@sp/shared';
 import { AppProviders } from '../../src/components/providers';
 import { AppShell } from '../../src/components/shell/app-shell';
-import { getMe } from '../../src/lib/api-server';
+import { apiGet, getMe } from '../../src/lib/api-server';
 import { isFormalView } from '../../src/lib/formal';
 import { navigationOf, getT } from '../../src/lib/nav-server';
 
@@ -16,6 +16,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const t = await getT('roles');
   const roles = [...new Set(me.user.roles.map((x) => x.role))];
   const nav = await navigationOf(me);
+  // Checkliste des Onboardings gleich mitliefern: kein Nachladen, kein Layout-Sprung auf der Startseite
+  const onboarding = await apiGet<OnboardingState>('/me/onboarding').catch(() => null);
   const views = navViews(roles).map((role) => ({
     role,
     label: t(role),
@@ -38,6 +40,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         roleLabel={nav.view ? t(nav.view) : ''}
         schoolName={me.tenant.name}
         csrfToken={me.csrfToken}
+        home={nav.home}
+        avatar={me.user.avatar}
+        onboarding={onboarding}
       >
         {children}
       </AppShell>

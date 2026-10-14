@@ -22,7 +22,7 @@ export function NowCard({
   children?: React.ReactNode;
 }) {
   return (
-    <Card tone="night" className="flex flex-col gap-3">
+    <Card tone="night" className="flex flex-col gap-3" data-tour="next">
       <p className="text-overline text-signal">{overline}</p>
       <div>
         <h2 className="text-h2 text-ink-on-night">{title}</h2>

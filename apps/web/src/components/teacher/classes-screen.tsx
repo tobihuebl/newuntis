@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Award,
   CalendarDays,
+  KeyRound,
   MessageSquare,
   NotebookPen,
   Pencil,
@@ -127,6 +128,11 @@ export function ClassDetailScreen({ id }: { id: string }) {
             {c.canReview ? (
               <Button variant="secondary" size="sm" asChild iconLeft={Award}>
                 <Link href={`/noten/klasse/${c.id}`}>{t('grades')}</Link>
+              </Button>
+            ) : null}
+            {c.canIssueAccess ? (
+              <Button variant="secondary" size="sm" asChild iconLeft={KeyRound}>
+                <Link href={`/klasse/${c.id}/zugang`}>{t('access')}</Link>
               </Button>
             ) : null}
             {c.canEdit ? (

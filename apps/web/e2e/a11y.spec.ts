@@ -23,6 +23,7 @@ for (const scheme of ['light', 'dark'] as const) {
     test('öffentliche Seiten', async ({ page }) => {
       await check(page, '/login');
       await check(page, '/passwort-vergessen');
+      await check(page, '/zugang');
       await check(page, '/komponenten');
     });
 
@@ -50,7 +51,14 @@ for (const scheme of ['light', 'dark'] as const) {
       // Einführung erneut fällig machen (z. B. neue Fassung des Datenschutzhinweises)
       const db = new pg.Client({ connectionString: databaseUrl });
       await db.connect();
-      await db.query('UPDATE "User" SET "onboardedAt" = NULL WHERE email = $1', [studentEmail]);
+      await db.query(
+        'DELETE FROM "Consent" WHERE "personId" = (SELECT "personId" FROM "User" WHERE email = $1)',
+        [studentEmail],
+      );
+      await db.query(
+        'DELETE FROM "OnboardingProgress" WHERE "userId" = (SELECT id FROM "User" WHERE email = $1)',
+        [studentEmail],
+      );
       await db.end();
       await page.goto('/heute');
       await expect(page).toHaveURL(/\/willkommen$/);

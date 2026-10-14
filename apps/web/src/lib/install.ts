@@ -57,7 +57,8 @@ export function countSession() {
   }
 }
 
-const isStandalone = () =>
+/** Als App vom Home-Bildschirm geöffnet (nur im Browser aufrufen). */
+export const isStandalone = () =>
   window.matchMedia('(display-mode: standalone)').matches ||
   (navigator as Navigator & { standalone?: boolean }).standalone === true;
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);

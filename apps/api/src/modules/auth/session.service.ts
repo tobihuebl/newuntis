@@ -90,6 +90,8 @@ export class SessionService {
         userId: s.userId,
         personId: s.user.personId,
         email: s.user.email,
+        username: s.user.username,
+        avatar: s.user.avatar,
         firstName: s.user.person.firstName,
         lastName: s.user.person.lastName,
         roles: s.user.person.roles.map((r) => ({ role: r.role as Role, classId: r.classId })),

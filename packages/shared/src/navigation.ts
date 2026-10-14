@@ -162,6 +162,7 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/fehlzeiten',
       '/klasse/[id]/vermerke',
       '/klasse/[id]/aufstieg', // SD-05: Schuljahresende
+      '/klasse/[id]/zugang', // Onboarding: Zugangsbriefe
       '/noten/klasse/[id]',
       '/klassen',
       '/auswertung',
@@ -267,6 +268,7 @@ const NAV: Record<Role, RoleNav> = {
       '/noten/kurs', // PN-02: Noten lesen, über die Klassenseite
       '/noten/klasse/[id]',
       '/klasse/[id]/aufstieg', // SD-05
+      '/klasse/[id]/zugang', // Onboarding: Zugangsbriefe
       '/admin/schuljahreswechsel',
       // Lagebild verlinkt Prüfungen und offene Klassenbucheinträge (lesen)
       '/pruefungen',

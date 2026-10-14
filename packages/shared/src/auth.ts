@@ -4,7 +4,17 @@ import { ROLES } from './constants';
 export const passwordSchema = z.string().min(12, 'Mindestens 12 Zeichen').max(128);
 export const emailSchema = z.string().trim().toLowerCase().max(254).pipe(z.email());
 
-export const loginSchema = z.object({ email: emailSchema, password: z.string().min(1).max(128) });
+/** Benutzername aus dem Zugangscode: Kleinbuchstaben, Ziffern, Punkt und Bindestrich. */
+export const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9][a-z0-9.-]{1,62}$/);
+/** Anmeldung mit E-Mail-Adresse oder Benutzername (Feldname bleibt "email"). */
+export const loginSchema = z.object({
+  email: z.union([emailSchema, usernameSchema]),
+  password: z.string().min(1).max(128),
+});
 export type LoginInput = z.infer<typeof loginSchema>;
 
 /** 6-stelliger TOTP-Code oder Wiederherstellungscode (Format XXXXX-XXXXX). */
@@ -43,7 +53,10 @@ export const meResponseSchema = z.object({
   user: z.object({
     id: z.string(),
     personId: z.string(),
-    email: z.string(),
+    email: z.string().nullable(),
+    /** Benutzername (Anmeldung mit Zugangscode, ohne E-Mail-Adresse). */
+    username: z.string().nullable().default(null),
+    avatar: z.string().nullable().default(null),
     firstName: z.string(),
     lastName: z.string(),
     roles: z.array(z.object({ role: z.enum(ROLES), classId: z.string().nullable() })),

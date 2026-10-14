@@ -68,10 +68,28 @@ export async function login(page: Page, email: string, landing: RegExp) {
   await expect(page).toHaveURL(landing);
 }
 
-/** Einführung durchklicken: Datenschutzhinweis bestätigen, Push überspringen, Hinweise lesen. */
+/**
+ * Einführung durchklicken (Onboarding-Engine, ADR 0020): Datenschutzhinweis bestätigen, die Schritte der Rolle
+ * bestätigen, am Ende "Später" (zur Startseite) bzw. bei der Administration "Zur Einrichtung".
+ */
 export async function completeOnboarding(page: Page) {
-  await page.getByLabel('Ich habe den Datenschutzhinweis gelesen.').check();
-  await page.getByRole('button', { name: 'Weiter' }).click();
-  await page.getByRole('button', { name: 'Weiter' }).click();
-  await page.getByRole('button', { name: 'Los geht’s' }).click();
+  const next = /^(Weiter|Stimmt so|Stimmt)$/;
+  for (let i = 0; i < 12 && new URL(page.url()).pathname === '/willkommen'; i++) {
+    const heading = page.locator('#ob-h');
+    await expect(heading).toBeVisible();
+    const text = await heading.textContent();
+    const consent = page.getByLabel('Ich habe den Datenschutzhinweis gelesen.');
+    if (await consent.isVisible()) await consent.check();
+    const later = page.getByRole('button', { name: 'Später' });
+    const setup = page.getByRole('button', { name: 'Zur Einrichtung' });
+    if (await later.isVisible()) await later.click();
+    else if (await setup.isVisible()) await setup.click();
+    else await page.getByRole('button', { name: next }).first().click();
+    // auf den nächsten Schritt oder die Zielseite warten
+    await expect
+      .poll(async () =>
+        new URL(page.url()).pathname !== '/willkommen' ? 'weg' : await heading.textContent(),
+      )
+      .not.toBe(text);
+  }
 }

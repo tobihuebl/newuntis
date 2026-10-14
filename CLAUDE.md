@@ -109,6 +109,13 @@ die Spezifikation anpassen, dann bauen.
 - Schuljahreswechsel (SD-05, ADR 0019): TransitionService (apps/api/src/modules/transition), Stufe aus dem Klassennamen (levelOf), SchoolClass.previousClassId; Umstellen des Schuljahres entfernt alte KV-Rollen.
 - Globale Suche (PL-06): GET /search (apps/api/src/modules/search), Treffer nur nach bestehenden Rechten; Palette in src/components/shell/command-palette.tsx.
 
+## Onboarding (ADR 0020)
+
+- Flows je Rolle als Konfiguration in packages/shared/src/onboarding.ts (Phasen welcome, setup, aha, checklist); Fortschritt je Schritt in OnboardingProgress. Neuer Schritt = Eintrag in ONBOARDING (Version erhöhen), Texte title_/tour_ in onboarding (de-AT), Screen in src/components/onboarding/steps.tsx oder Erkennung in DETECTORS (apps/api/src/modules/onboarding/onboarding.service.ts).
+- Guard: /me.needsOnboarding = offener Pflichtschritt (OnboardingService.needsFlow, liegt im AuthModule). Pflichtschritte nie datengetrieben.
+- Coachmark: Ziel-Seite mit ?tour=<Schritt>, Anker data-tour="…"; Checkliste auf der Startseite (AppShell, pathname === home).
+- Zugangscodes für Schüler:innen: AccessCode (nur Hash), KV über /classes/:id/access-codes (access.issue), Einlösen öffentlich unter /zugang (Code im Fragment). User.email ist optional, Anmeldung mit E-Mail oder User.username.
+
 ## Hinweise zur Umgebung
 
 - pnpm liegt ggf. in ~/.local/bin (corepack); PATH entsprechend setzen.

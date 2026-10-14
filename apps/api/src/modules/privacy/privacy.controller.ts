@@ -32,6 +32,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { anonymizePerson, assertCanAnonymize } from './anonymize';
 import { renderExportPdf } from './export-pdf';
 import { PrivacyService } from './privacy.service';
+import { OnboardingService } from '../onboarding/onboarding.service';
 
 async function sendExport(
   privacy: PrivacyService,
@@ -62,6 +63,7 @@ export class MePrivacyController {
     private readonly prisma: PrismaService,
     private readonly privacy: PrivacyService,
     private readonly audit: AuditService,
+    private readonly flows: OnboardingService,
   ) {}
 
   @Authenticated()
@@ -110,7 +112,9 @@ export class MePrivacyController {
       },
       update: {},
     });
-    await tx.user.update({ where: { id: me.userId }, data: { onboardedAt: new Date() } });
+    await this.flows.privacyAccepted(tx, tenantId, me);
+    if (!(await this.flows.needsFlow(tx, me)))
+      await tx.user.update({ where: { id: me.userId }, data: { onboardedAt: new Date() } });
     await this.audit.record({
       tenantId,
       actorId: me.personId,
