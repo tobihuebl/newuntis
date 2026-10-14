@@ -84,6 +84,7 @@ describe('Datenschutz: Einführung, Export, Anfragen, Aufbewahrung, Einstellunge
     expect(json.json.person.id).toBe(ids.student);
     expect(json.json.enrollments[0].className).toBe('1A');
     expect(json.json.consents).toHaveLength(1);
+    expect(json.json.grades).toEqual([]);
     expect(json.json.remarks.map((r: { text: string }) => r.text).sort()).toEqual([
       'Alt',
       'Hat geholfen',

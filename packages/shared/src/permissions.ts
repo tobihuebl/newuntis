@@ -88,6 +88,7 @@ export const PERMISSION_MATRIX: Matrix = {
     TEACHER: 'OWN_SUBJECTS',
     HOMEROOM: 'OWN_CLASS',
     PRINCIPAL: 'ALL',
+    ADMIN: 'ALL', // lesen (Entscheidung 14.10., abweichend von der ersten Matrix)
   },
   'message.send': {
     GUARDIAN: 'TO_TEACHERS',

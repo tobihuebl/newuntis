@@ -32,7 +32,7 @@ export class PolicyService {
                 teachers: { some: { teacherId: principal.personId } },
                 timetable: { status: 'PUBLISHED' },
               },
-              select: { classId: true, subjectId: true },
+              select: { classId: true, groupId: true, subjectId: true },
             })
           : [];
       return {
@@ -43,7 +43,11 @@ export class PolicyService {
         homeroomClassIds: principal.roles.flatMap((r) =>
           r.role === 'HOMEROOM' && r.classId ? [r.classId] : [],
         ),
-        teachingPairs: lessons.flatMap((l) => (l.classId ? [`${l.classId}:${l.subjectId}`] : [])),
+        // "Klasse:Fach" bzw. "Gruppe:Fach" (Ids sind eindeutig, Gruppen z. B. Religion für Noten, PN-02)
+        teachingPairs: lessons.flatMap((l) => {
+          const course = l.classId ?? l.groupId;
+          return course ? [`${course}:${l.subjectId}`] : [];
+        }),
       };
     });
   }

@@ -21,6 +21,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { TimetableModule } from './modules/timetable/timetable.module';
 import { PlanningModule } from './modules/planning/planning.module';
 import { SearchModule } from './modules/search/search.module';
+import { GradesModule } from './modules/grades/grades.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
@@ -46,6 +47,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     TimetableModule,
     PlanningModule,
     SearchModule,
+    GradesModule,
     EventsModule,
     NotificationsModule,
     AbsencesModule,

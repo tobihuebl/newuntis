@@ -130,6 +130,7 @@ model Person {
   remarksAbout            ClassbookRemark[]        @relation("RemarkStudent")
   remarksWritten          ClassbookRemark[]        @relation("RemarkAuthor")
   absenceWarnings         AbsenceWarning[]
+  grades                  Grade[]
   requirements            LessonRequirement[]
   attendances             Attendance[]
   absences                Absence[]
@@ -235,6 +236,8 @@ model SchoolYear {
   planningConstraints PlanningConstraint[]
   planningRuns        PlanningRun[]
   absenceWarnings     AbsenceWarning[]
+  gradeWeightings     GradeWeighting[]
+  assessments         Assessment[]
 
   @@unique([tenantId, name])
   @@index([tenantId, isCurrent])
@@ -274,6 +277,9 @@ model SchoolClass {
   exams               Exam[]
   planningConstraints PlanningConstraint[]
 
+  assessments     Assessment[]
+  gradeWeightings GradeWeighting[]
+
   @@unique([tenantId, schoolYearId, name])
   @@index([tenantId, schoolYearId])
 }
@@ -310,6 +316,9 @@ model Group {
   occurrences  Occurrence[]
   exams        Exam[]
 
+  assessments     Assessment[]
+  gradeWeightings GradeWeighting[]
+
   @@index([tenantId, schoolYearId])
 }
 
@@ -343,6 +352,8 @@ model Subject {
   exams               Exam[]
   planningConstraints PlanningConstraint[]
   teachers            TeacherSubject[]
+  assessments         Assessment[]
+  gradeWeightings     GradeWeighting[]
 
   @@unique([tenantId, code])
 }
@@ -691,12 +702,91 @@ model Exam {
   createdAt   DateTime @default(now()) @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @db.Timestamptz(3)
 
-  class   SchoolClass? @relation(fields: [classId], references: [id])
-  group   Group?       @relation(fields: [groupId], references: [id])
-  subject Subject      @relation(fields: [subjectId], references: [id])
+  class      SchoolClass? @relation(fields: [classId], references: [id])
+  group      Group?       @relation(fields: [groupId], references: [id])
+  subject    Subject      @relation(fields: [subjectId], references: [id])
+  assessment Assessment?
 
   @@index([tenantId, date])
   @@index([tenantId, classId, date])
+}
+
+// ───────────────────────── Noten (PN-02, ADR 0018) ─────────────────────────
+
+enum AssessmentKind {
+  SCHULARBEIT
+  TEST
+  MUENDLICH
+  MITARBEIT
+}
+
+/// Gewichtung in Prozent je Notenart für ein Fach in einer Klasse oder Gruppe (courseKey = "<klasse|gruppe>:<fach>").
+model GradeWeighting {
+  id           String   @id @default(cuid())
+  tenantId     String
+  schoolYearId String
+  courseKey    String
+  subjectId    String
+  classId      String?
+  groupId      String?
+  weights      Json // { SCHULARBEIT: 50, TEST: 25, MUENDLICH: 10, MITARBEIT: 15 }
+  updatedById  String
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  schoolYear SchoolYear   @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+  subject    Subject      @relation(fields: [subjectId], references: [id])
+  class      SchoolClass? @relation(fields: [classId], references: [id])
+  group      Group?       @relation(fields: [groupId], references: [id])
+
+  @@unique([schoolYearId, courseKey])
+  @@index([tenantId, schoolYearId])
+}
+
+/// Eine Leistungsfeststellung (Schularbeit, Test, mündlich, Mitarbeit) mit Noten; sichtbar ab releasedAt.
+model Assessment {
+  id           String         @id @default(cuid())
+  tenantId     String
+  schoolYearId String
+  courseKey    String
+  subjectId    String
+  classId      String?
+  groupId      String?
+  kind         AssessmentKind
+  title        String
+  date         DateTime       @db.Date
+  examId       String?        @unique
+  releasedAt   DateTime?      @db.Timestamptz(3)
+  createdById  String
+  createdAt    DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime       @updatedAt @db.Timestamptz(3)
+
+  schoolYear SchoolYear   @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+  subject    Subject      @relation(fields: [subjectId], references: [id])
+  class      SchoolClass? @relation(fields: [classId], references: [id])
+  group      Group?       @relation(fields: [groupId], references: [id])
+  exam       Exam?        @relation(fields: [examId], references: [id], onDelete: SetNull)
+  grades     Grade[]
+
+  @@index([tenantId, schoolYearId, courseKey])
+}
+
+model Grade {
+  id           String   @id @default(cuid())
+  tenantId     String
+  assessmentId String
+  studentId    String
+  value        Int // 1 Sehr gut bis 5 Nicht genügend
+  comment      String?
+  updatedById  String
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student    Person     @relation(fields: [studentId], references: [id])
+
+  @@unique([assessmentId, studentId])
+  @@index([tenantId, studentId])
 }
 
 // ───────────────────────── Kommunikation ─────────────────────────

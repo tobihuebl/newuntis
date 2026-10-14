@@ -70,7 +70,7 @@ Rollen sind additiv: Eine Person kann Lehrer und Klassenvorstand sein, oder Lehr
 | Prüfungen einsehen | eigene | Kinder | eigene Klassen | eigene Klasse | ja | ja |
 | Prüfung eintragen | nein | nein | eigene Fächer | eigene Fächer | ja | nein |
 | Noten eintragen | nein | nein | eigene Fächer | eigene Fächer | nein | nein |
-| Noten einsehen | eigene | Kinder | eigene Fächer | eigene Klasse | alle (lesen) | nein |
+| Noten einsehen | eigene | Kinder | eigene Fächer | eigene Klasse | alle (lesen) | alle (lesen) |
 | Nachrichten an Klasse oder Eltern senden | nein | an Lehrer | ja | ja | ja | ja |
 | Rundschreiben an alle oder Gruppen | nein | nein | nein | nein | ja | ja |
 | Supplierung planen und veröffentlichen | nein | nein | nein | nein | ja | ja |
@@ -154,7 +154,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 ### Prüfungen und Noten (PN)
 
 - PN-01 MVP: Prüfungskalender mit Kollisionswarnung (Grenzwerte pro Schule)
-- PN-02 V1: Notenerfassung 1 bis 5 mit Gewichtung, Notenspiegel
+- PN-02 V1: Notenerfassung 1 bis 5 mit Gewichtung, Notenspiegel — umgesetzt: Gewichtung in Prozent je Notenart, Freigabe durch die Lehrkraft (ADR 0018)
 - PN-03 V2: Zeugnisse und verbale Beurteilung
 
 ### Kommunikation (KO)
@@ -917,7 +917,7 @@ die Spezifikation anpassen, dann bauen.
 - [ ] Rechtliche Vorgaben: digitales Klassenbuch, Entschuldigungsfristen, Aufbewahrungsfristen, Datenschutz im Schulbereich, nötige Freigaben von Schulerhalter oder Bildungsdirektion
 - [ ] Identität der Eltern: Wie bekommen sie ihren Zugang (Brief mit Code, Einladung per E-Mail durch die Schule)?
 - [ ] Ab welchem Alter dürfen Schüler eigene Logins und eigene Rechte haben?
-- [ ] Notensystem und Gewichtungen für V1 (inklusive verbaler Beurteilung in der Volksschule)
+- [x] Notensystem und Gewichtungen für V1: österreichisch 1 bis 5, Gewichtung je Notenart (ADR 0018); verbale Beurteilung folgt mit PN-03
 - [ ] Hosting und Betrieb: Anbieter, Selbstbetrieb oder verwaltet, Kosten, Support-Zeiten
 - [ ] Native Apps nötig oder reicht die PWA (Einschränkungen von Push auf iOS)?
 - [ ] Sokrates- und Untis-Schnittstellen für V2: Exportformate und Zugang erst klären, wenn eine Schule Testdaten liefert

@@ -76,6 +76,15 @@ export interface PersonExport {
   guardianOf: { name: string; validFrom: string; validTo: string | null }[];
   guardians: { name: string; validFrom: string; validTo: string | null }[];
   attendance: { date: string; subject: string; status: string; lateMinutes: number | null }[];
+  /** Freigegebene Noten (PN-02). */
+  grades: {
+    date: string;
+    subject: string;
+    kind: string;
+    title: string;
+    value: number;
+    comment: string | null;
+  }[];
   /** Vermerke im Klassenbuch über die Person (KB-07). */
   remarks: { date: string; subject: string; text: string; createdAt: string }[];
   absences: {
