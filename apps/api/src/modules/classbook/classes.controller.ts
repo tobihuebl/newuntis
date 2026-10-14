@@ -1,5 +1,14 @@
 import { Controller, ForbiddenException, Get, NotFoundException, Param } from '@nestjs/common';
-import { can, hasScope, type ClassRemarkItem, type MyClass, type MyClassDetail } from '@sp/shared';
+import {
+  can,
+  hasScope,
+  todayStatus,
+  type AbsenceStatusName,
+  type ClassRemarkItem,
+  type MyClass,
+  type MyClassDetail,
+} from '@sp/shared';
+import { DateTime } from 'luxon';
 import { Authenticated } from '../../common/decorators';
 import { Actor, TenantId } from '../../common/params';
 import type { Principal } from '../../common/request';
@@ -7,7 +16,7 @@ import { AuditService } from '../audit/audit.service';
 import { currentEnrollments, fullName, guardianLinks } from '../messages/recipients';
 import { PolicyService } from '../policy/policy.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { iso, todayIn } from '../timetable/data';
+import { asDate, iso, todayIn } from '../timetable/data';
 
 /**
  * "Klassen" für Lehrkräfte (Spec Abschnitt 5, /klassen): unterrichtete Klassen mit Schülerliste.
@@ -120,17 +129,71 @@ export class MyClassesController {
       entityId: id,
       meta: { count: students.length },
     });
+
+    // Heute: Anwesenheit der begonnenen Stunden und Fehlzeiten des Tages
+    const now = new Date();
+    const dayStart = DateTime.fromISO(day, { zone: tz }).startOf('day').toUTC().toJSDate();
+    const dayEnd = DateTime.fromISO(day, { zone: tz }).endOf('day').toUTC().toJSDate();
+    const ids = students.map((s) => s.id);
+    const [todays, attendance, absences] = await Promise.all([
+      tx.occurrence.findMany({
+        where: { classId: id, date: asDate(day), status: { not: 'CANCELLED' } },
+        select: { startsAt: true },
+      }),
+      tx.attendance.findMany({
+        where: {
+          studentId: { in: ids },
+          occurrence: { date: asDate(day), status: { not: 'CANCELLED' } },
+        },
+        select: {
+          studentId: true,
+          status: true,
+          lateMinutes: true,
+          occurrence: { select: { startsAt: true } },
+        },
+      }),
+      tx.absence.findMany({
+        where: { studentId: { in: ids }, fromAt: { lt: dayEnd }, toAt: { gt: dayStart } },
+        select: { studentId: true, fromAt: true, toAt: true, status: true },
+      }),
+    ]);
+    const isHomeroom = (user.homeroomClassIds ?? []).includes(id);
     return {
       id: c.id,
       name: c.name,
       homeroomTeacher: c.homeroomTeacher ? fullName(c.homeroomTeacher) : null,
-      isHomeroom: (user.homeroomClassIds ?? []).includes(id),
-      students: students.map((s) => ({
-        id: s.id,
-        name: `${s.lastName} ${s.firstName}`.trim(),
-        hasAccount: Boolean(s.user?.passwordHash),
-        guardians: links.filter((l) => l.studentId === s.id).length,
-      })),
+      isHomeroom,
+      canReview: can(user, 'absence.review', { classId: id }),
+      canSeeRemarks: isHomeroom || can(user, 'classbook.write', { teacherIds: [] }),
+      canEdit: can(user, 'masterdata.write'),
+      today: {
+        date: day,
+        lessonsStarted: todays.filter((o) => o.startsAt <= now).length,
+        lessonsTotal: todays.length,
+      },
+      students: students.map((s) => {
+        const t = todayStatus(
+          attendance
+            .filter((a) => a.studentId === s.id)
+            .map((a) => ({
+              startsAt: a.occurrence.startsAt,
+              status: a.status,
+              lateMinutes: a.lateMinutes,
+            })),
+          absences
+            .filter((a) => a.studentId === s.id)
+            .map((a) => ({ ...a, status: a.status as AbsenceStatusName })),
+          now,
+        );
+        return {
+          id: s.id,
+          name: `${s.lastName} ${s.firstName}`.trim(),
+          hasAccount: Boolean(s.user?.passwordHash),
+          guardians: links.filter((l) => l.studentId === s.id).length,
+          today: t.status,
+          lateMinutes: t.lateMinutes,
+        };
+      }),
       subjects: [...subjects.entries()]
         .map(([name, teachers]) => ({ name, teachers: [...teachers].sort() }))
         .sort((a, b) => a.name.localeCompare(b.name, 'de')),

@@ -74,3 +74,24 @@ test('Klassenvorstand und Direktion sehen die Frühwarnung', async ({ browser })
   await expect(page).toHaveURL(new RegExp(`/klasse/${r.classId}/fehlzeiten$`));
   await page.close();
 });
+
+/** Klassenseite (Durchgang Bedienbarkeit): Wer ist heute da, wer nicht – für Lehrkraft und Direktion. */
+test('Klassenseite zeigt, wer heute da ist', async ({ page }) => {
+  await login(page, accounts().principalEmail, /\/lagebild$/);
+  await page
+    .getByRole('navigation', { name: 'Hauptnavigation' })
+    .getByRole('link', { name: 'Klassen' })
+    .click();
+  await expect(page).toHaveURL(/\/klassen$/);
+  await page.locator('main a[href^="/klassen/"]').first().click();
+  const today = page.getByRole('region', { name: 'Heute' });
+  await expect(today).toBeVisible();
+  await expect(today.getByText(/da|kein Unterricht/).first()).toBeVisible();
+  // Reiter der Klasse für die Direktion, inklusive Vermerke
+  const tabs = page.getByRole('navigation', { name: 'Ansicht' });
+  await expect(tabs.getByRole('link', { name: 'Übersicht' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(tabs.getByRole('link', { name: 'Vermerke' })).toBeVisible();
+});

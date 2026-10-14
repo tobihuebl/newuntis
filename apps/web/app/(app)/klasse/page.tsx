@@ -6,14 +6,14 @@ import { requireRoute } from '../../../src/lib/route-guard';
 import { getT } from '../../../src/lib/nav-server';
 import { PageTitle } from '../../../src/components/page-title';
 
-/** "Meine Klasse": Klassenvorstand direkt zur eigenen Klasse, Direktion und Administration wählen. */
+/** "Meine Klasse": Klassenvorstand direkt zur Klassenseite (heute, Reiter), Direktion und Administration wählen. */
 export default async function KlassePage() {
   const me = await requireRoute('/klasse');
   const t = await getT('klasse');
   const roles = me.user.roles.map((r) => r.role);
   const own = me.user.roles.flatMap((r) => (r.role === 'HOMEROOM' && r.classId ? [r.classId] : []));
   const manager = roles.includes('PRINCIPAL') || roles.includes('ADMIN');
-  if (!manager && own.length === 1) redirect(`/klasse/${own[0]}/entschuldigungen`);
+  if (!manager && own.length === 1) redirect(`/klassen/${own[0]}`);
   const directory = await apiGet<{ classes: { id: string; name: string }[] }>(
     '/timetable/directory',
   );
@@ -29,13 +29,7 @@ export default async function KlassePage() {
         <Card className="p-0">
           <ul>
             {classes.map((c) => (
-              <ListRow
-                key={c.id}
-                as="li"
-                href={`/klasse/${c.id}/entschuldigungen`}
-                linkAs={Link}
-                title={c.name}
-              />
+              <ListRow key={c.id} as="li" href={`/klassen/${c.id}`} linkAs={Link} title={c.name} />
             ))}
           </ul>
         </Card>

@@ -10,6 +10,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   );
   const name = directory.classes.find((c) => c.id === id)?.name ?? '';
   return (
-    <ClassAbsences classId={id} className={name} tab="entschuldigungen" remarks={canSeeRemarks(me, id)} />
+    <ClassAbsences
+      classId={id}
+      className={name}
+      tab="entschuldigungen"
+      remarks={canSeeRemarks(me, id)}
+    />
   );
 }

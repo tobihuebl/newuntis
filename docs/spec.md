@@ -189,12 +189,14 @@ Navigation nach dem Design System (`docs/design-system/README.md`, Abschnitt "We
 | Eltern | Heute, Plan, **Abwesenheit**, Nachrichten, Mehr | `/heute` | Abwesenheit, Termine |
 | Lehrer | Heute, Plan, **Klassenbuch**, Chat, Mehr | `/heute` | Prüfungen; Schule: Klassen, Räume, Krankmeldung |
 | Klassenvorstand | wie Lehrer | `/heute` | Meine Klasse; Schule: Auswertung |
-| Direktion | Lagebild, Supplierung, **Freigaben**, Nachrichten, Mehr | `/lagebild` | Prüfungskalender, Auswertung, Rundschreiben; Schule: Entschuldigungen, Stundenpläne, Stammdaten (lesen), Protokoll, Einstellungen |
-| Administration | Übersicht, Stundenplan, **Import**, Nachrichten, Mehr | `/admin` | Rechte; Stammdaten: Personen, Klassen, Fächer, Räume, Schuljahr, Raster; Schule: Lagebild, Auswertung, Supplierung, Rundschreiben, Entschuldigungen, Datenschutz, Protokoll, Einstellungen |
+| Direktion | Lagebild, Supplierung, **Freigaben**, Nachrichten, Mehr | `/lagebild` | Prüfungskalender, Auswertung, Rundschreiben; Schule: Stundenplan, Klassen, Personen, Räume, Protokoll, Einstellungen (Freigaben sammeln Stundenplan-Entwürfe und gemeldete Entschuldigungen; Stammdaten nur über Links, ADR 0017) |
+| Administration | Übersicht, Stundenplan, **Import**, Nachrichten, Mehr | `/admin` | Rechte; Stammdaten: Personen, Klassen, Fächer, Räume, Schuljahr, Raster; Schule: Lagebild, Auswertung, Supplierung, Rundschreiben, Abwesenheit melden, Datenschutz, Protokoll, Einstellungen |
 
 Die Rolle Schul-IT aus dem Design System gibt es im Datenmodell nicht; ihre Punkte (Import, Datenschutz, Protokoll) liegen bei der Administration. `/admin` ist die Übersicht mit der Checkliste "Schule einrichten" (Schuljahr und Ferien, Raster, Klassen/Fächer/Räume, Personen, Rechte und Einladungen, Stundenplan veröffentlicht).
 
 Für alle Rollen zusätzlich `/profil` und `/benachrichtigungen` (Glocke in der Kopfzeile), dazu `/nachrichten/neu`, `/nachrichten/[id]` (Gespräch) und `/nachrichten/rundschreiben/[id]` (Rundschreiben lesen und bestätigen). Nach dem ersten Login führt `/willkommen` durch Datenschutzhinweis, Push-Einrichtung und kurze Hinweise je Rolle (M6, ADR 0009).
+
+**Klassenseite (ADR 0017):** Es gibt eine Klassenseite `/klassen/[id]` für Lehrkräfte, Klassenvorstand, Direktion und Administration. Oben steht "Heute" (wer ist da, fehlt, gemeldet, verspätet, noch nicht erfasst), darunter die Schülerliste mit dem Stand von heute sowie Fächer und Lehrkräfte. Klassenvorstand, Direktion und Administration sehen die Reiter Übersicht, Entschuldigungen, Fehlzeiten und (KV, Direktion) Vermerke. "Meine Klasse" führt dorthin.
 
 Ergänzungen aus M6 (ADR 0009): Lehrkräfte `/klassen` und `/klassen/[id]` (Schülerliste, Fächer, Nachricht an Eltern), `/raeume` (Belegung je Raum); Klassenvorstand `/auswertung` (eigene Klasse); Direktion `/rundschreiben/neu`, `/rundschreiben/[id]` (Lesestand), `/admin/einstellungen` (lesen); Administration `/admin/einstellungen` (Fristen, Grenzwerte, Aufbewahrung), `/admin/rollen` (Rollenträger:innen und Rechte-Matrix), dazu Lagebild und Auswertung unter "Mehr".
 

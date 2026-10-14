@@ -33,8 +33,8 @@ test('Notiz und besonderes Vorkommnis im Klassenbuch', async ({ browser }) => {
 
   const page = await browser.newPage();
   await login(page, accounts().principalEmail, /\/lagebild$/);
-  await page.goto('/klasse');
-  await page.getByRole('link', { name: className, exact: true }).click();
+  await page.goto('/klassen');
+  await page.getByRole('link', { name: new RegExp(`^${className}\\b`) }).click();
   await page.getByRole('link', { name: 'Vermerke' }).click();
   await expect(page).toHaveURL(/\/vermerke$/);
   const list = page.getByRole('list', { name: 'Vermerke' });

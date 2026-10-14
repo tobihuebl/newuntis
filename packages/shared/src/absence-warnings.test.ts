@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { absenceWarnings, type AbsenceStatusName } from './absences';
+import { absenceWarnings, todayStatus, type AbsenceStatusName } from './absences';
 
 const at = (date: string, h = 8) => new Date(`${date}T0${h}:00:00Z`);
 const lesson = (studentId: string, date: string, h = 8) => ({
@@ -52,5 +52,37 @@ describe('absenceWarnings (AB-05)', () => {
     const open = [absence('a', '2026-10-13', '2026-10-13', 'OPEN')];
     expect(absenceWarnings(lessons, open, { ...opts, warnLessons: 0 })).toEqual([]);
     expect(absenceWarnings(lessons, open, opts)[0]!.kinds).toEqual(['FREQUENT']);
+  });
+});
+
+describe('todayStatus (Klassenansicht)', () => {
+  const now = new Date('2026-10-14T10:00:00Z');
+  const att = (
+    h: number,
+    status: 'PRESENT' | 'LATE' | 'ABSENT',
+    lateMinutes: number | null = null,
+  ) => ({
+    startsAt: new Date(`2026-10-14T0${h}:00:00Z`),
+    status,
+    lateMinutes,
+  });
+  const abs = (from: number, to: number, status: AbsenceStatusName) => ({
+    fromAt: new Date(`2026-10-14T${String(from).padStart(2, '0')}:00:00Z`),
+    toAt: new Date(`2026-10-14T${String(to).padStart(2, '0')}:00:00Z`),
+    status,
+  });
+  it('die zuletzt erfasste Stunde zählt', () => {
+    expect(todayStatus([att(7, 'ABSENT'), att(8, 'LATE', 10)], [], now)).toEqual({
+      status: 'late',
+      lateMinutes: 10,
+    });
+    expect(todayStatus([att(7, 'ABSENT'), att(9, 'PRESENT')], [], now).status).toBe('present');
+    expect(todayStatus([att(7, 'PRESENT'), att(8, 'ABSENT')], [], now).status).toBe('absent');
+  });
+  it('gemeldete Fehlzeit geht vor, offene macht "fehlt", ohne alles "noch nicht erfasst"', () => {
+    expect(todayStatus([att(7, 'PRESENT')], [abs(9, 18, 'REPORTED')], now).status).toBe('reported');
+    expect(todayStatus([att(8, 'ABSENT')], [abs(6, 9, 'EXCUSED')], now).status).toBe('reported');
+    expect(todayStatus([], [abs(6, 9, 'OPEN')], now).status).toBe('absent');
+    expect(todayStatus([], [], now).status).toBe('open');
   });
 });

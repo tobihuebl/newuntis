@@ -203,3 +203,45 @@ export function absenceWarnings(
       b.unexcused - a.unexcused || b.recent - a.recent || a.studentId.localeCompare(b.studentId),
   );
 }
+
+// ───────────────────────── Anwesenheit heute (Klassenansicht) ─────────────────────────
+
+/**
+ * Stand einer Schülerin, eines Schülers heute: da, verspätet, fehlt (ohne Meldung), fehlt gemeldet (Meldung oder
+ * Entschuldigung liegt vor) oder noch nicht erfasst (keine Stunde mit Eintrag).
+ */
+export const TODAY_STATUSES = ['present', 'late', 'absent', 'reported', 'open'] as const;
+export type TodayStatus = (typeof TODAY_STATUSES)[number];
+
+const REPORTED: readonly AbsenceStatusName[] = ['REPORTED', 'EXCUSED'];
+
+/**
+ * Reine Regel für die Klassenansicht: maßgeblich ist die zuletzt erfasste Stunde (wer nach der 1. Stunde kommt,
+ * ist danach "da"). Eine gemeldete Fehlzeit, die jetzt gilt, geht vor; ohne Eintrag entscheidet eine Fehlzeit des
+ * Tages, sonst "noch nicht erfasst".
+ */
+export function todayStatus(
+  attendance: {
+    startsAt: Date;
+    status: 'PRESENT' | 'LATE' | 'ABSENT';
+    lateMinutes: number | null;
+  }[],
+  absences: { fromAt: Date; toAt: Date; status: AbsenceStatusName }[],
+  now: Date,
+): { status: TodayStatus; lateMinutes: number | null } {
+  const reportedNow = absences.some(
+    (a) => REPORTED.includes(a.status) && a.fromAt <= now && now < a.toAt,
+  );
+  if (reportedNow) return { status: 'reported', lateMinutes: null };
+  const last = [...attendance].sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())[0];
+  const reportedToday = absences.some((a) => REPORTED.includes(a.status));
+  if (last) {
+    if (last.status === 'ABSENT')
+      return { status: reportedToday ? 'reported' : 'absent', lateMinutes: null };
+    if (last.status === 'LATE') return { status: 'late', lateMinutes: last.lateMinutes };
+    return { status: 'present', lateMinutes: null };
+  }
+  if (reportedToday) return { status: 'reported', lateMinutes: null };
+  if (absences.length) return { status: 'absent', lateMinutes: null };
+  return { status: 'open', lateMinutes: null };
+}

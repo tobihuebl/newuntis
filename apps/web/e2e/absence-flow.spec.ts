@@ -33,7 +33,11 @@ test('Eltern melden eine Abwesenheit, der Klassenvorstand nimmt sie an, Eltern w
   const kvCtx = await browser.newContext();
   const kv = await kvCtx.newPage();
   await login(kv, accounts().teacherEmail, /\/heute$/);
+  // "Meine Klasse" öffnet die Klassenseite (heute), Entschuldigungen sind ein Reiter
   await kv.goto('/klasse');
+  await expect(kv).toHaveURL(/\/klassen\/[^/]+$/);
+  await expect(kv.getByRole('heading', { name: 'Heute' })).toBeVisible();
+  await kv.getByRole('link', { name: 'Entschuldigungen' }).click();
   await expect(kv).toHaveURL(/\/klasse\/[^/]+\/entschuldigungen$/);
   const row = kv.locator('li[data-absence="REPORTED"]', { hasText: note });
   await row.getByRole('button', { name: /^Mit Kommentar/ }).click();
@@ -77,6 +81,7 @@ test('Klassenvorstand entschuldigt mit einem Tipp und kann es rückgängig mache
   const kv = await kvCtx.newPage();
   await login(kv, accounts().teacherEmail, /\/heute$/);
   await kv.goto('/klasse');
+  await kv.getByRole('link', { name: 'Entschuldigungen' }).click();
   const row = kv.locator('li[data-absence="REPORTED"]', { hasText: note });
   await row.getByRole('button', { name: /^Entschuldigen:/ }).click();
   await expect(row).toBeHidden();

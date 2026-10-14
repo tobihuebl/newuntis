@@ -26,7 +26,11 @@ export function SegmentedNav({ label, items, linkAs: Link, className }: Segmente
     <nav
       aria-label={label}
       className={cn(
-        'inline-flex max-w-full flex-wrap gap-1 self-start rounded-pill bg-bg-sunken p-1 ring-control',
+        'gap-1 self-start bg-bg-sunken p-1 ring-control',
+        // Mehr als drei Ansichten passen mobil nicht in eine Zeile: dann 2×2-Raster, ab Tablet die Pillenleiste
+        items.length > 3
+          ? 'grid w-full grid-cols-2 rounded-lg sm:inline-flex sm:w-auto sm:rounded-pill'
+          : 'inline-flex max-w-full flex-wrap rounded-pill',
         className,
       )}
     >

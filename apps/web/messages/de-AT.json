@@ -302,6 +302,7 @@
       "codesFor": "Codes für",
       "codesPrint": "Drucken",
       "codesCsv": "Als CSV speichern",
+      "classView": "Klassenansicht mit Anwesenheit heute",
       "codesValid": "Gültig bis"
     },
     "persons": {
@@ -743,6 +744,7 @@
     "warningsHelp": "Viele Fehlstunden oder unentschuldigte Stunden. Ein frühes Gespräch mit Eltern und Schüler:in hilft oft. Die Schwellen legt die Schule in den Einstellungen fest.",
     "warnUnexcused": "{count, plural, one {# Stunde} other {# Stunden}} unentschuldigt im Schuljahr",
     "warnFrequent": "{count, plural, one {# Fehlstunde} other {# Fehlstunden}} in den letzten Wochen",
+    "overview": "Übersicht",
     "remarks": "Vermerke",
     "remarksHelp": "Besondere Vorkommnisse aus dem Klassenbuch. Sichtbar nur für den Klassenvorstand, die Direktion und die Lehrkraft der jeweiligen Stunde.",
     "remarksEmpty": "Noch keine Vermerke",
@@ -1259,7 +1261,7 @@
     "a_privacy_manage": "Datenschutz-Anfragen"
   },
   "classes": {
-    "title": "Meine Klassen",
+    "title": "Klassen",
     "empty": "Keine Klassen",
     "emptyText": "Sobald du im veröffentlichten Stundenplan eine Klasse unterrichtest, erscheint sie hier.",
     "homeroom": "Klassenvorstand",
@@ -1276,7 +1278,23 @@
     "studentList": "Schüler:innen ({count})",
     "noAccount": "kein Zugang",
     "noGuardian": "keine Eltern verknüpft",
-    "subjects": "Fächer und Lehrkräfte"
+    "subjects": "Fächer und Lehrkräfte",
+    "edit": "Stammdaten bearbeiten",
+    "today": "Heute",
+    "todayNoLessons": "Heute kein Unterricht in dieser Klasse.",
+    "todayNotStarted": "Der Unterricht hat noch nicht begonnen.",
+    "todayAllHere": "Alle da.",
+    "todayList": "Heute nicht da oder verspätet",
+    "count_present": "da",
+    "count_away": "fehlen",
+    "count_late": "verspätet",
+    "count_open": "noch nicht erfasst",
+    "status_present": "da",
+    "status_late": "verspätet",
+    "status_lateMinutes": "verspätet · {minutes} Min.",
+    "status_absent": "fehlt",
+    "status_reported": "fehlt · gemeldet",
+    "status_open": "noch nicht erfasst"
   },
   "rooms": {
     "title": "Räume",
@@ -1286,14 +1304,18 @@
   },
   "approvals": {
     "title": "Freigaben",
-    "intro": "Stundenplan-Entwürfe der Administration prüfen und veröffentlichen.",
+    "intro": "Was auf eine Entscheidung der Direktion wartet: Stundenplan-Entwürfe und gemeldete Entschuldigungen.",
     "empty": "Nichts freizugeben",
-    "emptyText": "Sobald die Administration einen Entwurf anlegt, erscheint er hier.",
+    "emptyText": "Neue Stundenplan-Entwürfe und gemeldete Entschuldigungen erscheinen hier.",
     "unnamed": "Entwurf",
     "validFrom": "gültig ab {date}",
     "lessons": "{count, plural, one {# Regel} other {# Regeln}}",
     "draft": "Entwurf",
-    "current": "Aktuell gültig: {name} seit {date}"
+    "current": "Aktuell gültig: {name} seit {date}",
+    "drafts": "Stundenplan-Entwürfe",
+    "excuses": "Gemeldete Entschuldigungen",
+    "excusesOpen": "{count} offen",
+    "allVersions": "Alle Stundenpläne"
   },
   "onboarding": {
     "step": "Schritt {n} von {total}",

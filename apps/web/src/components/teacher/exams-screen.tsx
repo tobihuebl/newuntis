@@ -50,7 +50,7 @@ const collisionKey = (x: ExamItem) => `${x.date}|${x.class?.id ?? ''}`;
  * Wochen. Prüfungen als Kacheln in Fächerfarbe, Kollisionen als Amber-Kachel mit Wort. Neue Prüfung im Sheet
  * mit Kollisionsprüfung direkt unter dem Datum; Grenzwerte der Schule prüft zusätzlich der Server.
  */
-export function ExamsScreen() {
+export function ExamsScreen({ canWrite = true }: { canWrite?: boolean }) {
   const t = useT('exams');
   const tc = useT('common');
   const td = useT('days');
@@ -58,7 +58,7 @@ export function ExamsScreen() {
   const toast = useToast();
   const today = todayVienna();
   const [month, setMonth] = useState(monthStart(today));
-  const options = useApi<Options>(['exams', 'options'], '/exams/options');
+  const options = useApi<Options>(['exams', 'options'], canWrite ? '/exams/options' : null);
   const list = useApi<{ data: ExamItem[] }>(
     ['exams', 'list', month],
     `/exams?from=${mondayOf(month)}&to=${addDays(mondayOf(monthEnd(month)), 4)}`,

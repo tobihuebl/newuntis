@@ -25,21 +25,30 @@ import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
 
 type Tab = 'entschuldigungen' | 'fehlzeiten';
+type Pending = { timer: ReturnType<typeof setTimeout>; run: () => void };
 
-/** Reiter der Klassenvorstand-Ansicht; "Vermerke" (KB-07) nur für Klassenvorstand und Direktion. */
+/**
+ * Reiter einer Klasse für Klassenvorstand, Direktion und Administration: Übersicht (heute, /klassen/[id]),
+ * Entschuldigungen, Fehlzeiten und – für KV und Direktion – Vermerke (KB-07).
+ */
 export function ClassTabs({
   classId,
   tab,
   remarks,
 }: {
   classId: string;
-  tab: Tab | 'vermerke';
+  tab: Tab | 'vermerke' | 'uebersicht';
   remarks: boolean;
 }) {
   const t = useT('klasse');
-  const tabs: (Tab | 'vermerke')[] = ['entschuldigungen', 'fehlzeiten'];
+  const tabs: (Tab | 'vermerke' | 'uebersicht')[] = [
+    'uebersicht',
+    'entschuldigungen',
+    'fehlzeiten',
+  ];
   if (remarks) tabs.push('vermerke');
   const label = {
+    uebersicht: t('overview'),
     entschuldigungen: t('excuses'),
     fehlzeiten: t('absences'),
     vermerke: t('remarks'),
@@ -50,14 +59,13 @@ export function ClassTabs({
       linkAs={Link}
       items={tabs.map((target) => ({
         key: target,
-        href: `/klasse/${classId}/${target}`,
+        href: target === 'uebersicht' ? `/klassen/${classId}` : `/klasse/${classId}/${target}`,
         label: label[target],
         current: tab === target,
       }))}
     />
   );
 }
-type Pending = { timer: ReturnType<typeof setTimeout>; run: () => void };
 
 /**
  * Klassenvorstand (AB-02, Design System Screens 6): Entschuldigungen prüfen und Fehlzeiten der Klasse.

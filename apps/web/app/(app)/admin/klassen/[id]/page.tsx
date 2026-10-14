@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Card, ListRow } from '@sp/ui';
+import { Users } from 'lucide-react';
+import { Button, Card, ListRow } from '@sp/ui';
 import { GuardianCodes } from '../../../../../src/components/admin/guardian-codes';
 import { adminPage } from '../../../../../src/lib/admin';
 import { apiGet } from '../../../../../src/lib/api-server';
@@ -31,6 +32,9 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
             ? `${c.homeroomTeacher.firstName} ${c.homeroomTeacher.lastName}`
             : t('noHomeroom')}
         </p>
+        <Button variant="secondary" size="sm" asChild iconLeft={Users} className="mt-3">
+          <Link href={`/klassen/${c.id}`}>{t('classView')}</Link>
+        </Button>
       </div>
       <Card className="p-0">
         <h2 className="border-b border-line px-4 py-3 text-h3">

@@ -89,9 +89,10 @@ for (const scheme of ['light', 'dark'] as const) {
       await check(page, '/rundschreiben');
       await check(page, '/rundschreiben/neu');
       await check(page, '/freigaben');
-      await page.goto('/klasse');
-      const cls = await page.locator('main a[href^="/klasse/"]').first().getAttribute('href');
-      await check(page, cls!.replace(/entschuldigungen$/, 'vermerke'));
+      await page.goto('/klassen');
+      const cls = await page.locator('main a[href^="/klassen/"]').first().getAttribute('href');
+      await check(page, cls!);
+      await check(page, cls!.replace(/^\/klassen\//, '/klasse/') + '/vermerke');
     });
 
     test('Administration: Personen und Stundenplan', async ({ page }) => {

@@ -63,7 +63,6 @@ const supplierung = item('supplierung', '/supplierung', 'arrow-left-right', {
 const auswertung = item('auswertung', '/auswertung', 'chart-column');
 const freigaben = item('freigaben', '/freigaben', 'circle-check');
 const rundschreiben = item('rundschreiben', '/rundschreiben', 'megaphone');
-const entschuldigungen = item('entschuldigungen', '/klasse', 'file-check');
 const adminStundenplan = item('stundenplan', '/admin/stundenplan', 'calendar-range');
 const personen = item('personen', '/admin/personen', 'users');
 const adminKlassen = item('klassen', '/admin/klassen', 'graduation-cap');
@@ -148,7 +147,7 @@ const NAV: Record<Role, RoleNav> = {
     ],
     routes: [
       ...TEACHER_ROUTES,
-      '/klasse/[id]/uebersicht',
+      '/klasse/[id]/uebersicht', // leitet auf /klassen/[id] weiter
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
       '/klasse/[id]/vermerke',
@@ -171,30 +170,24 @@ const NAV: Record<Role, RoleNav> = {
           rundschreiben,
         ],
       },
+      // Bedienbarkeit (Durchgang 14.10.): eine Klassenseite statt drei, Stammdaten nur noch über Links erreichbar
       {
         labelKey: 'schule',
-        items: [
-          entschuldigungen,
-          item('plan', '/plan', 'calendar-days'),
-          item('stundenplaene', '/admin/stundenplan', 'calendar-range'),
-          personen,
-          adminKlassen,
-          schuljahr,
-          raster,
-          faecher,
-          adminRaeume,
-          protokoll,
-          einstellungen,
-        ],
+        items: [stundenplan, klassen, personen, raeume, protokoll, einstellungen],
       },
     ],
     routes: [
       '/rundschreiben/neu',
       '/rundschreiben/[id]',
       '/profil',
-      '/klassen',
       '/klassen/[id]',
-      '/raeume',
+      '/klasse',
+      '/admin/stundenplan',
+      '/admin/klassen',
+      '/admin/schuljahr',
+      '/admin/raster',
+      '/admin/faecher',
+      '/admin/raeume',
       '/klassenbuch/[occurrenceId]', // Korrektur durch die Direktion
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
@@ -236,7 +229,6 @@ const NAV: Record<Role, RoleNav> = {
           auswertung,
           supplierung,
           rundschreiben,
-          entschuldigungen,
           item('abwesenheitMelden', '/abwesenheit/neu', 'user-round-x'),
           item('plan', '/plan', 'calendar-days'),
           item('datenschutz', '/admin/datenschutz', 'lock'),
@@ -252,8 +244,14 @@ const NAV: Record<Role, RoleNav> = {
       '/rundschreiben/neu',
       '/rundschreiben/[id]',
       '/profil',
+      '/klasse',
+      '/klassen',
+      '/klassen/[id]',
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
+      // Lagebild verlinkt Prüfungen und offene Klassenbucheinträge (lesen)
+      '/pruefungen',
+      '/klassenbuch/[occurrenceId]',
     ],
   },
 };

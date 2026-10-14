@@ -4,6 +4,7 @@
  * bestimmt die erlaubten Empfänger:innen (siehe ADR 0009).
  */
 import { z } from 'zod';
+import type { TodayStatus } from './absences';
 
 const id = z.string().min(1).max(64);
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -158,6 +159,21 @@ export interface MyClassDetail {
   name: string;
   homeroomTeacher: string | null;
   isHomeroom: boolean;
-  students: { id: string; name: string; hasAccount: boolean; guardians: number }[];
+  /** Entschuldigungen und Fehlzeiten der Klasse bearbeiten (KV der Klasse, Direktion, Administration). */
+  canReview: boolean;
+  /** Vermerke der Klasse sehen (KV der Klasse, Direktion; KB-07). */
+  canSeeRemarks: boolean;
+  /** Stammdaten der Klasse bearbeiten (Administration). */
+  canEdit: boolean;
+  /** Heute: begonnene Stunden der Klasse (0 = noch kein Unterricht oder schulfrei). */
+  today: { date: string; lessonsStarted: number; lessonsTotal: number };
+  students: {
+    id: string;
+    name: string;
+    hasAccount: boolean;
+    guardians: number;
+    today: TodayStatus;
+    lateMinutes: number | null;
+  }[];
   subjects: { name: string; teachers: string[] }[];
 }
