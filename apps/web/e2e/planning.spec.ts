@@ -36,3 +36,28 @@ test('Administration lässt einen Stundenplan vorschlagen und prüft ihn', async
   await expect(page.getByRole('button', { name: 'Vorschlag erstellen' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Vorschlag erstellen' })).toBeVisible();
 });
+
+/** Lehrkräfte: Fächer und Stundenausmaß in den Personen, Auslastung im Assistenten. */
+test('Administration pflegt Fächer und Stundenausmaß einer Lehrkraft', async ({ page }) => {
+  await login(page, accounts().adminEmail, /\/admin$/);
+  await page.goto('/admin/assistent');
+  const load = page.getByRole('region', { name: 'Auslastung der Lehrkräfte' });
+  await expect(load.getByText('16 Lehrkräfte im Soll')).toBeVisible();
+
+  await page.goto('/admin/personen?kind=TEACHER');
+  await page.locator('a[href^="/admin/personen/"]').first().click();
+  await expect(page.getByRole('heading', { name: 'Unterricht' })).toBeVisible();
+  await page.getByRole('button', { name: 'Unterricht bearbeiten' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Unterricht' });
+  await sheet.getByLabel('Beschäftigungsausmaß').fill('20');
+  await sheet.getByLabel('Davon Unterricht').fill('30');
+  await sheet.getByRole('button', { name: 'Speichern' }).click();
+  await expect(
+    sheet.getByText('nicht mehr Stunden haben als das Beschäftigungsausmaß'),
+  ).toBeVisible();
+  await sheet.getByLabel('Davon Unterricht').fill('10,5');
+  await sheet.getByRole('button', { name: 'Speichern' }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByText('10,5 Wochenstunden')).toBeVisible();
+  await expect(page.getByText(/(über|unter) dem Soll/)).toBeVisible();
+});

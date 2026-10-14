@@ -192,6 +192,45 @@ export const personListQuery = z.object({
   cursor: z.string().min(1).optional(),
 });
 
+// ───────────────────────── Lehrkräfte: Fächer und Stundenausmaß ─────────────────────────
+const halfHours = (max: number) =>
+  z
+    .number()
+    .min(0)
+    .max(max)
+    .refine((v) => Number.isInteger(v * 2), 'Nur ganze oder halbe Stunden');
+export const teacherProfileInput = z
+  .object({
+    /** Fächer mit Lehrbefähigung (Lehrfächerverteilung, Supplier-Vorschläge). */
+    subjectIds: z
+      .array(z.string().min(1))
+      .max(60)
+      .transform((v) => [...new Set(v)]),
+    /** Beschäftigungsausmaß in Wochenstunden laut Vertrag. */
+    employmentHours: halfHours(60).nullable(),
+    /** Davon Unterricht: Soll-Unterrichtsstunden je Woche (Grundlage der Auslastung im Assistenten). */
+    teachingHours: halfHours(40).nullable(),
+  })
+  .refine(
+    (v) =>
+      v.employmentHours === null ||
+      v.teachingHours === null ||
+      v.teachingHours <= v.employmentHours,
+    {
+      message: 'Der Unterricht kann nicht mehr Stunden haben als das Beschäftigungsausmaß',
+      path: ['teachingHours'],
+    },
+  );
+export type TeacherProfileInput = z.infer<typeof teacherProfileInput>;
+
+/** Lehrkräfte-Angaben in der Personen-Ansicht; `plannedHours` = Wochenstunden im veröffentlichten Stundenplan. */
+export interface TeacherProfile {
+  subjects: { id: string; code: string; name: string }[];
+  employmentHours: number | null;
+  teachingHours: number | null;
+  plannedHours: number;
+}
+
 // ───────────────────────── Eltern, Einladungen ─────────────────────────
 export const guardianLinkInput = z.object({
   guardianId: z.string().min(1),

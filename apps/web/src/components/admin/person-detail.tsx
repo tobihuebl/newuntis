@@ -18,7 +18,9 @@ import {
 import { dateTimeOf, shortDate } from '../../lib/dates';
 import { AccountChip } from './persons-list';
 import { ApiError, apiRequest } from '../../lib/api-client';
+import type { TeacherProfile } from '@sp/shared';
 import { GuardianCodes } from './guardian-codes';
+import { TeachingCard, type SubjectOption } from './teaching-card';
 import { PersonPicker } from './person-picker';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
@@ -57,6 +59,7 @@ export interface PersonData {
   }[];
   children: LinkRow[];
   guardians: LinkRow[];
+  teaching: TeacherProfile | null;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -65,18 +68,20 @@ const active = (l: LinkRow) => !l.validTo || l.validTo >= today();
 export function PersonDetail({
   person,
   classes,
+  subjects,
   csrfToken,
   readOnly,
   currentPersonId,
 }: {
   person: PersonData;
   classes: SelectOption[];
+  subjects: SubjectOption[];
   csrfToken: string;
   readOnly: boolean;
   currentPersonId: string;
 }) {
   const t = useT('admin.persons');
-  const p = useT('person');
+  const p = useT('admin.person');
   const c = useT('common');
   const router = useRouter();
   const [sheet, setSheet] = useState<'edit' | 'link' | 'anonymize' | null>(null);
@@ -228,6 +233,16 @@ export function PersonDetail({
         )}
         {error && !sheet ? <FormError message={error} /> : null}
       </Card>
+
+      {person.teaching ? (
+        <TeachingCard
+          personId={person.id}
+          teaching={person.teaching}
+          subjects={subjects}
+          csrfToken={csrfToken}
+          readOnly={readOnly}
+        />
+      ) : null}
 
       {person.kind === 'STUDENT' ? (
         <Card className="p-0">

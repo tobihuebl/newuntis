@@ -103,18 +103,20 @@ model Tenant {
 }
 
 model Person {
-  id           String     @id @default(cuid())
-  tenantId     String
-  kind         PersonKind
-  firstName    String
-  lastName     String
-  birthDate    DateTime?  @db.Date
-  externalId   String? // z. B. Schülernummer aus CSV
-  email        String? // Kontakt- und Einladungsadresse (Konto-E-Mail steht in User)
-  anonymizedAt DateTime?  @db.Timestamptz(3)
-  restrictedAt DateTime?  @db.Timestamptz(3) // Einschränkung der Verarbeitung (DSGVO Art. 18): keine Nachrichten, Rundschreiben, Benachrichtigungen
-  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime   @updatedAt @db.Timestamptz(3)
+  id              String     @id @default(cuid())
+  tenantId        String
+  kind            PersonKind
+  firstName       String
+  lastName        String
+  birthDate       DateTime?  @db.Date
+  externalId      String? // z. B. Schülernummer aus CSV
+  email           String? // Kontakt- und Einladungsadresse (Konto-E-Mail steht in User)
+  anonymizedAt    DateTime?  @db.Timestamptz(3)
+  restrictedAt    DateTime?  @db.Timestamptz(3) // Einschränkung der Verarbeitung (DSGVO Art. 18): keine Nachrichten, Rundschreiben, Benachrichtigungen
+  employmentHours Float? // Lehrkräfte: Beschäftigungsausmaß in Wochenstunden laut Vertrag
+  teachingHours   Float? // Lehrkräfte: davon Unterricht (Soll-Unterrichtsstunden je Woche)
+  createdAt       DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime   @updatedAt @db.Timestamptz(3)
 
   user                    User?
   roles                   RoleAssignment[]
@@ -124,6 +126,7 @@ model Person {
   enrollments             Enrollment[]
   groupMemberships        GroupMember[]
   lessonTeachers          LessonTeacher[]
+  teacherSubjects         TeacherSubject[]
   requirements            LessonRequirement[]
   attendances             Attendance[]
   absences                Absence[]
@@ -335,8 +338,23 @@ model Subject {
   occurrences         Occurrence[]
   exams               Exam[]
   planningConstraints PlanningConstraint[]
+  teachers            TeacherSubject[]
 
   @@unique([tenantId, code])
+}
+
+/// Fächer, die eine Lehrkraft unterrichten kann (Lehrbefähigung); Grundlage für Lehrfächerverteilung und Supplierung.
+model TeacherSubject {
+  tenantId  String
+  teacherId String
+  subjectId String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  teacher Person  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([teacherId, subjectId])
+  @@index([tenantId, subjectId])
 }
 
 model Room {

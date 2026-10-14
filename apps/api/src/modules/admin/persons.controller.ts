@@ -8,9 +8,18 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
-import { personInput, personListQuery, personPatch, type Role } from '@sp/shared';
+import {
+  personInput,
+  personListQuery,
+  personPatch,
+  teacherProfileInput,
+  weeklyHours,
+  type Role,
+  type TeacherProfile,
+} from '@sp/shared';
 import type { z } from 'zod';
 import { Can } from '../../common/decorators';
 import { Actor, TenantId } from '../../common/params';
@@ -125,6 +134,10 @@ export class PersonsController {
             guardian: { select: { id: true, firstName: true, lastName: true, email: true } },
           },
         },
+        teacherSubjects: {
+          select: { subject: { select: { id: true, code: true, name: true } } },
+          orderBy: { subject: { name: 'asc' } },
+        },
       },
     });
     if (!p) throw new NotFoundException({ title: 'Person nicht gefunden' });
@@ -173,7 +186,57 @@ export class PersonsController {
       })),
       children: p.guardianLinks.map((l) => ({ ...link(l), student: l.student })),
       guardians: p.studentLinks.map((l) => ({ ...link(l), guardian: l.guardian })),
+      teaching:
+        p.kind === 'TEACHER'
+          ? ({
+              subjects: p.teacherSubjects.map((t) => t.subject),
+              employmentHours: p.employmentHours,
+              teachingHours: p.teachingHours,
+              plannedHours: await this.plannedHours(id),
+            } satisfies TeacherProfile)
+          : null,
     };
+  }
+
+  /**
+   * Fächer und Stundenausmaß einer Lehrkraft: Beschäftigungsausmaß (Vertrag) und davon Unterricht (Soll). Ersetzt
+   * die Fächerliste vollständig.
+   */
+  @Can('masterdata.write')
+  @Put(':id/teaching')
+  async setTeaching(
+    @TenantId() tenantId: string,
+    @Actor() actor: Principal,
+    @Param('id') id: string,
+    @Body(new ZodPipe(teacherProfileInput)) body: z.infer<typeof teacherProfileInput>,
+  ) {
+    const tx = this.prisma.tx;
+    const cur = await tx.person.findUnique({
+      where: { id },
+      select: { kind: true, anonymizedAt: true },
+    });
+    if (!cur || cur.anonymizedAt) throw new NotFoundException({ title: 'Person nicht gefunden' });
+    if (cur.kind !== 'TEACHER') bad('Fächer und Stundenausmaß gibt es nur für Lehrkräfte');
+    const known = await tx.subject.count({ where: { id: { in: body.subjectIds } } });
+    if (known !== body.subjectIds.length) bad('Fach nicht gefunden');
+    await tx.person.update({
+      where: { id },
+      data: { employmentHours: body.employmentHours, teachingHours: body.teachingHours },
+    });
+    await tx.teacherSubject.deleteMany({ where: { teacherId: id } });
+    if (body.subjectIds.length)
+      await tx.teacherSubject.createMany({
+        data: body.subjectIds.map((subjectId) => ({ tenantId, teacherId: id, subjectId })),
+      });
+    await this.audit.record({
+      tenantId,
+      actorId: actor.personId,
+      action: 'person.teaching',
+      entity: 'person',
+      entityId: id,
+      meta: { subjects: body.subjectIds.length },
+    });
+    return { id };
   }
 
   @Can('masterdata.write')
@@ -286,6 +349,15 @@ export class PersonsController {
       entity: 'person',
       entityId: id,
     });
+  }
+
+  /** Wochenstunden der Lehrkraft im veröffentlichten Stundenplan (A/B-Wochen zählen halb). */
+  private async plannedHours(teacherId: string) {
+    const lessons = await this.prisma.tx.lesson.findMany({
+      where: { timetable: { status: 'PUBLISHED' }, teachers: { some: { teacherId } } },
+      select: { periodCount: true, weekPattern: true },
+    });
+    return lessons.reduce((sum, l) => sum + weeklyHours(l), 0);
   }
 
   private assertKindRules(kind: string, extraRoles: readonly string[], classId: string | null) {

@@ -435,6 +435,27 @@ async function main() {
   await prisma.lesson.createMany({ data: lessons });
   await prisma.lessonTeacher.createMany({ data: lessonTeachers });
 
+  // Lehrkräfte: Fächer (Lehrbefähigung) und Stundenausmaß. Unterricht = Soll aus der Lehrfächerverteilung,
+  // Beschäftigungsausmaß mit vier Stunden für Tätigkeiten außerhalb des Unterrichts.
+  await prisma.teacherSubject.createMany({
+    data: [...teacherBySubject].flatMap(([code, list]) =>
+      [...new Set(list)].map((t) => ({
+        tenantId,
+        teacherId: t.id,
+        subjectId: subjectId.get(code)!,
+      })),
+    ),
+  });
+  for (const t of teachers) {
+    const hours = requirements
+      .filter((r) => r.teacherId === t.id)
+      .reduce((sum, r) => sum + r.hoursPerWeek, 0);
+    await prisma.person.update({
+      where: { id: t.id },
+      data: { teachingHours: hours, employmentHours: hours + 4 },
+    });
+  }
+
   // Termine für das gleitende Fenster (heute bis heute + 28 Tage), wie es der Job generate-occurrences täte
   const freeDays = await prisma.schoolFreeDay.findMany({ where: { tenantId } });
   const today = DateTime.now().setZone('Europe/Vienna').toISODate()!;

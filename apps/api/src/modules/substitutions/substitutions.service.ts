@@ -400,7 +400,12 @@ export class SubstitutionsService implements OnModuleInit {
     const [teachers, busy, absent, taken, usedRooms, rooms, lessons] = await Promise.all([
       tx.person.findMany({
         where: { kind: 'TEACHER', anonymizedAt: null },
-        select: { id: true, firstName: true, lastName: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          teacherSubjects: { select: { subjectId: true } },
+        },
       }),
       tx.occurrenceTeacher.findMany({
         where: { occurrence: { ...overlap, status: { not: 'CANCELLED' } } },
@@ -462,7 +467,10 @@ export class SubstitutionsService implements OnModuleInit {
       .filter((t) => !blocked.has(t.id))
       .map((t) => ({
         teacher: { id: t.id, name: name(t) },
-        teachesSubject: teaches(t.id, (l) => l.subjectId === o.subjectId),
+        // Fach: laut Lehrbefähigung (Personen-Stammdaten) oder weil sie es im Stundenplan unterrichtet
+        teachesSubject:
+          t.teacherSubjects.some((x) => x.subjectId === o.subjectId) ||
+          teaches(t.id, (l) => l.subjectId === o.subjectId),
         knowsClass: o.classId !== null && teaches(t.id, (l) => l.classId === o.classId),
         count: count.get(t.id) ?? 0,
       }));

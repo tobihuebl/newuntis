@@ -5,7 +5,14 @@
 import { cleanText, normalizeKey, parseCsv } from '../admin/csv';
 
 export interface RequirementDirectory {
-  teachers: { id: string; firstName: string; lastName: string; email: string | null }[];
+  teachers: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    /** Fächer mit Lehrbefähigung; leer = nicht gepflegt (keine Warnung). */
+    subjectIds?: string[];
+  }[];
   subjects: { id: string; name: string; code: string }[];
   classes: { id: string; name: string }[];
   groups: { id: string; name: string }[];
@@ -22,6 +29,8 @@ export interface RequirementRow {
   /** Was in der Datei stand (für die Vorschau). */
   raw: { who: string; subject: string; teacher: string; hours: string };
   errors: string[];
+  /** Hinweise, die das Übernehmen nicht verhindern (z. B. Fach ohne hinterlegte Lehrbefähigung). */
+  warnings: string[];
 }
 
 const ALIASES: Record<'klasse' | 'gruppe' | 'fach' | 'lehrkraft' | 'stunden' | 'doppel', string[]> =
@@ -119,6 +128,14 @@ export function parseRequirementsCsv(
       preferDouble: yes(get('doppel')),
       raw: { who: clsName || grpName, subject: subj, teacher: teacherText, hours: get('stunden') },
       errors,
+      warnings:
+        teacher &&
+        teacher !== 'mehrdeutig' &&
+        subject &&
+        teacher.subjectIds?.length &&
+        !teacher.subjectIds.includes(subject.id)
+          ? [`${teacher.lastName}: keine Lehrbefähigung für ${subject.code} hinterlegt`]
+          : [],
     };
   });
   return { rows, missingColumns };

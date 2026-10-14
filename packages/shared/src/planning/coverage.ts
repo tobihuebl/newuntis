@@ -23,7 +23,7 @@ export interface CoverageRow {
 }
 
 /** Wochenstunden einer Regel: A/B-Wochen zählen halb. */
-export const weeklyHours = (l: LessonRule) =>
+export const weeklyHours = (l: Pick<LessonRule, 'periodCount' | 'weekPattern'>) =>
   Math.max(1, l.periodCount) * (l.weekPattern === 'EVERY' ? 1 : 0.5);
 
 export const matchesRequirement = (r: RequirementRule, l: LessonRule) =>
@@ -53,4 +53,66 @@ export function requirementCoverage(
     planned: planned.get(r.id)!,
     diff: planned.get(r.id)! - r.hoursPerWeek,
   }));
+}
+
+export interface TeacherProfileRule {
+  id: string;
+  /** Soll-Unterrichtsstunden je Woche; null = nicht gepflegt. */
+  teachingHours: number | null;
+  /** Fächer mit Lehrbefähigung; leer = nicht gepflegt (dann keine Fachprüfung). */
+  subjectIds: string[];
+}
+
+export interface TeacherLoadRow {
+  teacherId: string;
+  target: number | null;
+  /** Summe der Soll-Zeilen dieser Lehrkraft in der Lehrfächerverteilung. */
+  assigned: number;
+  /** assigned − target: negativ = unter dem Ausmaß, positiv = darüber; null ohne Ausmaß. */
+  diff: number | null;
+  /** Fächer aus der Lehrfächerverteilung, für die keine Lehrbefähigung hinterlegt ist. */
+  unqualified: string[];
+}
+
+/**
+ * Auslastung je Lehrkraft: Lehrfächerverteilung gegen Unterrichtsausmaß und Fächer. Liefert alle Lehrkräfte mit
+ * Soll-Zeilen oder hinterlegtem Ausmaß, sortiert nach der größten Abweichung.
+ */
+export function teacherLoad(
+  requirements: Pick<RequirementRule, 'teacherId' | 'subjectId' | 'hoursPerWeek'>[],
+  teachers: TeacherProfileRule[],
+): TeacherLoadRow[] {
+  const profile = new Map(teachers.map((t) => [t.id, t]));
+  const assigned = new Map<string, number>();
+  const subjects = new Map<string, Set<string>>();
+  for (const r of requirements) {
+    assigned.set(r.teacherId, (assigned.get(r.teacherId) ?? 0) + r.hoursPerWeek);
+    if (!subjects.has(r.teacherId)) subjects.set(r.teacherId, new Set());
+    subjects.get(r.teacherId)!.add(r.subjectId);
+  }
+  const ids = new Set([
+    ...assigned.keys(),
+    ...teachers.filter((t) => t.teachingHours !== null).map((t) => t.id),
+  ]);
+  return [...ids]
+    .map((id) => {
+      const p = profile.get(id);
+      const sum = assigned.get(id) ?? 0;
+      const target = p?.teachingHours ?? null;
+      const known = new Set(p?.subjectIds ?? []);
+      return {
+        teacherId: id,
+        target,
+        assigned: sum,
+        diff: target === null ? null : sum - target,
+        unqualified:
+          known.size === 0 ? [] : [...(subjects.get(id) ?? [])].filter((s) => !known.has(s)),
+      };
+    })
+    .sort(
+      (a, b) =>
+        Math.abs(b.diff ?? 0) - Math.abs(a.diff ?? 0) ||
+        b.unqualified.length - a.unqualified.length ||
+        a.teacherId.localeCompare(b.teacherId),
+    );
 }

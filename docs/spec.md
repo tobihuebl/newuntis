@@ -110,6 +110,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - SD-04 MVP: Eltern-Kind-Verknüpfung per Einladungscode
 - SD-05 V1: Schuljahreswechsel-Assistent
 - SD-06 V2: Sokrates- und Untis-Import
+- SD-07 V1: Lehrkräfte mit Fächern (Lehrbefähigung) und Stundenausmaß (Beschäftigungsausmaß, davon Unterricht); Grundlage für die Auslastung in der Lehrfächerverteilung und für Supplier-Vorschläge (ADR 0013)
 
 ### Stundenplan (SP)
 
@@ -307,8 +308,11 @@ model Person {
   externalId String? // z. B. Schülernummer aus CSV
   anonymizedAt DateTime?
   restrictedAt DateTime? // Einschränkung der Verarbeitung (M6): keine Nachrichten, Rundschreiben, Benachrichtigungen
+  employmentHours Float? // Lehrkräfte: Beschäftigungsausmaß in Wochenstunden (SD-07)
+  teachingHours Float? // Lehrkräfte: davon Unterricht, Soll je Woche (SD-07)
   user User?
   roles RoleAssignment[]
+  teacherSubjects TeacherSubject[] // Fächer mit Lehrbefähigung (SD-07)
 }
 
 model User {

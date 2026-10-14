@@ -21,10 +21,16 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
         )
       ).data
     : [];
+  const subjects =
+    person.kind === 'TEACHER'
+      ? (await apiGet<{ data: { id: string; code: string; name: string }[] }>('/admin/subjects'))
+          .data
+      : [];
   return (
     <PersonDetail
       person={person}
       classes={classes.map((c) => ({ value: c.id, label: c.name }))}
+      subjects={subjects.map((s) => ({ id: s.id, code: s.code, name: s.name }))}
       csrfToken={csrfToken}
       readOnly={readOnly}
       currentPersonId={me.user.personId}

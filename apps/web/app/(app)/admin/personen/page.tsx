@@ -2,7 +2,14 @@ import { PersonsList } from '../../../../src/components/admin/persons-list';
 import { adminPage } from '../../../../src/lib/admin';
 import { apiGet } from '../../../../src/lib/api-server';
 
-export default async function PersonsPage() {
+const KINDS = ['STUDENT', 'TEACHER', 'GUARDIAN', 'STAFF'];
+
+export default async function PersonsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ kind?: string }>;
+}) {
+  const { kind } = await searchParams;
   const { csrfToken, readOnly } = await adminPage('/admin/personen');
   const years = (
     await apiGet<{ data: { id: string; isCurrent: boolean }[] }>('/admin/school-years')
@@ -20,6 +27,7 @@ export default async function PersonsPage() {
       classes={classes.map((c) => ({ value: c.id, label: c.name }))}
       csrfToken={csrfToken}
       readOnly={readOnly}
+      initialKind={kind && KINDS.includes(kind) ? kind : ''}
     />
   );
 }

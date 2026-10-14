@@ -3,7 +3,7 @@ import { Info, PenLine, RefreshCw, Sparkles, TriangleAlert } from 'lucide-react'
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import type { CoverageRow, PlanningRunItem, PlanningScope } from '@sp/shared';
+import type { CoverageRow, PlanningRunItem, PlanningScope, TeacherLoadRow } from '@sp/shared';
 import {
   Banner,
   Button,
@@ -32,6 +32,7 @@ type Detail = PreviewData & {
   version: { id: string; schoolYear: { id: string; name: string }; status: string };
   requirements: { id: string; hoursPerWeek: number }[];
   coverage?: CoverageRow[];
+  teacherLoad?: TeacherLoadRow[];
 };
 
 const STEPS = ['input', 'proposal', 'check', 'polish', 'release'] as const;
@@ -174,6 +175,15 @@ export function AssistantScreen({ initialVersionId }: { initialVersionId: string
               }}
               requirementCount={source.data?.requirements.length ?? 0}
               hours={hours}
+              load={
+                source.data?.teacherLoad
+                  ? {
+                      rows: source.data.teacherLoad,
+                      teachers: source.data.teachers,
+                      subjects: source.data.subjects,
+                    }
+                  : null
+              }
               onImported={() => void source.refetch()}
             />
           ) : (

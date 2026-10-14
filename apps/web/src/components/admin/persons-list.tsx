@@ -57,16 +57,19 @@ export function PersonsList({
   classes,
   csrfToken,
   readOnly,
+  initialKind = '',
 }: {
   classes: SelectOption[];
   csrfToken: string;
   readOnly: boolean;
+  /** Vorauswahl aus dem Link, z. B. ?kind=TEACHER aus dem Assistenten. */
+  initialKind?: string;
 }) {
   const t = useT('admin.persons');
   const c = useT('common');
   const router = useRouter();
   const [q, setQ] = useState('');
-  const [kind, setKind] = useState('');
+  const [kind, setKind] = useState(initialKind);
   const [classId, setClassId] = useState('');
   const [rows, setRows] = useState<PersonRow[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);

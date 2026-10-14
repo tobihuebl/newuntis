@@ -30,6 +30,7 @@ export async function anonymizePerson(tx: Tx, personId: string): Promise<void> {
   await tx.notificationPreference.deleteMany({ where: { personId } });
   await tx.notification.deleteMany({ where: { personId } });
   await tx.roleAssignment.deleteMany({ where: { personId } });
+  await tx.teacherSubject.deleteMany({ where: { teacherId: personId } });
   await tx.schoolClass.updateMany({
     where: { homeroomTeacherId: personId },
     data: { homeroomTeacherId: null },
@@ -42,6 +43,8 @@ export async function anonymizePerson(tx: Tx, personId: string): Promise<void> {
       birthDate: null,
       externalId: null,
       email: null,
+      employmentHours: null,
+      teachingHours: null,
       anonymizedAt: new Date(),
     },
   });

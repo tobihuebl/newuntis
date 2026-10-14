@@ -93,6 +93,8 @@ export interface RequirementsImportResponse {
     raw: { who: string; subject: string; teacher: string; hours: string };
     preferDouble: boolean;
     errors: string[];
+    /** Hinweise ohne Sperre, z. B. Fach ohne hinterlegte Lehrbefähigung. */
+    warnings: string[];
   }[];
   valid: number;
   invalid: number;

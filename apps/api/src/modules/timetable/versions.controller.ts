@@ -17,6 +17,7 @@ import {
   lessonInput,
   lessonPinInput,
   requirementCoverage,
+  teacherLoad,
   lessonPatchInput,
   mondayOf,
   publishInput,
@@ -230,7 +231,13 @@ export class VersionsController {
         tx.person.findMany({
           where: { kind: 'TEACHER', anonymizedAt: null },
           orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-          select: { id: true, firstName: true, lastName: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            teachingHours: true,
+            teacherSubjects: { select: { subjectId: true } },
+          },
         }),
       ]);
     return {
@@ -265,9 +272,18 @@ export class VersionsController {
       classes,
       groups,
       rooms,
-      teachers,
+      teachers: teachers.map((t) => ({ id: t.id, firstName: t.firstName, lastName: t.lastName })),
       conflicts: await fullConflicts(tx, tenantId, v.schoolYearId, lessons, context),
       coverage: requirementCoverage(v.requirements, lessons),
+      // Lehrfächerverteilung gegen Unterrichtsausmaß und Lehrbefähigung der Lehrkräfte
+      teacherLoad: teacherLoad(
+        v.requirements,
+        teachers.map((t) => ({
+          id: t.id,
+          teachingHours: t.teachingHours,
+          subjectIds: t.teacherSubjects.map((x) => x.subjectId),
+        })),
+      ),
     };
   }
 
@@ -455,7 +471,13 @@ export class VersionsController {
     const [teachers, subjects, classes, groups] = await Promise.all([
       tx.person.findMany({
         where: { kind: 'TEACHER', anonymizedAt: null },
-        select: { id: true, firstName: true, lastName: true, email: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          teacherSubjects: { select: { subjectId: true } },
+        },
       }),
       tx.subject.findMany({ select: { id: true, name: true, code: true } }),
       tx.schoolClass.findMany({
@@ -468,7 +490,10 @@ export class VersionsController {
       }),
     ]);
     const { rows, missingColumns } = parseRequirementsCsv(body.csv, {
-      teachers,
+      teachers: teachers.map(({ teacherSubjects, ...t }) => ({
+        ...t,
+        subjectIds: teacherSubjects.map((x) => x.subjectId),
+      })),
       subjects,
       classes,
       groups,
@@ -500,6 +525,7 @@ export class VersionsController {
         raw: r.raw,
         preferDouble: r.preferDouble,
         errors: r.errors,
+        warnings: r.warnings,
       })),
       valid: rows.length - invalid,
       invalid,
