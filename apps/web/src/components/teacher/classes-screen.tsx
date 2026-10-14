@@ -1,6 +1,7 @@
 'use client';
 import {
   ArrowLeft,
+  Award,
   CalendarDays,
   MessageSquare,
   NotebookPen,
@@ -122,6 +123,11 @@ export function ClassDetailScreen({ id }: { id: string }) {
             <Button variant="secondary" size="sm" asChild iconLeft={NotebookPen}>
               <Link href="/pruefungen">{t('exams')}</Link>
             </Button>
+            {c.canReview ? (
+              <Button variant="secondary" size="sm" asChild iconLeft={Award}>
+                <Link href={`/noten/klasse/${c.id}`}>{t('grades')}</Link>
+              </Button>
+            ) : null}
             {c.canEdit ? (
               <Button variant="ghost" size="sm" asChild iconLeft={Pencil}>
                 <Link href={`/admin/klassen/${c.id}`}>{t('edit')}</Link>

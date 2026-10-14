@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  Award,
   BookOpen,
   BookOpenCheck,
   CalendarDays,
@@ -33,6 +34,7 @@ import {
 /** Lucide-Symbole der Navigation, nach Namen aus @sp/shared (kebab-case). */
 export const NAV_ICONS: Record<string, LucideIcon> = {
   sparkles: Sparkles,
+  award: Award,
   'file-check': FileCheck,
   'notebook-pen': NotebookPen,
   house: House,

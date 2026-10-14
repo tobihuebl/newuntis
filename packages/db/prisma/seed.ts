@@ -456,6 +456,64 @@ async function main() {
     });
   }
 
+  // Noten der 3A (PN-02): je Fach eine freigegebene Leistung, in Mathematik dazu ein Test vor der Freigabe.
+  // Eigener Zufallsgenerator, damit die übrigen Demodaten unverändert bleiben.
+  const gradeRand = mulberry32(7);
+  const gradeOf = () => {
+    const r = gradeRand();
+    return r < 0.15 ? 1 : r < 0.45 ? 2 : r < 0.75 ? 3 : r < 0.93 ? 4 : 5;
+  };
+  const grades3A = requirements.filter((r) => r.classId === class3A.id);
+  for (const r of grades3A) {
+    const code = SUBJECTS.find((x) => subjectId.get(x.code) === r.subjectId)!.code;
+    const written = ['M', 'D', 'E'].includes(code);
+    const items = [
+      {
+        kind: written ? ('SCHULARBEIT' as const) : ('TEST' as const),
+        title: written ? '1. Schularbeit' : '1. Test',
+        date: '2026-10-01',
+        released: true,
+      },
+      ...(code === 'M'
+        ? [
+            {
+              kind: 'TEST' as const,
+              title: 'Test Bruchrechnen',
+              date: '2026-10-09',
+              released: false,
+            },
+          ]
+        : []),
+    ];
+    for (const a of items) {
+      const assessmentId = id();
+      await prisma.assessment.create({
+        data: {
+          id: assessmentId,
+          tenantId,
+          schoolYearId,
+          courseKey: `${class3A.id}:${r.subjectId}`,
+          subjectId: r.subjectId,
+          classId: class3A.id,
+          kind: a.kind,
+          title: a.title,
+          date: date(a.date),
+          releasedAt: a.released ? date(a.date) : null,
+          createdById: r.teacherId,
+        },
+      });
+      await prisma.grade.createMany({
+        data: studentsByClass.get(class3A.id)!.map((st) => ({
+          tenantId,
+          assessmentId,
+          studentId: st.id,
+          value: gradeOf(),
+          updatedById: r.teacherId,
+        })),
+      });
+    }
+  }
+
   // Termine für das gleitende Fenster (heute bis heute + 28 Tage), wie es der Job generate-occurrences täte
   const freeDays = await prisma.schoolFreeDay.findMany({ where: { tenantId } });
   const today = DateTime.now().setZone('Europe/Vienna').toISODate()!;

@@ -11,7 +11,8 @@ export type Area =
   | 'konto'
   | 'familie'
   | 'klassenvorstand'
-  | 'stundenplan';
+  | 'stundenplan'
+  | 'noten';
 
 /** Seitentitel mit Bereich als overline (Design System, Layout: overline · h1 · optional body-sm). */
 export function PageTitle({

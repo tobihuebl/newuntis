@@ -53,6 +53,7 @@ const klassenbuch = item('klassenbuch', '/klassenbuch', 'book-open-check', {
   count: 'openEntries',
 });
 const pruefungen = item('pruefungen', '/pruefungen', 'notebook-pen');
+const noten = item('noten', '/noten', 'award');
 const klassen = item('klassen', '/klassen', 'users');
 const raeume = item('raeume', '/raeume', 'door-open');
 const krankmeldung = item('krankmeldung', '/krankmeldung', 'thermometer');
@@ -81,6 +82,7 @@ const TEACHER_ROUTES = [
   '/pruefungen',
   '/krankmeldung',
   '/noten',
+  '/noten/kurs',
   '/raeume',
   '/plan',
 ];
@@ -93,10 +95,16 @@ const NAV: Record<Role, RoleNav> = {
     tabs: [plan, item('hausuebungen', '/aufgaben', 'list-checks'), primary(heute), chat, mehr],
     sections: [
       {
-        items: [heute, stundenplan, item('hausuebungen', '/aufgaben', 'list-checks'), nachrichten],
+        items: [
+          heute,
+          stundenplan,
+          item('hausuebungen', '/aufgaben', 'list-checks'),
+          noten,
+          nachrichten,
+        ],
       },
     ],
-    routes: ['/noten', '/abwesenheit/neu'],
+    routes: ['/abwesenheit/neu'],
   },
   GUARDIAN: {
     home: '/heute',
@@ -114,6 +122,7 @@ const NAV: Record<Role, RoleNav> = {
           stundenplan,
           item('abwesenheit', '/abwesenheit/neu', 'user-round-x'),
           item('termine', '/termine', 'calendar-range'),
+          noten,
           nachrichten,
         ],
       },
@@ -124,7 +133,7 @@ const NAV: Record<Role, RoleNav> = {
     home: '/heute',
     tabs: [heute, plan, primary(klassenbuch), chat, mehr],
     sections: [
-      { items: [heute, stundenplan, klassenbuch, pruefungen, nachrichten] },
+      { items: [heute, stundenplan, klassenbuch, pruefungen, noten, nachrichten] },
       { labelKey: 'schule', items: [klassen, raeume, krankmeldung] },
     ],
     routes: TEACHER_ROUTES,
@@ -140,6 +149,7 @@ const NAV: Record<Role, RoleNav> = {
           klassenbuch,
           item('meineKlasse', '/klasse', 'graduation-cap'),
           pruefungen,
+          noten,
           nachrichten,
         ],
       },
@@ -151,6 +161,7 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
       '/klasse/[id]/vermerke',
+      '/noten/klasse/[id]',
       '/klassen',
       '/auswertung',
     ],
@@ -192,6 +203,8 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
       '/klasse/[id]/vermerke', // KB-07: Vermerke (nicht für die Administration)
+      '/noten/kurs', // PN-02: Noten lesen, über die Klassenseite
+      '/noten/klasse/[id]',
       // Stammdaten: Direktion darf lesen
       '/admin/personen/[id]',
       '/admin/klassen/[id]',
@@ -249,6 +262,8 @@ const NAV: Record<Role, RoleNav> = {
       '/klassen/[id]',
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
+      '/noten/kurs', // PN-02: Noten lesen, über die Klassenseite
+      '/noten/klasse/[id]',
       // Lagebild verlinkt Prüfungen und offene Klassenbucheinträge (lesen)
       '/pruefungen',
       '/klassenbuch/[occurrenceId]',

@@ -41,6 +41,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await check(page, '/nachrichten');
       await check(page, '/nachrichten/neu');
       await check(page, '/raeume');
+      await check(page, '/noten');
     });
 
     test('Einführung nach dem ersten Login', async ({ page }) => {
@@ -65,6 +66,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await check(page, '/aufgaben');
       await check(page, '/profil');
       await check(page, '/benachrichtigungen');
+      await check(page, '/noten');
       await check(page, '/nachrichten?ansicht=rundschreiben');
     });
 

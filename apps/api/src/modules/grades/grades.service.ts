@@ -501,7 +501,7 @@ export class GradesService {
     for (const l of links)
       await this.notifications.emit(tx, tenantId, 'grade.released', [l.guardianId], {
         params,
-        url: `/noten?kind=${l.studentId}`,
+        url: `/noten?child=${l.studentId}`,
       });
     await this.audit.record({
       tenantId,
