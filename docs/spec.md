@@ -140,7 +140,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - AB-02 MVP: Klassenvorstand nimmt an oder lehnt ab, mit Kommentar
 - AB-03 MVP: Erinnerung bei fehlender Entschuldigung, Fristen pro Schule konfigurierbar
 - AB-04 MVP: Lehrer-Abwesenheit (Krankmeldung) löst Supplierung aus
-- AB-05 V1: Frühwarnung bei Häufung von Fehlzeiten
+- AB-05 V1: Frühwarnung bei Häufung von Fehlzeiten — umgesetzt: Schwellen je Schule, Hinweis an den Klassenvorstand, Karte im Lagebild (ADR 0015)
 - AB-06 V1: Freistellungen und Fortbildungen mit Genehmigung durch die Direktion
 
 ### Supplierung (SU)

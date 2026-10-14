@@ -18,6 +18,7 @@ import {
   examCollisions,
   nextWeekday,
   type ExamItem,
+  type AbsenceWarningItem,
   type AttendanceReport,
   type PrincipalDashboard,
   type TimelineKind,
@@ -200,6 +201,7 @@ export function DashboardScreen() {
                   </ul>
                 )}
               </Card>
+              <WarningsCard />
               {d.teachersAbsent.length > 0 ? (
                 <Card className="flex flex-col gap-3">
                   <CardTitle as="h2">{t('absentTeachers')}</CardTitle>
@@ -325,5 +327,43 @@ export function DashboardScreen() {
         </>
       )}
     </div>
+  );
+}
+
+/** Frühwarnung Fehlzeiten (AB-05): Klassen mit Schüler:innen über der Warnschwelle, Weg zum Klassenvorstand-Reiter. */
+function WarningsCard() {
+  const t = useT('dashboard');
+  const q = useApi<{ data: AbsenceWarningItem[] }>(['absences', 'warnings'], '/absences/warnings');
+  const list = q.data?.data ?? [];
+  if (list.length === 0) return null;
+  const byClass = new Map<string, { name: string; count: number }>();
+  for (const w of list) {
+    const c = byClass.get(w.classId) ?? { name: w.className, count: 0 };
+    c.count++;
+    byClass.set(w.classId, c);
+  }
+  return (
+    <Card className="flex flex-col gap-3">
+      <CardTitle as="h2" className="flex items-center gap-2">
+        <TriangleAlert aria-hidden="true" className="size-5 text-signal-ink" />
+        {t('warnings', { count: list.length })}
+      </CardTitle>
+      <CardSub className="mt-0">{t('warningsHelp')}</CardSub>
+      <ul className="flex flex-col divide-y divide-line">
+        {[...byClass.entries()]
+          .sort((a, b) => a[1].name.localeCompare(b[1].name, 'de'))
+          .map(([id, c]) => (
+            <li key={id}>
+              <Link
+                href={`/klasse/${id}/fehlzeiten`}
+                className="pf-focusable flex min-h-11 items-center justify-between gap-3 py-2 hover:text-brand-text"
+              >
+                <span className="text-label">{c.name}</span>
+                <Chip tone="late">{t('warningsStudents', { count: c.count })}</Chip>
+              </Link>
+            </li>
+          ))}
+      </ul>
+    </Card>
   );
 }

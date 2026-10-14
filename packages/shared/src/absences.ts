@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { dateSchema } from './masterdata';
+import { addDays } from './timetable';
 
 export const ABSENCE_STATUSES = ['OPEN', 'REPORTED', 'EXCUSED', 'REJECTED', 'UNEXCUSED'] as const;
 export type AbsenceStatusName = (typeof ABSENCE_STATUSES)[number];
@@ -135,4 +136,70 @@ export function absenceBlocks(
     } else out.push({ fromAt: l.startsAt, toAt: l.endsAt, lessons: 1 });
   }
   return out;
+}
+
+// ───────────────────────── Frühwarnung (AB-05) ─────────────────────────
+
+export const ABSENCE_WARNING_KINDS = ['UNEXCUSED', 'FREQUENT'] as const;
+export type AbsenceWarningKind = (typeof ABSENCE_WARNING_KINDS)[number];
+
+export interface AbsenceWarningOptions {
+  /** Heute (YYYY-MM-DD, Europe/Vienna). */
+  today: string;
+  /** Beginn des Schuljahres (YYYY-MM-DD) für die unentschuldigten Stunden. */
+  yearStart: string;
+  warnUnexcusedLessons: number;
+  warnLessons: number;
+  warnWindowDays: number;
+}
+
+export interface AbsenceWarning {
+  studentId: string;
+  /** Unentschuldigte Fehlstunden im Schuljahr (abgelehnt oder nicht entschuldigt). */
+  unexcused: number;
+  /** Fehlstunden insgesamt in den letzten `warnWindowDays` Tagen. */
+  recent: number;
+  kinds: AbsenceWarningKind[];
+}
+
+export interface AbsenceWarningItem extends AbsenceWarning {
+  name: string;
+  classId: string;
+  className: string;
+}
+
+/**
+ * Frühwarnung bei Häufung von Fehlzeiten (AB-05), reine Funktion. Gezählt werden im Klassenbuch als abwesend
+ * eingetragene Stunden; unentschuldigt ist eine Stunde, wenn die Fehlzeit, die sie abdeckt, abgelehnt oder als
+ * unentschuldigt markiert ist. Liefert nur Schüler:innen über mindestens einer Schwelle, die meisten Stunden zuerst.
+ */
+export function absenceWarnings(
+  lessons: { studentId: string; date: string; startsAt: Date }[],
+  absences: { studentId: string; fromAt: Date; toAt: Date; status: AbsenceStatusName }[],
+  o: AbsenceWarningOptions,
+): AbsenceWarning[] {
+  const windowStart = addDays(o.today, -(o.warnWindowDays - 1));
+  const byStudent = new Map<string, { unexcused: number; recent: number }>();
+  for (const l of lessons) {
+    if (l.date < o.yearStart || l.date > o.today) continue;
+    const row = byStudent.get(l.studentId) ?? { unexcused: 0, recent: 0 };
+    const cover = absences.find(
+      (a) => a.studentId === l.studentId && a.fromAt <= l.startsAt && l.startsAt < a.toAt,
+    );
+    if (cover && (cover.status === 'UNEXCUSED' || cover.status === 'REJECTED')) row.unexcused++;
+    if (l.date >= windowStart) row.recent++;
+    byStudent.set(l.studentId, row);
+  }
+  const out: AbsenceWarning[] = [];
+  for (const [studentId, r] of byStudent) {
+    const kinds: AbsenceWarningKind[] = [];
+    if (o.warnUnexcusedLessons > 0 && r.unexcused >= o.warnUnexcusedLessons)
+      kinds.push('UNEXCUSED');
+    if (o.warnLessons > 0 && r.recent >= o.warnLessons) kinds.push('FREQUENT');
+    if (kinds.length) out.push({ studentId, ...r, kinds });
+  }
+  return out.sort(
+    (a, b) =>
+      b.unexcused - a.unexcused || b.recent - a.recent || a.studentId.localeCompare(b.studentId),
+  );
 }

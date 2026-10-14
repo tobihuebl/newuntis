@@ -129,6 +129,7 @@ model Person {
   teacherSubjects         TeacherSubject[]
   remarksAbout            ClassbookRemark[]        @relation("RemarkStudent")
   remarksWritten          ClassbookRemark[]        @relation("RemarkAuthor")
+  absenceWarnings         AbsenceWarning[]
   requirements            LessonRequirement[]
   attendances             Attendance[]
   absences                Absence[]
@@ -233,6 +234,7 @@ model SchoolYear {
   timetables          TimetableVersion[]
   planningConstraints PlanningConstraint[]
   planningRuns        PlanningRun[]
+  absenceWarnings     AbsenceWarning[]
 
   @@unique([tenantId, name])
   @@index([tenantId, isCurrent])
@@ -611,6 +613,27 @@ model Absence {
 
   @@index([tenantId, studentId, fromAt])
   @@index([tenantId, status])
+}
+
+enum AbsenceWarningKind {
+  UNEXCUSED
+  FREQUENT
+}
+
+/// Frühwarnung (AB-05): wann der Klassenvorstand zuletzt gewarnt wurde, damit dieselbe Warnung nicht täglich kommt.
+model AbsenceWarning {
+  id           String             @id @default(cuid())
+  tenantId     String
+  studentId    String
+  schoolYearId String
+  kind         AbsenceWarningKind
+  notifiedAt   DateTime           @db.Timestamptz(3)
+
+  student    Person     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, schoolYearId, kind])
+  @@index([tenantId, schoolYearId])
 }
 
 model TeacherAbsence {

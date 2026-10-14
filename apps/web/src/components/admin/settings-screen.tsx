@@ -30,6 +30,9 @@ const SECTIONS: { key: SectionKey; id: string; fields: Field[] }[] = [
       { key: 'excuseDeadlineDays', kind: 'int', min: 0 },
       { key: 'attachmentRequiredFromDays', kind: 'int', min: 1 },
       { key: 'reminderAfterDays', kind: 'intList', min: 0 },
+      { key: 'warnUnexcusedLessons', kind: 'int', min: 0, max: 200 },
+      { key: 'warnLessons', kind: 'int', min: 0, max: 500 },
+      { key: 'warnWindowDays', kind: 'int', min: 7, max: 120 },
     ],
   },
   {

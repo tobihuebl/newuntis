@@ -2,11 +2,12 @@
 import { Check, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import type { AbsenceItem } from '@sp/shared';
+import type { AbsenceItem, AbsenceWarningItem } from '@sp/shared';
 import {
   Banner,
   Button,
   Card,
+  Chip,
   EmptyState,
   SegmentedNav,
   Sheet,
@@ -248,58 +249,61 @@ export function ClassAbsences({
           {section('decided-h', t('decided'), decided)}
         </>
       ) : (
-        <section aria-labelledby="per-student" className="flex flex-col gap-3">
-          <h2 id="per-student" className="text-h3">
-            {t('perStudent')}
-          </h2>
-          {perStudent.size === 0 ? (
-            <Card flat>
-              <EmptyState as="h3" title={ta('listEmpty')} />
-            </Card>
-          ) : (
-            <Card className="overflow-x-auto p-0">
-              <table className="w-full text-body-sm">
-                <thead>
-                  <tr className="text-left text-label text-ink-muted">
-                    <th scope="col" className="px-4 py-2">
-                      {t('students')}
-                    </th>
-                    <th scope="col" className="px-4 py-2 text-right">
-                      {t('excused')}
-                    </th>
-                    <th scope="col" className="px-4 py-2 text-right">
-                      {t('unexcused')}
-                    </th>
-                    <th scope="col" className="px-4 py-2 text-right">
-                      {t('pending')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...perStudent.values()]
-                    .sort((a, b) => a.name.localeCompare(b.name, 'de'))
-                    .map((r) => (
-                      <tr key={r.name} className="border-t border-line">
-                        <th scope="row" className="px-4 py-2 text-left text-body-sm">
-                          {r.name}
-                        </th>
-                        <td className="px-4 py-2 text-right text-mono">{r.excused}</td>
-                        <td
-                          className={cn(
-                            'px-4 py-2 text-right text-mono',
-                            r.unexcused > 0 && 'text-signal-ink',
-                          )}
-                        >
-                          {r.unexcused}
-                        </td>
-                        <td className="px-4 py-2 text-right text-mono">{r.pending}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </Card>
-          )}
-        </section>
+        <>
+          <ClassWarnings classId={classId} />
+          <section aria-labelledby="per-student" className="flex flex-col gap-3">
+            <h2 id="per-student" className="text-h3">
+              {t('perStudent')}
+            </h2>
+            {perStudent.size === 0 ? (
+              <Card flat>
+                <EmptyState as="h3" title={ta('listEmpty')} />
+              </Card>
+            ) : (
+              <Card className="overflow-x-auto p-0">
+                <table className="w-full text-body-sm">
+                  <thead>
+                    <tr className="text-left text-label text-ink-muted">
+                      <th scope="col" className="px-4 py-2">
+                        {t('students')}
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-right">
+                        {t('excused')}
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-right">
+                        {t('unexcused')}
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-right">
+                        {t('pending')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...perStudent.values()]
+                      .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+                      .map((r) => (
+                        <tr key={r.name} className="border-t border-line">
+                          <th scope="row" className="px-4 py-2 text-left text-body-sm">
+                            {r.name}
+                          </th>
+                          <td className="px-4 py-2 text-right text-mono">{r.excused}</td>
+                          <td
+                            className={cn(
+                              'px-4 py-2 text-right text-mono',
+                              r.unexcused > 0 && 'text-signal-ink',
+                            )}
+                          >
+                            {r.unexcused}
+                          </td>
+                          <td className="px-4 py-2 text-right text-mono">{r.pending}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </Card>
+            )}
+          </section>
+        </>
       )}
       <Sheet
         open={current !== null}
@@ -333,5 +337,44 @@ export function ClassAbsences({
         </div>
       </Sheet>
     </div>
+  );
+}
+
+/**
+ * Frühwarnung (AB-05) im Reiter "Fehlzeiten": Schüler:innen über einer Warnschwelle der Schule, mit den Zahlen,
+ * die die Warnung auslösen. Schwellen in den Schuleinstellungen.
+ */
+function ClassWarnings({ classId }: { classId: string }) {
+  const t = useT('klasse');
+  const q = useApi<{ data: AbsenceWarningItem[] }>(
+    ['absences', 'warnings', classId],
+    `/absences/warnings?classId=${classId}`,
+  );
+  const list = q.data?.data ?? [];
+  if (list.length === 0) return null;
+  return (
+    <section aria-labelledby="warnings-h" className="flex flex-col gap-3">
+      <Banner tone="signal" icon={TriangleAlert}>
+        <h2 id="warnings-h" className="text-body-strong">
+          {t('warnings', { count: list.length })}
+        </h2>
+        <p className="text-body-sm">{t('warningsHelp')}</p>
+      </Banner>
+      <Card className="p-0">
+        <ul className="flex flex-col divide-y divide-line">
+          {list.map((w) => (
+            <li key={w.studentId} className="flex flex-wrap items-center gap-2 px-4 py-3">
+              <span className="flex-1 text-label">{w.name}</span>
+              {w.kinds.includes('UNEXCUSED') ? (
+                <Chip tone="danger">{t('warnUnexcused', { count: w.unexcused })}</Chip>
+              ) : null}
+              {w.kinds.includes('FREQUENT') ? (
+                <Chip tone="late">{t('warnFrequent', { count: w.recent })}</Chip>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </section>
   );
 }

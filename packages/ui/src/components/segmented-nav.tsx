@@ -36,7 +36,8 @@ export function SegmentedNav({ label, items, linkAs: Link, className }: Segmente
           href={i.href}
           aria-current={i.current ? 'page' : undefined}
           className={cn(
-            'pf-focusable inline-flex min-h-10 min-w-(--tap-min) items-center justify-center rounded-pill px-4 text-label transition-colors duration-150',
+            // Mobil schmaler, damit drei Ansichten bei 390 px in eine Zeile passen
+            'pf-focusable inline-flex min-h-10 min-w-(--tap-min) items-center justify-center rounded-pill px-3 text-label transition-colors duration-150 sm:px-4',
             i.current ? 'bg-bg-raised text-ink shadow-card' : 'text-ink-muted hover:text-ink',
           )}
         >

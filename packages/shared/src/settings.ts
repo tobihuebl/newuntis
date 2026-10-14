@@ -17,8 +17,23 @@ export const tenantSettingsSchema = z.object({
       attachmentRequiredFromDays: z.number().int().min(1).default(3),
       /** Erinnerungen an Eltern so viele Tage nach Beginn einer offenen Fehlzeit. */
       reminderAfterDays: z.array(z.number().int().min(0)).default([1, 4]),
+      /**
+       * Frühwarnung (AB-05): unentschuldigte Fehlstunden im Schuljahr, ab denen der Klassenvorstand gewarnt wird
+       * (0 = aus). Standard bewusst unter der Grenze des Schulpflichtgesetzes (15 Stunden im Semester).
+       */
+      warnUnexcusedLessons: z.number().int().min(0).max(200).default(10),
+      /** Frühwarnung: Fehlstunden insgesamt (auch entschuldigt) in den letzten `warnWindowDays` Tagen (0 = aus). */
+      warnLessons: z.number().int().min(0).max(500).default(30),
+      warnWindowDays: z.number().int().min(7).max(120).default(30),
     })
-    .default({ excuseDeadlineDays: 7, attachmentRequiredFromDays: 3, reminderAfterDays: [1, 4] }),
+    .default({
+      excuseDeadlineDays: 7,
+      attachmentRequiredFromDays: 3,
+      reminderAfterDays: [1, 4],
+      warnUnexcusedLessons: 10,
+      warnLessons: 30,
+      warnWindowDays: 30,
+    }),
   exams: z
     .object({
       maxPerDayPerClass: z.number().int().min(1).default(1),
