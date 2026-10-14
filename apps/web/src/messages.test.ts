@@ -42,6 +42,7 @@ describe('Ton und Anrede', () => {
       'timetable',
       'dashboard',
       'absence',
+      'assistant',
     ];
     const du = /\b(du|dich|dir|dein|deine|deinen|deinem|deiner|deines)\b/i;
     const bad = all.filter(([k, v]) => formalOnly.includes(k.split('/')[0]!) && du.test(v));

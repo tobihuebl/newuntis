@@ -217,6 +217,7 @@ const NAV: Record<Role, RoleNav> = {
         items: [
           item('uebersicht', '/admin', 'layout-dashboard'),
           adminStundenplan,
+          item('assistent', '/admin/assistent', 'sparkles'),
           item('import', '/admin/import', 'upload'),
           item('rechte', '/admin/rollen', 'shield-check'),
           nachrichten,

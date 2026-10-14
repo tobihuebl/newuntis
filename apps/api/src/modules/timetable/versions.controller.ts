@@ -41,6 +41,7 @@ import {
   asDate,
   fullConflicts,
   iso,
+  loadEditorRules,
   lessonInclude,
   loadRules,
   loadValidationContext,
@@ -203,33 +204,35 @@ export class VersionsController {
     const tz = (
       await tx.tenant.findUniqueOrThrow({ where: { id: tenantId }, select: { timezone: true } })
     ).timezone;
-    const [lessons, context, subjects, classes, groups, rooms, teachers] = await Promise.all([
-      loadRules(tx, id),
-      loadValidationContext(tx, v.schoolYearId, todayIn(tz)),
-      tx.subject.findMany({
-        orderBy: { name: 'asc' },
-        select: { id: true, name: true, code: true, color: true },
-      }),
-      tx.schoolClass.findMany({
-        where: { schoolYearId: v.schoolYearId },
-        orderBy: { name: 'asc' },
-        select: { id: true, name: true },
-      }),
-      tx.group.findMany({
-        where: { schoolYearId: v.schoolYearId },
-        orderBy: { name: 'asc' },
-        select: { id: true, name: true },
-      }),
-      tx.room.findMany({
-        orderBy: { name: 'asc' },
-        select: { id: true, name: true, capacity: true },
-      }),
-      tx.person.findMany({
-        where: { kind: 'TEACHER', anonymizedAt: null },
-        orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
-        select: { id: true, firstName: true, lastName: true },
-      }),
-    ]);
+    const [lessons, context, extras, subjects, classes, groups, rooms, teachers] =
+      await Promise.all([
+        loadRules(tx, id),
+        loadValidationContext(tx, v.schoolYearId, todayIn(tz)),
+        loadEditorRules(tx, tenantId, v.schoolYearId),
+        tx.subject.findMany({
+          orderBy: { name: 'asc' },
+          select: { id: true, name: true, code: true, color: true },
+        }),
+        tx.schoolClass.findMany({
+          where: { schoolYearId: v.schoolYearId },
+          orderBy: { name: 'asc' },
+          select: { id: true, name: true },
+        }),
+        tx.group.findMany({
+          where: { schoolYearId: v.schoolYearId },
+          orderBy: { name: 'asc' },
+          select: { id: true, name: true },
+        }),
+        tx.room.findMany({
+          orderBy: { name: 'asc' },
+          select: { id: true, name: true, capacity: true },
+        }),
+        tx.person.findMany({
+          where: { kind: 'TEACHER', anonymizedAt: null },
+          orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+          select: { id: true, firstName: true, lastName: true },
+        }),
+      ]);
     return {
       version: {
         id: v.id,
@@ -255,7 +258,9 @@ export class VersionsController {
         preferDouble: r.preferDouble,
       })),
       periods: context.periods,
-      context,
+      // Prüfkontext für die Live-Prüfung im Browser: mit weichen Regeln und Wünschen (M7)
+      context: { ...context, soft: extras.soft },
+      constraints: extras.constraints,
       subjects,
       classes,
       groups,

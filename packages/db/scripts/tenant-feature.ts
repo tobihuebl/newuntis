@@ -28,7 +28,9 @@ async function main() {
   settings.features.autoPlanning = flag === 'on';
   await prisma.tenant.update({ where: { id: tenant.id }, data: { settings } });
   await prisma.$disconnect();
-  console.log(`${slug}: Stundenplan-Assistent ${flag === 'on' ? 'freigeschaltet' : 'abgeschaltet'}.`);
+  console.log(
+    `${slug}: Stundenplan-Assistent ${flag === 'on' ? 'freigeschaltet' : 'abgeschaltet'}.`,
+  );
 }
 
 main().catch((e) => {

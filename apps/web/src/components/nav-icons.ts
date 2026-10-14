@@ -20,6 +20,7 @@ import {
   NotebookPen,
   ScrollText,
   Settings,
+  Sparkles,
   Thermometer,
   ShieldCheck,
   Upload,
@@ -31,6 +32,7 @@ import {
 
 /** Lucide-Symbole der Navigation, nach Namen aus @sp/shared (kebab-case). */
 export const NAV_ICONS: Record<string, LucideIcon> = {
+  sparkles: Sparkles,
   'file-check': FileCheck,
   'notebook-pen': NotebookPen,
   house: House,

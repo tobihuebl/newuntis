@@ -100,6 +100,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await check(page, '/admin/datenschutz');
       await check(page, '/admin/einstellungen');
       await check(page, '/admin/rollen');
+      await check(page, '/admin/assistent');
     });
   });
 }

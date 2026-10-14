@@ -48,6 +48,7 @@ const ROUTES: Record<string, string[]> = {
     '/admin/datenschutz',
     '/admin/einstellungen',
     '/admin/stundenplan',
+    '/admin/assistent',
   ],
   guardianEmail: ['/heute', '/plan', '/abwesenheit/neu', '/termine', '/nachrichten', '/profil'],
   studentEmail: ['/heute', '/plan', '/aufgaben', '/nachrichten', '/profil'],

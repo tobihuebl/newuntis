@@ -115,6 +115,18 @@ export async function loadPlanningConstraints(
   }));
 }
 
+/** Tagesbelastung aus den Schuleinstellungen und aktive Wünsche: Zusatz zum Prüfkontext des Editors. */
+export async function loadEditorRules(tx: Tx, tenantId: string, schoolYearId: string) {
+  const [tenant, constraints] = await Promise.all([
+    tx.tenant.findUniqueOrThrow({ where: { id: tenantId }, select: { settings: true } }),
+    loadPlanningConstraints(tx, schoolYearId),
+  ]);
+  return {
+    soft: { dayLoadMax: tenantSettingsSchema.parse(tenant.settings).timetable.dayLoadMax },
+    constraints,
+  };
+}
+
 /**
  * Vollständige Prüfung für Editor und Veröffentlichung: harte Regeln (Spec Abschnitt 10), weiche Regeln (SP-06,
  * Tagesbelastung aus den Schuleinstellungen) und Planungswünsche. Wünsche sind im Editor Warnungen: Der Solver
@@ -128,11 +140,7 @@ export async function fullConflicts(
   ctx: ValidationContext,
   change?: { lesson: LessonRule },
 ): Promise<Conflict[]> {
-  const [tenant, constraints] = await Promise.all([
-    tx.tenant.findUniqueOrThrow({ where: { id: tenantId }, select: { settings: true } }),
-    loadPlanningConstraints(tx, schoolYearId),
-  ]);
-  const { timetable } = tenantSettingsSchema.parse(tenant.settings);
+  const { soft, constraints } = await loadEditorRules(tx, tenantId, schoolYearId);
   const all = change
     ? [...lessons.filter((l) => l.id !== change.lesson.id), change.lesson]
     : lessons;
@@ -141,7 +149,7 @@ export async function fullConflicts(
     severity: 'soft' as const,
   }));
   const result = [
-    ...validateTimetable(lessons, { ...ctx, soft: { dayLoadMax: timetable.dayLoadMax } }, change),
+    ...validateTimetable(lessons, { ...ctx, soft }, change),
     ...(change ? wishes.filter((c) => c.lessonIds.includes(change.lesson.id)) : wishes),
   ];
   return result;

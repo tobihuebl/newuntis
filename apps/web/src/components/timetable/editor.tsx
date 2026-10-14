@@ -1,24 +1,27 @@
 'use client';
-import { Check, Plus, Redo2, Trash2, TriangleAlert, Undo2, X } from 'lucide-react';
+import { Check, Pin, Plus, Redo2, Sparkles, Trash2, TriangleAlert, Undo2, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  checkConstraints,
   fachColorOf,
   validateTimetable,
   type Conflict,
+  type CoverageRow,
+  type PlanningConstraint,
   type LessonRule,
   type PeriodInfo,
   type ValidationContext,
   type WeekPattern,
 } from '@sp/shared';
-import { Banner, Chip, Button, Card, Checkbox, Input, Select, Sheet, cn } from '@sp/ui';
+import { Banner, Chip, Button, Card, Checkbox, Input, Select, Sheet, Switch, cn } from '@sp/ui';
 import { ApiError, apiRequest } from '../../lib/api-client';
 import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 
 // ───────────────────────── Typen ─────────────────────────
-type EditorLesson = LessonRule & { version: number };
+type EditorLesson = LessonRule & { version: number; pinned?: boolean };
 type Fields = Omit<LessonRule, 'id'>;
 interface Requirement {
   id: string;
@@ -47,6 +50,9 @@ export interface EditorPayload {
   groups: { id: string; name: string }[];
   rooms: { id: string; name: string; capacity: number | null }[];
   teachers: { id: string; firstName: string; lastName: string }[];
+  /** Aktive Planungswünsche des Schuljahres (M7); Verstöße sind Warnungen. */
+  constraints?: PlanningConstraint[];
+  coverage?: CoverageRow[];
 }
 type ViewKind = 'class' | 'teacher' | 'room';
 type Op =
@@ -79,12 +85,15 @@ export function TimetableEditor({
   canEdit,
   canPublish,
   today,
+  assistant = false,
 }: {
   initial: EditorPayload;
   csrfToken: string;
   canEdit: boolean;
   canPublish: boolean;
   today: string;
+  /** Stundenplan-Assistent freigeschaltet: Link "Vorschlag erstellen" (M7). */
+  assistant?: boolean;
 }) {
   const t = useT('timetable');
   const d = useT('days');
@@ -92,6 +101,7 @@ export function TimetableEditor({
   const router = useRouter();
   const editable = canEdit && initial.version.status === 'DRAFT';
   const { periods, context, subjects, classes, groups, rooms, teachers } = initial;
+  const constraints = initial.constraints ?? [];
 
   const [lessons, setLessons] = useState<EditorLesson[]>(initial.lessons);
   const [requirements, setRequirements] = useState<Requirement[]>(initial.requirements);
@@ -112,8 +122,10 @@ export function TimetableEditor({
   const [publishResult, setPublishResult] = useState<{
     error?: string;
     conflicts?: Conflict[];
+    coverage?: CoverageRow[];
     created?: number;
   } | null>(null);
+  const [acceptCoverage, setAcceptCoverage] = useState(false);
   const aliases = useRef(new Map<string, string>()); // nach Rückgängig/Wiederholen neu angelegte Regeln haben neue IDs
   const lessonsRef = useRef(lessons);
   lessonsRef.current = lessons;
@@ -135,11 +147,21 @@ export function TimetableEditor({
   const lessonLabel = (l: LessonRule) => `${S.get(l.subjectId)?.code ?? '?'} ${targetName(l)}`;
 
   // ───────────── Live-Prüfung ─────────────
-  const conflicts = useMemo(() => validateTimetable(lessons, context), [lessons, context]);
+  // Harte und weiche Regeln (Kontext mit Tagesbelastung vom Server) und Planungswünsche als Warnung (ADR 0012)
+  const conflicts = useMemo(
+    () => [
+      ...validateTimetable(lessons, context),
+      ...checkConstraints(lessons, constraints).map((cf) => ({ ...cf, severity: 'soft' as const })),
+    ],
+    [lessons, context, constraints],
+  );
   const severity = useMemo(() => {
     const m = new Map<string, 'hard' | 'soft'>();
+    // Kacheln markieren nur Konflikte einzelner Stunden; Tagesregeln (Hohlstunden …) stehen im Panel
+    const perLesson = new Set(['ROOM_CAPACITY', 'WISH_VIOLATED']);
     for (const cf of conflicts)
-      for (const id of cf.lessonIds) if (m.get(id) !== 'hard') m.set(id, cf.severity);
+      if (cf.severity === 'hard' || perLesson.has(cf.code))
+        for (const id of cf.lessonIds) if (m.get(id) !== 'hard') m.set(id, cf.severity);
     return m;
   }, [conflicts]);
   const hardCount = conflicts.filter((x) => x.severity === 'hard').length;
@@ -428,6 +450,19 @@ export function TimetableEditor({
     ).catch(() => undefined);
     setRequirements((rs) => rs.filter((r) => r.id !== id));
   }
+  /** Festpinnen (M7): Der Assistent lässt die Stunde bei einem Lauf unverändert. */
+  async function togglePin(id: string, pinned: boolean) {
+    const set = (v: boolean) =>
+      setLessons((ls) => ls.map((l) => (l.id === id ? { ...l, pinned: v } : l)));
+    set(pinned);
+    await apiRequest(
+      'PATCH',
+      `/admin/timetable-versions/${initial.version.id}/lessons/${id}/pin`,
+      { pinned },
+      csrfToken,
+    ).catch(() => set(!pinned));
+  }
+
   async function publish(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const validFrom = String(new FormData(e.currentTarget).get('validFrom'));
@@ -436,7 +471,7 @@ export function TimetableEditor({
       const res = await apiRequest<{ generated: { created: number } }>(
         'POST',
         `/admin/timetable-versions/${initial.version.id}/publish`,
-        { validFrom },
+        { validFrom, acceptCoverage },
         csrfToken,
       );
       setPublishResult({ created: res.generated.created });
@@ -446,6 +481,7 @@ export function TimetableEditor({
         setPublishResult({
           error: err.problem.title,
           conflicts: (err.problem.conflicts as Conflict[] | undefined) ?? undefined,
+          coverage: (err.problem.coverage as CoverageRow[] | undefined) ?? undefined,
         });
       else setPublishResult({ error: c('error') });
     }
@@ -565,6 +601,11 @@ export function TimetableEditor({
                   ? status.message
                   : ''}
           </span>
+          {assistant && canEdit ? (
+            <Button variant="secondary" asChild iconLeft={Sparkles}>
+              <Link href={`/admin/assistent?version=${initial.version.id}`}>{t('assistant')}</Link>
+            </Button>
+          ) : null}
           {canPublish && initial.version.status === 'DRAFT' ? (
             <Button
               onClick={() => {
@@ -800,6 +841,9 @@ export function TimetableEditor({
                         >
                           {sev === 'hard' ? <TriangleAlert aria-hidden="true" /> : null}
                           <span>
+                            {l.pinned ? (
+                              <Pin aria-label={t('pinned')} className="mr-0.5 inline size-3" />
+                            ) : null}
                             {S.get(l.subjectId)?.code}
                             {l.weekPattern !== 'EVERY' ? ` (${l.weekPattern})` : ''}
                           </span>
@@ -975,6 +1019,13 @@ export function TimetableEditor({
                 }))}
               />
             </div>
+            {editing ? (
+              <Switch
+                checked={!!editing.pinned}
+                label={t('pinLabel')}
+                onCheckedChange={(v) => void togglePin(editing.id, v)}
+              />
+            ) : null}
             <div className="flex flex-wrap justify-between gap-2">
               {editing ? (
                 <div className="flex gap-2">
@@ -1095,7 +1146,27 @@ export function TimetableEditor({
                     ))}
                   </ul>
                 ) : null}
+                {publishResult.coverage?.length ? (
+                  <ul className="list-disc pl-5 text-body-sm">
+                    {publishResult.coverage.map((cv) => {
+                      const r = requirements.find((x) => x.id === cv.requirementId);
+                      return (
+                        <li key={cv.requirementId}>
+                          {r ? `${S.get(r.subjectId)?.name ?? '?'} ${targetName(r)}: ` : ''}
+                          {t('coverageRow', { planned: cv.planned, required: cv.required })}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
               </Banner>
+            ) : null}
+            {publishResult?.coverage?.length ? (
+              <Checkbox
+                label={t('acceptCoverage')}
+                checked={acceptCoverage}
+                onChange={(e) => setAcceptCoverage(e.target.checked)}
+              />
             ) : null}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setSheet(null)}>
