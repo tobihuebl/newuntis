@@ -99,7 +99,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - PL-03 MVP: Profil, Benachrichtigungseinstellungen, Dark Mode, Sprache
 - PL-04 MVP: Eltern mit mehreren Kindern: Umschalten mit einem Tap
 - PL-05 V1: Single Sign-on (Microsoft, Google, OIDC der Schule)
-- PL-06 V1: Globale Suche (Strg/Cmd+K) nach Personen, Klassen, Räumen
+- PL-06 V1: Globale Suche (Strg/Cmd+K) nach Personen, Klassen, Räumen — umgesetzt, Treffer nach Rechten der Rolle (ADR 0016)
 - PL-07 V1: Datenauskunft und Kontolöschung durch die Person selbst
 
 ### Stammdaten (SD)

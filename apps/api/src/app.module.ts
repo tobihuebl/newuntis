@@ -20,6 +20,7 @@ import { FilesModule } from './modules/files/files.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TimetableModule } from './modules/timetable/timetable.module';
 import { PlanningModule } from './modules/planning/planning.module';
+import { SearchModule } from './modules/search/search.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthGuard } from './modules/auth/auth.guard';
 import { AuthModule } from './modules/auth/auth.module';
@@ -44,6 +45,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     AdminModule,
     TimetableModule,
     PlanningModule,
+    SearchModule,
     EventsModule,
     NotificationsModule,
     AbsencesModule,

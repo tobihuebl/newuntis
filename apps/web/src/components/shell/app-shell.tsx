@@ -91,6 +91,8 @@ export function AppShell({
   const [mac, setMac] = useState(false);
   const { logout, unsynced, cancel } = useLogout(csrfToken);
   const counts = useNavCounts(view);
+  // Personen, Klassen und Räume suchen (PL-06): nicht in den Ansichten für Schüler:innen und Eltern
+  const entitySearch = view !== null && view !== 'STUDENT' && view !== 'GUARDIAN';
   // Ungelesene Nachrichten und Rundschreiben (aktualisiert über den Echtzeit-Stream)
   const inbox = useApi<{ messages: number; announcements: number }>(['inbox'], '/threads/unread');
   const unread = (inbox.data?.messages ?? 0) + (inbox.data?.announcements ?? 0);
@@ -184,7 +186,9 @@ export function AppShell({
                 className="hidden min-h-(--tap-min) w-full max-w-sm items-center gap-3 rounded-md bg-bg-raised px-4 text-body-sm text-ink-muted ring-control hover:text-ink lg:flex"
               >
                 <Search aria-hidden="true" className="size-4" />
-                <span className="flex-1 text-left">{t('search')}</span>
+                <span className="flex-1 text-left">
+                  {entitySearch ? t('searchAll') : t('search')}
+                </span>
                 <kbd className="text-mono-sm text-ink-subtle">
                   {mac ? t('searchShortcutMac') : t('searchShortcut')}
                 </kbd>
@@ -193,6 +197,17 @@ export function AppShell({
                 <span className="hidden lg:inline-flex">
                   <OfflineChip />
                 </span>
+                {/* Mobil: Suche nach Personen, Klassen und Räumen (PL-06), ohne Tastenkürzel */}
+                {entitySearch ? (
+                  <button
+                    type="button"
+                    onClick={() => setPalette(true)}
+                    aria-label={t('searchAll')}
+                    className="pf-focusable inline-flex size-(--tap-min) items-center justify-center rounded-md text-ink-muted hover:bg-brand-soft hover:text-ink lg:hidden"
+                  >
+                    <Search aria-hidden="true" className="size-5" />
+                  </button>
+                ) : null}
                 <NotificationBell />
                 <button
                   type="button"
@@ -244,7 +259,12 @@ export function AppShell({
             />
           </Sheet>
 
-          <CommandPalette open={palette} onOpenChange={setPalette} items={items} />
+          <CommandPalette
+            open={palette}
+            onOpenChange={setPalette}
+            items={items}
+            entities={entitySearch}
+          />
 
           <Sheet
             open={unsynced > 0}

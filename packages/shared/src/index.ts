@@ -17,3 +17,4 @@ export * from './privacy';
 export * from './brand';
 export * from './design-tokens';
 export * from './planning';
+export * from './search';

@@ -62,10 +62,23 @@ test.describe('Shell Desktop (1280 px)', () => {
     );
 
     await page.keyboard.press('Control+k');
-    const palette = page.getByRole('dialog', { name: 'Seite suchen' });
+    const palette = page.getByRole('dialog', { name: 'Suchen' });
     await expect(palette).toBeVisible();
     await palette.getByRole('combobox').fill('rundschr');
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/rundschreiben$/);
+  });
+
+  test('Globale Suche (PL-06): Klassen und Personen nach Rechten', async ({ page }) => {
+    // Lehrkraft: Klasse finden und ihren Stundenplan öffnen
+    await login(page, accounts().teacherEmail, /\/heute$/);
+    await page.keyboard.press('Control+k');
+    const palette = page.getByRole('dialog', { name: 'Suchen' });
+    await palette.getByRole('combobox').fill('3A');
+    const option = palette.getByRole('option', { name: /^3A/ });
+    await expect(option).toBeVisible();
+    await expect(palette.getByRole('group', { name: 'Klassen' })).toBeVisible();
+    await option.click();
+    await expect(page).toHaveURL(/\/plan\?class=/);
   });
 });

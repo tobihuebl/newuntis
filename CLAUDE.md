@@ -100,11 +100,12 @@ die Spezifikation anpassen, dann bauen.
 - KI nur über das Vercel AI Gateway (AI_GATEWAY_API_KEY in .env, EU-Region, Zero Data Retention); an die KI gehen nur Kürzel (pseudonymize in ai-translate.ts), nie Namen.
 - Veröffentlichen prüft Soll gegen Ist (422 COVERAGE, mit acceptCoverage bestätigen).
 
-## Nach M7: V1-Punkte (ADR 0013 bis 0015)
+## Nach M7: V1-Punkte (ADR 0013 bis 0016)
 
 - Lehrkräfte (SD-07): Fächer in TeacherSubject, Stunden an Person (employmentHours, teachingHours); Pflege über PUT /admin/persons/:id/teaching; Auslastung als teacherLoad (packages/shared/src/planning/coverage.ts) in der Versionsansicht.
 - Klassenbuch-Notiz und Vermerke (KB-07): Notiz und Vermerke nur mit notesVisible (Lehrkräfte der Stunde, KV, Direktion); Vermerke über die Outbox (kind 'remark'); KV-Übersicht /klasse/[id]/vermerke.
 - Frühwarnung (AB-05): absenceWarnings in @sp/shared/absences.ts, AbsenceWarningsService (Job absence-warnings-daily), Schwellen in settings.absence.warn*.
+- Globale Suche (PL-06): GET /search (apps/api/src/modules/search), Treffer nur nach bestehenden Rechten; Palette in src/components/shell/command-palette.tsx.
 
 ## Hinweise zur Umgebung
 
