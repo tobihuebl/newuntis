@@ -11,6 +11,8 @@ export const NOTIFICATION_TYPES = [
   'absence.reported',
   'absence.reviewed',
   'classbook.open',
+  'classbook.remark',
+  'absence.warning',
   'exam.created',
   'message.new',
   'announcement.published',
@@ -30,6 +32,8 @@ export const DEFAULT_CHANNELS: Record<NotificationType, Record<Channel, boolean>
   'absence.reported': { push: false, email: false },
   'absence.reviewed': { push: true, email: false },
   'classbook.open': { push: false, email: false },
+  'classbook.remark': { push: true, email: false },
+  'absence.warning': { push: true, email: true },
   'exam.created': { push: false, email: false },
   'message.new': { push: true, email: false },
   'announcement.published': { push: true, email: false },
@@ -61,7 +65,7 @@ export const TYPES_FOR_ROLE: Record<string, NotificationType[]> = {
     ...COMMUNICATION,
   ],
   TEACHER: ['substitution.published', 'timetable.published', 'classbook.open', ...COMMUNICATION],
-  HOMEROOM: ['absence.reported'],
+  HOMEROOM: ['absence.reported', 'absence.warning', 'classbook.remark'],
   PRINCIPAL: ['timetable.published', 'message.new'],
   ADMIN: ['timetable.published', 'message.new'],
 };
@@ -146,6 +150,16 @@ export const NOTIFICATION_TEXTS: Record<
     title: 'Klassenbuch',
     one: 'Es sind noch Klassenbucheinträge offen.',
     many: 'Es sind noch Klassenbucheinträge offen.',
+  },
+  'classbook.remark': {
+    title: 'Neuer Vermerk',
+    one: 'Im Klassenbuch der Klasse {className} gibt es einen neuen Vermerk.',
+    many: 'Im Klassenbuch gibt es {n} neue Vermerke.',
+  },
+  'absence.warning': {
+    title: 'Frühwarnung Fehlzeiten',
+    one: 'In der Klasse {className} hat eine Schülerin oder ein Schüler die Warnschwelle für Fehlzeiten erreicht.',
+    many: 'In der Klasse {className} haben {n} Schüler:innen die Warnschwelle für Fehlzeiten erreicht.',
   },
   'exam.created': {
     title: 'Neue Prüfung',

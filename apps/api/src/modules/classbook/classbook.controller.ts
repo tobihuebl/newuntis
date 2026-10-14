@@ -1,5 +1,5 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
-import { attendanceInput, classbookInput, closeInput, todayQuery } from '@sp/shared';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
+import { attendanceInput, classbookInput, closeInput, remarkInput, todayQuery } from '@sp/shared';
 import type { z } from 'zod';
 import { Authenticated, Can } from '../../common/decorators';
 import { Actor, TenantId } from '../../common/params';
@@ -105,5 +105,30 @@ export class ClassbookController {
     void body;
     const user = await this.policy.loadUser(tenantId, me);
     return this.classbook.close(this.prisma.tx, tenantId, me, user, id);
+  }
+
+  /** Besonderes Vorkommnis (KB-07): Vermerk zu einer Schülerin oder einem Schüler dieser Stunde. */
+  @Can('classbook.write')
+  @Post('occurrences/:id/remarks')
+  async addRemark(
+    @TenantId() tenantId: string,
+    @Actor() me: Principal,
+    @Param('id') id: string,
+    @Body(new ZodPipe(remarkInput)) body: z.infer<typeof remarkInput>,
+  ) {
+    const user = await this.policy.loadUser(tenantId, me);
+    return this.classbook.addRemark(this.prisma.tx, tenantId, me, user, id, body);
+  }
+
+  @Can('classbook.write')
+  @Delete('remarks/:id')
+  @HttpCode(204)
+  async deleteRemark(
+    @TenantId() tenantId: string,
+    @Actor() me: Principal,
+    @Param('id') id: string,
+  ) {
+    const user = await this.policy.loadUser(tenantId, me);
+    await this.classbook.deleteRemark(this.prisma.tx, tenantId, me, user, id);
   }
 }

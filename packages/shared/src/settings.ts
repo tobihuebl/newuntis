@@ -43,6 +43,8 @@ export const tenantSettingsSchema = z.object({
       attachmentsDays: z.number().int().min(1).default(365),
       auditLogDays: z.number().int().min(90).default(1095),
       notificationsDays: z.number().int().min(7).default(180),
+      /** Vermerke im Klassenbuch (KB-07). */
+      remarksDays: z.number().int().min(30).default(365),
     })
     .default({
       messagesDays: 365,
@@ -50,6 +52,7 @@ export const tenantSettingsSchema = z.object({
       attachmentsDays: 365,
       auditLogDays: 1095,
       notificationsDays: 180,
+      remarksDays: 365,
     }),
   /** Rundschreiben: einmalige Erinnerung an fehlende Lesebestätigungen nach so vielen Tagen (0 = aus). */
   communication: z

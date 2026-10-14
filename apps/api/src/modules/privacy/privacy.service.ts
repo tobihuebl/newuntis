@@ -78,6 +78,7 @@ export class PrivacyService implements OnModuleInit {
       prefs,
       consents,
       audit,
+      remarks,
     ] = await Promise.all([
       tx.attendance.findMany({
         where: { studentId: personId },
@@ -111,6 +112,15 @@ export class PrivacyService implements OnModuleInit {
         orderBy: { createdAt: 'asc' },
         take: 5000,
         select: { createdAt: true, action: true, entity: true },
+      }),
+      tx.classbookRemark.findMany({
+        where: { studentId: personId },
+        orderBy: { createdAt: 'asc' },
+        select: {
+          text: true,
+          createdAt: true,
+          occurrence: { select: { date: true, subject: { select: { name: true } } } },
+        },
       }),
     ]);
     return {
@@ -156,6 +166,12 @@ export class PrivacyService implements OnModuleInit {
         subject: a.occurrence.subject.name,
         status: a.status,
         lateMinutes: a.lateMinutes,
+      })),
+      remarks: remarks.map((r) => ({
+        date: iso(r.occurrence.date),
+        subject: r.occurrence.subject.name,
+        text: r.text,
+        createdAt: r.createdAt.toISOString(),
       })),
       absences: absences.map((a) => ({
         fromAt: a.fromAt.toISOString(),
@@ -271,6 +287,9 @@ export class PrivacyService implements OnModuleInit {
     const notifications = await tx.notification.deleteMany({
       where: { createdAt: { lt: before(r.notificationsDays) } },
     });
+    const remarks = await tx.classbookRemark.deleteMany({
+      where: { createdAt: { lt: before(r.remarksDays) } },
+    });
 
     // Audit-Log: sp_app darf nicht löschen; die Datenbankfunktion prüft Mandant und Mindestalter
     const pruned = await tx.$queryRaw<{ n: number }[]>`
@@ -284,6 +303,7 @@ export class PrivacyService implements OnModuleInit {
       attachments: oldFiles.length,
       absences: oldAbsences.length,
       notifications: notifications.count,
+      remarks: remarks.count,
       audit,
     };
     if (Object.values(result).some((n) => n > 0))

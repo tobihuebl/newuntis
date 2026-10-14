@@ -87,13 +87,14 @@ export class OccurrencesService {
         teachers: { select: { teacherId: true } },
         classbook: { select: { id: true } },
         substitution: { select: { id: true } },
-        _count: { select: { attendances: true } },
+        _count: { select: { attendances: true, remarks: true } },
       },
     });
     const touched = (o: (typeof existing)[number]) =>
       o.classbook !== null ||
       o.substitution !== null ||
       o._count.attendances > 0 ||
+      o._count.remarks > 0 ||
       o.status !== 'SCHEDULED';
     const key = (lessonId: string, date: string) => `${lessonId}|${date}`;
     const byKey = new Map(existing.map((o) => [key(o.lessonId!, iso(o.date)), o]));

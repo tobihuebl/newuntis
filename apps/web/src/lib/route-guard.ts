@@ -21,3 +21,10 @@ export async function requireRoute(pathname: string): Promise<MeResponse> {
   }
   return me;
 }
+
+/** Vermerke einer Klasse (KB-07): Klassenvorstand dieser Klasse und Direktion, nicht die Administration. */
+export function canSeeRemarks(me: MeResponse, classId: string): boolean {
+  return me.user.roles.some(
+    (r) => r.role === 'PRINCIPAL' || (r.role === 'HOMEROOM' && r.classId === classId),
+  );
+}

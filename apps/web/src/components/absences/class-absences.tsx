@@ -24,6 +24,38 @@ import { PageTitle } from '../page-title';
 import { FormError } from '../form-bits';
 
 type Tab = 'entschuldigungen' | 'fehlzeiten';
+
+/** Reiter der Klassenvorstand-Ansicht; "Vermerke" (KB-07) nur für Klassenvorstand und Direktion. */
+export function ClassTabs({
+  classId,
+  tab,
+  remarks,
+}: {
+  classId: string;
+  tab: Tab | 'vermerke';
+  remarks: boolean;
+}) {
+  const t = useT('klasse');
+  const tabs: (Tab | 'vermerke')[] = ['entschuldigungen', 'fehlzeiten'];
+  if (remarks) tabs.push('vermerke');
+  const label = {
+    entschuldigungen: t('excuses'),
+    fehlzeiten: t('absences'),
+    vermerke: t('remarks'),
+  };
+  return (
+    <SegmentedNav
+      label={t('sections')}
+      linkAs={Link}
+      items={tabs.map((target) => ({
+        key: target,
+        href: `/klasse/${classId}/${target}`,
+        label: label[target],
+        current: tab === target,
+      }))}
+    />
+  );
+}
 type Pending = { timer: ReturnType<typeof setTimeout>; run: () => void };
 
 /**
@@ -34,10 +66,13 @@ export function ClassAbsences({
   classId,
   className,
   tab,
+  remarks = false,
 }: {
   classId: string;
   className: string;
   tab: Tab;
+  /** Reiter "Vermerke" zeigen (Klassenvorstand der Klasse, Direktion). */
+  remarks?: boolean;
 }) {
   const t = useT('klasse');
   const ta = useT('absence');
@@ -155,16 +190,7 @@ export function ClassAbsences({
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="klassenvorstand">{className}</PageTitle>
-      <SegmentedNav
-        label={t('sections')}
-        linkAs={Link}
-        items={(['entschuldigungen', 'fehlzeiten'] as const).map((target) => ({
-          key: target,
-          href: `/klasse/${classId}/${target}`,
-          label: target === 'entschuldigungen' ? t('excuses') : t('absences'),
-          current: tab === target,
-        }))}
-      />
+      <ClassTabs classId={classId} tab={tab} remarks={remarks} />
       {q.isPending ? (
         <div className="flex flex-col gap-3" aria-hidden="true">
           <Skeleton className="h-24 w-full rounded-lg" />

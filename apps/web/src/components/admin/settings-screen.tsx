@@ -81,6 +81,7 @@ const SECTIONS: { key: SectionKey; id: string; fields: Field[] }[] = [
       { key: 'absencesDays', kind: 'int', min: 1 },
       { key: 'attachmentsDays', kind: 'int', min: 1 },
       { key: 'notificationsDays', kind: 'int', min: 7 },
+      { key: 'remarksDays', kind: 'int', min: 30 },
       { key: 'auditLogDays', kind: 'int', min: 90 },
     ],
   },

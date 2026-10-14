@@ -1,5 +1,5 @@
 'use client';
-import type { ClassbookEntryState, OccurrenceDetail } from '@sp/shared';
+import type { ClassbookEntryState, OccurrenceDetail, RemarkItem } from '@sp/shared';
 import { ApiError, apiRequest } from '../lib/api-client';
 import { db } from './db';
 import {
@@ -28,7 +28,9 @@ const newId = () =>
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
 type Result =
-  { entry: ClassbookEntryState } | { attendance: OccurrenceDetail['attendance']; applied: number };
+  | { entry: ClassbookEntryState }
+  | { attendance: OccurrenceDetail['attendance']; applied: number }
+  | { remark: RemarkItem };
 
 /**
  * Arbeitet die Outbox in Reihenfolge ab, sobald eine Verbindung besteht (online-Ereignis, App im Vordergrund,
@@ -120,7 +122,12 @@ class SyncEngine {
   async resolveConflict(
     occurrenceId: string,
     keep: 'mine' | 'theirs',
-    mine: { topic: string | null; homework: string | null; homeworkDueOn: string | null },
+    mine: {
+      topic: string | null;
+      homework: string | null;
+      homeworkDueOn: string | null;
+      note?: string | null;
+    },
   ): Promise<void> {
     const table = db().outbox;
     await db().transaction('rw', table, db().snapshots, async () => {
@@ -292,10 +299,18 @@ class SyncEngine {
           topic: m.topic,
           homework: m.homework,
           homeworkDueOn: m.homeworkDueOn,
+          ...(m.note !== undefined ? { note: m.note } : {}),
           clientMutationId: m.clientMutationId,
         },
         this.csrf,
       );
+    if (m.kind === 'remark')
+      return apiRequest<RemarkItem>(
+        'POST',
+        `${base}/remarks`,
+        { studentId: m.studentId, text: m.text, clientMutationId: m.clientMutationId },
+        this.csrf,
+      ).then((remark) => ({ remark }));
     return apiRequest('POST', `${base}/close`, { clientMutationId: m.clientMutationId }, this.csrf);
   }
 }

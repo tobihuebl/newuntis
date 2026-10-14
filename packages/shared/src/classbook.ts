@@ -40,11 +40,46 @@ export const classbookInput = z.object({
   topic: text,
   homework: text,
   homeworkDueOn: dateSchema.nullish().transform((v) => v ?? null),
+  /**
+   * Notiz zur Stunde (KB-07), nur für Lehrkräfte und Klassenvorstand. Fehlt das Feld (ältere Offline-Stände),
+   * bleibt die Notiz unverändert.
+   */
+  note: z
+    .string()
+    .max(4000)
+    .nullish()
+    .transform((v) => (v === undefined ? undefined : v && v.trim() ? v : null)),
   clientMutationId: mutationId,
 });
 export type ClassbookInput = z.infer<typeof classbookInput>;
 
 export const closeInput = z.object({ clientMutationId: mutationId });
+
+/** Besonderes Vorkommnis (KB-07): Vermerk zu einer Schülerin oder einem Schüler in dieser Stunde. */
+export const remarkInput = z.object({
+  studentId: z.string().min(1),
+  text: z.string().trim().min(1).max(1000),
+  clientMutationId: mutationId,
+});
+export type RemarkInput = z.infer<typeof remarkInput>;
+
+export interface RemarkItem {
+  id: string;
+  studentId: string;
+  text: string;
+  createdAt: string;
+  author: string;
+  /** Eigener Vermerk (darf gelöscht werden). */
+  own: boolean;
+}
+
+/** Vermerk in der Übersicht des Klassenvorstands. */
+export interface ClassRemarkItem extends RemarkItem {
+  date: string;
+  occurrenceId: string;
+  subject: string;
+  student: string;
+}
 
 export const todayQuery = z.object({ studentId: z.string().min(1).optional() });
 
@@ -52,6 +87,8 @@ export interface ClassbookEntryState {
   topic: string | null;
   homework: string | null;
   homeworkDueOn: string | null;
+  /** Notiz zur Stunde (KB-07); nur an Lehrkräfte der Stunde, Klassenvorstand und Direktion. */
+  note?: string | null;
   closedAt: string | null;
   version: number;
 }
@@ -98,6 +135,12 @@ export interface OccurrenceDetail {
    * Klasse bzw. Gruppe, neueste zuerst. Fehlt in älteren Offline-Ständen.
    */
   recent?: RecentEntry[];
+  /**
+   * Notiz und Vermerke (KB-07) sichtbar: Lehrkräfte der Stunde, Klassenvorstand, Direktion. Sonst fehlen `note` und
+   * `remarks`.
+   */
+  notesVisible?: boolean;
+  remarks?: RemarkItem[];
   /** Darf eintragen (eigene Stunde oder Direktion). */
   canWrite: boolean;
   /** Abschließen ist ab dem Tag der Stunde möglich (nicht bei Entfall). */

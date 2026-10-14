@@ -16,7 +16,7 @@ describe('Datenschutz: Einführung, Export, Anfragen, Aufbewahrung, Einstellunge
   let principal: Client;
   let student: Client;
   let adminId = '';
-  const ids = {} as Record<'student' | 'guardian', string>;
+  const ids = {} as Record<'student' | 'guardian' | 'remark' | 'oldRemark', string>;
 
   beforeAll(async () => {
     h = await Harness.create();
@@ -34,6 +34,32 @@ describe('Datenschutz: Einführung, Export, Anfragen, Aufbewahrung, Einstellunge
     await enroll(h, tenantId, st.personId, s.c1.id);
     principal = (await h.loginFully(slug, pu.email)).client;
     student = (await h.loginFully(slug, st.email)).client;
+    // Vermerke im Klassenbuch (KB-07): ein aktueller und ein alter
+    const occ = await h.owner.occurrence.create({
+      data: {
+        tenantId,
+        date: new Date('2026-09-15T00:00:00Z'),
+        periodStart: 1,
+        periodCount: 1,
+        startsAt: new Date('2026-09-15T06:00:00Z'),
+        endsAt: new Date('2026-09-15T06:50:00Z'),
+        subjectId: s.math.id,
+        classId: s.c1.id,
+      },
+    });
+    const remark = (text: string, createdAt?: Date) =>
+      h.owner.classbookRemark.create({
+        data: {
+          tenantId,
+          occurrenceId: occ.id,
+          studentId: st.personId,
+          text,
+          createdById: adminId,
+          ...(createdAt ? { createdAt } : {}),
+        },
+      });
+    ids.remark = (await remark('Hat geholfen')).id;
+    ids.oldRemark = (await remark('Alt', new Date(Date.now() - 400 * DAY))).id;
   });
   afterAll(async () => h.close());
 
@@ -58,6 +84,10 @@ describe('Datenschutz: Einführung, Export, Anfragen, Aufbewahrung, Einstellunge
     expect(json.json.person.id).toBe(ids.student);
     expect(json.json.enrollments[0].className).toBe('1A');
     expect(json.json.consents).toHaveLength(1);
+    expect(json.json.remarks.map((r: { text: string }) => r.text).sort()).toEqual([
+      'Alt',
+      'Hat geholfen',
+    ]);
     const pdf = await student.get('/me/export?format=pdf');
     expect(pdf.status).toBe(200);
     expect(pdf.headers['content-type']).toBe('application/pdf');
@@ -134,7 +164,9 @@ describe('Datenschutz: Einführung, Export, Anfragen, Aufbewahrung, Einstellunge
     const svc = h.app.get(PrivacyService);
     const prisma = h.app.get(PrismaService);
     const r = await prisma.runAsTenant(tenantId, (tx) => svc.retention(tx, tenantId));
-    expect(r).toMatchObject({ messages: 1, threads: 1, notifications: 1 });
+    expect(r).toMatchObject({ messages: 1, threads: 1, notifications: 1, remarks: 1 });
+    expect(await h.owner.classbookRemark.findUnique({ where: { id: ids.oldRemark } })).toBeNull();
+    expect(await h.owner.classbookRemark.findUnique({ where: { id: ids.remark } })).not.toBeNull();
     expect(r.audit).toBeGreaterThanOrEqual(1);
     expect(await h.owner.thread.findUnique({ where: { id: thread.id } })).toBeNull();
     expect(await h.owner.auditLog.findUnique({ where: { id: fresh.id } })).not.toBeNull();

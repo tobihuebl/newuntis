@@ -19,6 +19,8 @@ import {
   type OccurrenceDetail,
   RECENT_ENTRIES,
   type RecentEntry,
+  type RemarkInput,
+  type RemarkItem,
   type OpenEntry,
   type PolicyUser,
 } from '@sp/shared';
@@ -48,25 +50,52 @@ const occurrenceInclude = {
     select: { studentId: true, status: true, lateMinutes: true, clientUpdatedAt: true },
   },
   substitution: { select: { kind: true, status: true } },
+  remarks: {
+    orderBy: { createdAt: 'asc' },
+    include: { createdBy: { select: { firstName: true, lastName: true } } },
+  },
 } satisfies Prisma.OccurrenceInclude;
 type OccurrenceRow = Prisma.OccurrenceGetPayload<{ include: typeof occurrenceInclude }>;
 
+/** Stand eines Eintrags; die Notiz (KB-07) nur, wenn `withNote` (Lehrkräfte der Stunde, KV, Direktion). */
 export const entryState = (
   e: {
     topic: string | null;
     homework: string | null;
     homeworkDueOn: Date | null;
+    note?: string | null;
     closedAt: Date | null;
     version: number;
   } | null,
+  withNote = false,
 ): ClassbookEntryState | null =>
   e && {
     topic: e.topic,
     homework: e.homework,
     homeworkDueOn: e.homeworkDueOn ? iso(e.homeworkDueOn) : null,
+    ...(withNote ? { note: e.note ?? null } : {}),
     closedAt: e.closedAt?.toISOString() ?? null,
     version: e.version,
   };
+
+const remarkItem = (
+  r: {
+    id: string;
+    studentId: string;
+    text: string;
+    createdAt: Date;
+    createdById: string;
+    createdBy: { firstName: string; lastName: string };
+  },
+  personId: string,
+): RemarkItem => ({
+  id: r.id,
+  studentId: r.studentId,
+  text: r.text,
+  createdAt: r.createdAt.toISOString(),
+  author: `${r.createdBy.firstName} ${r.createdBy.lastName}`.trim(),
+  own: r.createdById === personId,
+});
 
 export function progressOf(o: {
   classbook: { closedAt: Date | null } | null;
@@ -154,6 +183,17 @@ export class ClassbookService implements OnModuleInit {
 
   private teacherIds(o: OccurrenceRow): string[] {
     return o.teachers.map((t) => t.teacherId);
+  }
+
+  /**
+   * Notiz und Vermerke (KB-07) sehen: wer eintragen darf (Lehrkräfte der Stunde, Direktion) und der
+   * Klassenvorstand der Klasse. Administration, Schüler:innen und Eltern nicht.
+   */
+  private notesVisible(user: PolicyUser, o: OccurrenceRow): boolean {
+    return (
+      can(user, 'classbook.write', { teacherIds: this.teacherIds(o) }) ||
+      (o.classId !== null && (user.homeroomClassIds ?? []).includes(o.classId))
+    );
   }
 
   /** Schreibrecht für genau diesen Termin; sonst 403. */
@@ -294,6 +334,7 @@ export class ClassbookService implements OnModuleInit {
           teacherIds: this.teacherIds(o),
           classId: o.classId ?? undefined,
         });
+      const notesVisible = this.notesVisible(user, o);
       const attendance: Record<string, AttendanceState> = {};
       for (const a of o.attendances)
         attendance[a.studentId] = {
@@ -320,8 +361,10 @@ export class ClassbookService implements OnModuleInit {
             : null,
         students: studentsOf(o),
         attendance,
-        entry: entryState(o.classbook),
+        entry: entryState(o.classbook, notesVisible),
         recent: recentOf(o),
+        notesVisible,
+        ...(notesVisible ? { remarks: o.remarks.map((r) => remarkItem(r, user.personId)) } : {}),
         canWrite,
         canClose: canWrite && e.date <= today,
       };
@@ -428,17 +471,18 @@ export class ClassbookService implements OnModuleInit {
     this.assertWrite(user, o);
     const current = o.classbook;
     if (current && current.lastMutationId === input.clientMutationId)
-      return { entry: entryState(current)! };
+      return { entry: entryState(current, true)! };
     const conflict = () =>
       new ConflictException({
         title: 'Der Eintrag wurde inzwischen auf einem anderen Gerät geändert',
-        current: entryState(current),
+        current: entryState(current, true),
       });
     if ((current?.version ?? 0) !== input.baseVersion) throw conflict();
     const data = {
       topic: input.topic,
       homework: input.homework,
       homeworkDueOn: input.homework && input.homeworkDueOn ? asDate(input.homeworkDueOn) : null,
+      ...(input.note !== undefined ? { note: input.note } : {}),
       updatedById: me.personId,
       lastMutationId: input.clientMutationId,
     };
@@ -462,7 +506,100 @@ export class ClassbookService implements OnModuleInit {
       entityId: o.id,
     });
     await this.events.emit(tx, tenantId, 'occurrence.updated', [o.id], this.teacherIds(o));
-    return { entry: entryState(saved)! };
+    return { entry: entryState(saved, true)! };
+  }
+
+  /**
+   * Besonderes Vorkommnis (KB-07) zu einer Schülerin oder einem Schüler dieser Stunde. Idempotent über
+   * `clientMutationId` (Offline-Outbox). Der Klassenvorstand bekommt einen Hinweis ohne Namen.
+   */
+  async addRemark(
+    tx: Tx,
+    tenantId: string,
+    me: Principal,
+    user: PolicyUser,
+    id: string,
+    input: RemarkInput,
+  ): Promise<RemarkItem> {
+    const include = { createdBy: { select: { firstName: true, lastName: true } } };
+    const again = await tx.classbookRemark.findUnique({
+      where: { tenantId_clientMutationId: { tenantId, clientMutationId: input.clientMutationId } },
+      include,
+    });
+    if (again) return remarkItem(again, me.personId);
+    const o = await this.load(tx, id);
+    this.assertWrite(user, o);
+    const studentsOf = await this.students(tx, [o]);
+    if (!studentsOf(o).some((s) => s.id === input.studentId))
+      throw new UnprocessableEntityException({ title: 'Die Person gehört nicht zu dieser Stunde' });
+    const created = await tx.classbookRemark.create({
+      data: {
+        tenantId,
+        occurrenceId: o.id,
+        studentId: input.studentId,
+        text: input.text,
+        createdById: me.personId,
+        clientMutationId: input.clientMutationId,
+      },
+      include,
+    });
+    await this.audit.record({
+      tenantId,
+      actorId: me.personId,
+      action: 'classbook.remark',
+      entity: 'occurrence',
+      entityId: o.id,
+    });
+    const cls = await tx.enrollment.findFirst({
+      where: {
+        studentId: input.studentId,
+        fromDate: { lte: o.date },
+        OR: [{ toDate: null }, { toDate: { gte: o.date } }],
+      },
+      select: { class: { select: { id: true, name: true } } },
+    });
+    if (cls) {
+      // Klassenvorstand wie bei Entschuldigungen über die Rolle HOMEROOM der Klasse
+      const homeroom = await tx.roleAssignment.findMany({
+        where: { role: 'HOMEROOM', classId: cls.class.id, NOT: { personId: me.personId } },
+        select: { personId: true },
+      });
+      await this.notifications.emit(
+        tx,
+        tenantId,
+        'classbook.remark',
+        homeroom.map((r) => r.personId),
+        { params: { className: cls.class.name }, url: `/klasse/${cls.class.id}/vermerke` },
+      );
+    }
+    await this.events.emit(tx, tenantId, 'occurrence.updated', [o.id], this.teacherIds(o));
+    return remarkItem(created, me.personId);
+  }
+
+  /** Vermerk löschen: eigene Vermerke und die Direktion. */
+  async deleteRemark(
+    tx: Tx,
+    tenantId: string,
+    me: Principal,
+    user: PolicyUser,
+    remarkId: string,
+  ): Promise<void> {
+    const r = await tx.classbookRemark.findUnique({
+      where: { id: remarkId },
+      select: { id: true, createdById: true, occurrenceId: true },
+    });
+    if (!r) throw new NotFoundException({ title: 'Vermerk nicht gefunden' });
+    if (r.createdById !== me.personId && !can(user, 'classbook.write', { teacherIds: [] }))
+      throw new ForbiddenException({ title: 'Nur eigene Vermerke können gelöscht werden' });
+    await tx.classbookRemark.delete({ where: { id: r.id } });
+    await this.audit.record({
+      tenantId,
+      actorId: me.personId,
+      action: 'classbook.remark.delete',
+      entity: 'occurrence',
+      entityId: r.occurrenceId,
+    });
+    await this.events.emit(tx, tenantId, 'occurrence.updated', [r.occurrenceId]);
   }
 
   /**

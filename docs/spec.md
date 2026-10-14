@@ -131,7 +131,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - KB-04 MVP: Hinweis auf nicht abgeschlossene Klassenbuch-Einträge
 - KB-05 MVP: Offline-Erfassung mit späterer Synchronisation
 - KB-06 MVP: Supplierstunde mit vorausgefüllter Klasse, Fach und Raum
-- KB-07 V1: Notizen und besondere Vorkommnisse (nur Lehrer und Klassenvorstand)
+- KB-07 V1: Notizen und besondere Vorkommnisse (nur Lehrer und Klassenvorstand) — umgesetzt: Notiz zur Stunde und Vermerke je Schüler:in, sichtbar auch für die Direktion (Korrektur), nicht für die Administration (ADR 0014)
 - KB-08 V2: Sitzplan
 
 ### Abwesenheit (AB)

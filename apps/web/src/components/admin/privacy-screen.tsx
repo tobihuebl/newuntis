@@ -227,6 +227,7 @@ export function PrivacyScreen() {
                   'absencesDays',
                   'attachmentsDays',
                   'notificationsDays',
+                  'remarksDays',
                   'auditLogDays',
                 ] as const
               ).map((k) => (

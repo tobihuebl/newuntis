@@ -31,6 +31,8 @@ export async function anonymizePerson(tx: Tx, personId: string): Promise<void> {
   await tx.notification.deleteMany({ where: { personId } });
   await tx.roleAssignment.deleteMany({ where: { personId } });
   await tx.teacherSubject.deleteMany({ where: { teacherId: personId } });
+  // Vermerke über die Person (KB-07) sind keine Schulunterlage im engeren Sinn und enthalten oft Namen im Text
+  await tx.classbookRemark.deleteMany({ where: { studentId: personId } });
   await tx.schoolClass.updateMany({
     where: { homeroomTeacherId: personId },
     data: { homeroomTeacherId: null },

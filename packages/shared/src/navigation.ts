@@ -151,6 +151,7 @@ const NAV: Record<Role, RoleNav> = {
       '/klasse/[id]/uebersicht',
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
+      '/klasse/[id]/vermerke',
       '/klassen',
       '/auswertung',
     ],
@@ -197,6 +198,7 @@ const NAV: Record<Role, RoleNav> = {
       '/klassenbuch/[occurrenceId]', // Korrektur durch die Direktion
       '/klasse/[id]/entschuldigungen',
       '/klasse/[id]/fehlzeiten',
+      '/klasse/[id]/vermerke', // KB-07: Vermerke (nicht für die Administration)
       // Stammdaten: Direktion darf lesen
       '/admin/personen/[id]',
       '/admin/klassen/[id]',

@@ -193,3 +193,54 @@ describe('Optimistische Anzeige', () => {
     expect(m.entry?.version).toBe(2);
   });
 });
+
+describe('Notiz und Vermerke (KB-07)', () => {
+  it('Vermerke werden nie zusammengefasst und erscheinen sofort als eigene, noch nicht gesendete', () => {
+    let box: OutboxItem[] = [];
+    for (const text of ['Handy', 'Hilfsbereit'])
+      box = apply(
+        box,
+        planEnqueue(box, { kind: 'remark', occurrenceId: 'o1', studentId: 'a', text }, 0, id, now),
+      );
+    expect(box).toHaveLength(2);
+    const shown = applyPending(detail({ notesVisible: true, remarks: [] }), box);
+    expect(shown.remarks?.map((r) => [r.text, r.own, r.id.startsWith('pending-')])).toEqual([
+      ['Handy', true, true],
+      ['Hilfsbereit', true, true],
+    ]);
+    // Ohne Sichtbarkeit (z. B. Administration) bleibt die Liste weg
+    expect(applyPending(detail(), box).remarks).toBeUndefined();
+  });
+
+  it('bestätigter Vermerk ersetzt keinen anderen; Notiz fehlt in alten Einträgen und bleibt dann erhalten', () => {
+    const remark = { id: 'r1', studentId: 'a', text: 'x', createdAt: '', author: 'L', own: true };
+    const merged = mergeServer(detail({ remarks: [] }), { remark });
+    expect(mergeServer(merged, { remark }).remarks).toEqual([remark]);
+
+    const withNote = detail({
+      entry: {
+        topic: null,
+        homework: null,
+        homeworkDueOn: null,
+        note: 'unruhig',
+        closedAt: null,
+        version: 1,
+      },
+    });
+    const old: OutboxItem = {
+      kind: 'entry',
+      occurrenceId: 'o1',
+      baseVersion: 1,
+      topic: 'Brüche',
+      homework: null,
+      homeworkDueOn: null,
+      clientMutationId: 'c1',
+      state: 'pending',
+      attempts: 0,
+      createdAt: 0,
+      seq: 1,
+    };
+    expect(applyPending(withNote, [old]).entry?.note).toBe('unruhig');
+    expect(applyPending(withNote, [{ ...old, note: null }]).entry?.note).toBeNull();
+  });
+});

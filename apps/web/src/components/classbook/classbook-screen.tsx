@@ -1,5 +1,15 @@
 'use client';
-import { ArrowLeft, Check, Eye, Lock, TriangleAlert, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Check,
+  Eye,
+  Lock,
+  NotebookPen,
+  Plus,
+  Trash2,
+  TriangleAlert,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -16,6 +26,7 @@ import {
   Card,
   EmptyState,
   Input,
+  Select,
   Sheet,
   Skeleton,
   StatusBadge,
@@ -31,17 +42,20 @@ import { sync } from '../../offline/sync';
 import { SyncStatus } from '../sync-status';
 import { periodLabel } from '../today/lesson-row';
 import { useT } from '../../lib/i18n';
+import { useApiMutation, useProblemText } from '../../lib/use-api';
+import { FormError } from '../form-bits';
 
 const AUTOSAVE_MS = 700;
 const LATE_PRESETS = [5, 10, 15, 20, 30];
 
 type Student = OccurrenceDetail['students'][number];
-type EntryFields = { topic: string; homework: string; homeworkDueOn: string };
+type EntryFields = { topic: string; homework: string; homeworkDueOn: string; note: string };
 
 const fieldsOf = (e: ClassbookEntryState | null): EntryFields => ({
   topic: e?.topic ?? '',
   homework: e?.homework ?? '',
   homeworkDueOn: e?.homeworkDueOn ?? '',
+  note: e?.note ?? '',
 });
 
 export function ClassbookScreen({ id, backHref }: { id: string; backHref: string }) {
@@ -274,6 +288,7 @@ function Loaded({
         {detail.status !== 'CANCELLED' ? (
           <div className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--topbar-h)+var(--space-4))]">
             <EntryBar detail={detail} serverVersion={serverVersion} outbox={outbox} />
+            {detail.notesVisible ? <Remarks detail={detail} serverVersion={serverVersion} /> : null}
             <RecentEntries detail={detail} />
           </div>
         ) : null}
@@ -419,7 +434,7 @@ function EntryBar({
       latest.current = incoming;
     }
     // Abhängig von den Werten (nicht vom jeweils neuen Objekt), damit eigene Eingaben nicht überschrieben werden
-  }, [incoming.topic, incoming.homework, incoming.homeworkDueOn]);
+  }, [incoming.topic, incoming.homework, incoming.homeworkDueOn, incoming.note]);
 
   const flush = (next: EntryFields) => {
     if (timer.current) clearTimeout(timer.current);
@@ -433,6 +448,8 @@ function EntryBar({
         topic: next.topic.trim() ? next.topic : null,
         homework: next.homework.trim() ? next.homework : null,
         homeworkDueOn: next.homework.trim() ? next.homeworkDueOn || null : null,
+        // Notiz nur mitschicken, wenn sie sichtbar ist (sonst bliebe sie beim Speichern unverändert)
+        ...(detail.notesVisible ? { note: next.note.trim() ? next.note : null } : {}),
       },
       serverVersion,
     );
@@ -501,6 +518,19 @@ function EntryBar({
             />
           ) : null}
         </div>
+        {detail.notesVisible ? (
+          <Textarea
+            label={t('note')}
+            hint={t('noteHint')}
+            rows={2}
+            disabled={!writable}
+            value={fields.note}
+            onChange={(e) => change({ note: e.target.value })}
+            onBlur={() => flush(fields)}
+            fieldClassName="md:col-span-2"
+            className="min-h-20"
+          />
+        ) : null}
       </section>
       {writable ? (
         <>
@@ -528,6 +558,121 @@ function EntryBar({
         </>
       ) : null}
     </>
+  );
+}
+
+/**
+ * Besondere Vorkommnisse (KB-07): Vermerke zu einzelnen Schüler:innen. Erfassen geht offline (Outbox), Löschen
+ * eigener Vermerke nur mit Verbindung. Sichtbar nur für Lehrkräfte der Stunde, Klassenvorstand und Direktion.
+ */
+function Remarks({ detail, serverVersion }: { detail: OccurrenceDetail; serverVersion: number }) {
+  const t = useT('classbook');
+  const tc = useT('common');
+  const problem = useProblemText();
+  const [open, setOpen] = useState(false);
+  const [studentId, setStudentId] = useState('');
+  const [text, setText] = useState('');
+  const remove = useApiMutation<string>('DELETE', (id) => `/remarks/${encodeURIComponent(id)}`, [
+    ['occurrence', detail.id],
+  ]);
+  const names = new Map(detail.students.map((s) => [s.id, `${s.lastName} ${s.firstName}`]));
+  const remarks = detail.remarks ?? [];
+  const writable = detail.canWrite;
+
+  function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!studentId || !text.trim()) return;
+    void sync.enqueue(
+      { kind: 'remark', occurrenceId: detail.id, studentId, text: text.trim() },
+      serverVersion,
+    );
+    setOpen(false);
+    setText('');
+    setStudentId('');
+  }
+
+  return (
+    <section aria-labelledby="remarks-h" className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="remarks-h" className="text-h3">
+          {t('remarks')}
+        </h2>
+        {writable && detail.students.length ? (
+          <Button variant="secondary" size="sm" iconLeft={Plus} onClick={() => setOpen(true)}>
+            {t('remarkAdd')}
+          </Button>
+        ) : null}
+      </div>
+      <p className="text-caption text-ink-muted">{t('remarksHint')}</p>
+      {remarks.length === 0 ? (
+        <p className="text-body-sm text-ink-muted">{t('remarksNone')}</p>
+      ) : (
+        <ul className="flex flex-col divide-y divide-line rounded-lg bg-bg-sunken px-4">
+          {remarks.map((r) => {
+            const pending = r.id.startsWith('pending-');
+            return (
+              <li key={r.id} className="flex items-start gap-3 py-3">
+                <NotebookPen aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-ink-muted" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <p className="text-label">{names.get(r.studentId) ?? '–'}</p>
+                  <p className="text-body-sm whitespace-pre-line">{r.text}</p>
+                  <p className="text-caption text-ink-muted">
+                    {pending ? t('remarkPending') : `${r.author} · ${dateTimeOf(r.createdAt)}`}
+                  </p>
+                </div>
+                {r.own && !pending ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={t('remarkDelete', { name: names.get(r.studentId) ?? '' })}
+                    loading={remove.isPending && remove.variables === r.id}
+                    onClick={() => remove.mutate(r.id)}
+                  >
+                    <Trash2 aria-hidden="true" />
+                  </Button>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {remove.error ? <FormError message={problem(remove.error) ?? tc('error')} /> : null}
+      <Sheet
+        open={open}
+        onOpenChange={(o) => (o ? undefined : setOpen(false))}
+        title={t('remarkAdd')}
+        description={t('remarksHint')}
+        closeLabel={tc('close')}
+      >
+        <form onSubmit={save} className="flex flex-col gap-4" noValidate>
+          <Select
+            label={t('remarkStudent')}
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            emptyLabel={t('remarkChoose')}
+            options={detail.students.map((s) => ({
+              value: s.id,
+              label: `${s.lastName} ${s.firstName}`,
+            }))}
+          />
+          <Textarea
+            label={t('remarkText')}
+            rows={3}
+            maxLength={1000}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+              {tc('cancel')}
+            </Button>
+            <Button type="submit" disabled={!studentId || !text.trim()}>
+              {tc('save')}
+            </Button>
+          </div>
+        </form>
+      </Sheet>
+    </section>
   );
 }
 
@@ -574,6 +719,7 @@ function ConflictPanel({
     topic: detail.entry?.topic ?? null,
     homework: detail.entry?.homework ?? null,
     homeworkDueOn: detail.entry?.homeworkDueOn ?? null,
+    ...(detail.entry?.note !== undefined ? { note: detail.entry.note } : {}),
   };
   const show = (v: { topic: string | null; homework: string | null }) => (
     <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body-sm">

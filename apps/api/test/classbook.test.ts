@@ -519,4 +519,93 @@ describe('Heute und Klassenbuch', () => {
       expect(first.chunk).toContain('retry: 5000');
     });
   });
+
+  describe('Notizen und besondere Vorkommnisse (KB-07)', () => {
+    it('Notiz zur Stunde: Lehrkraft, KV und Direktion sehen sie, Administration und Schüler:innen nicht', async () => {
+      const id = await occurrence(addDays(today, -2), 5);
+      const saved = await teacher.put(`/occurrences/${id}/classbook`, {
+        baseVersion: 0,
+        topic: 'Bruchrechnen',
+        note: 'Klasse sehr unruhig',
+        clientMutationId: mid(),
+      });
+      expect(saved.status).toBe(200);
+      expect(saved.json.entry.note).toBe('Klasse sehr unruhig');
+      // Ohne Feld "note" (ältere Offline-Stände) bleibt die Notiz erhalten
+      await teacher.put(`/occurrences/${id}/classbook`, {
+        baseVersion: 1,
+        topic: 'Bruchrechnen 2',
+        clientMutationId: mid(),
+      });
+      for (const c of [teacher, homeroom, principal]) {
+        const r = await c.get(`/occurrences/${id}`);
+        expect(r.json.notesVisible).toBe(true);
+        expect(r.json.entry.note).toBe('Klasse sehr unruhig');
+      }
+      const admin = (
+        await h.loginFully(slug, (await h.createUser(tenantId, [{ role: 'ADMIN' }])).email)
+      ).client;
+      const r = await admin.get(`/occurrences/${id}`);
+      expect(r.status).toBe(200);
+      expect(r.json.notesVisible).toBe(false);
+      expect(r.json.entry).not.toHaveProperty('note');
+      expect(r.json).not.toHaveProperty('remarks');
+    });
+
+    it('Vermerk: idempotent, nur Schüler:innen der Stunde, KV wird benachrichtigt und sieht die Übersicht', async () => {
+      const id = await occurrence(addDays(today, -2), 6);
+      const cm = mid();
+      const body = { studentId: ids.s1, text: 'Handy im Unterricht', clientMutationId: cm };
+      const a = await teacher.post(`/occurrences/${id}/remarks`, body);
+      expect(a.status).toBe(201);
+      expect(a.json).toMatchObject({ studentId: ids.s1, text: 'Handy im Unterricht', own: true });
+      const again = await teacher.post(`/occurrences/${id}/remarks`, body);
+      expect(again.json.id).toBe(a.json.id);
+      const foreign = await h.createUser(tenantId, [{ role: 'STUDENT' }], undefined, 'STUDENT');
+      expect(
+        (
+          await teacher.post(`/occurrences/${id}/remarks`, {
+            studentId: foreign.personId,
+            text: 'x',
+            clientMutationId: mid(),
+          })
+        ).status,
+      ).toBe(422);
+      expect(
+        (
+          await other.post(`/occurrences/${id}/remarks`, {
+            studentId: ids.s1,
+            text: 'x',
+            clientMutationId: mid(),
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (await student.post(`/occurrences/${id}/remarks`, { ...body, clientMutationId: mid() }))
+          .status,
+      ).toBe(403);
+
+      const detail = await homeroom.get(`/occurrences/${id}`);
+      expect(detail.json.remarks).toEqual([expect.objectContaining({ id: a.json.id, own: false })]);
+      const notes = await h.owner.notification.findMany({
+        where: { tenantId, type: 'classbook.remark' },
+      });
+      expect(notes.length).toBe(1);
+      expect(JSON.stringify(notes[0])).not.toContain('Handy');
+
+      const list = await homeroom.get(`/my-classes/${ids.class}/remarks`);
+      expect(list.status).toBe(200);
+      expect(list.json.data).toEqual([
+        expect.objectContaining({ id: a.json.id, subject: 'Mathematik', occurrenceId: id }),
+      ]);
+      expect((await principal.get(`/my-classes/${ids.class}/remarks`)).status).toBe(200);
+      expect((await teacher.get(`/my-classes/${ids.class}/remarks`)).status).toBe(403);
+      expect((await homeroom.get(`/my-classes/${ids.class2}/remarks`)).status).toBe(403);
+
+      // Löschen: nur eigene (oder Direktion)
+      expect((await homeroom.del(`/remarks/${a.json.id}`)).status).toBe(403);
+      expect((await teacher.del(`/remarks/${a.json.id}`)).status).toBe(204);
+      expect((await homeroom.get(`/occurrences/${id}`)).json.remarks).toEqual([]);
+    });
+  });
 });

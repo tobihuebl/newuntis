@@ -2,7 +2,12 @@
  * Reine Logik der Offline-Outbox (Spec Abschnitt 12), ohne Browser-APIs und daher direkt testbar:
  * Änderungen zusammenfassen, optimistisch auf den Serverstand anwenden und Versionen nachziehen.
  */
-import type { AttendanceStatusName, ClassbookEntryState, OccurrenceDetail } from '@sp/shared';
+import type {
+  AttendanceStatusName,
+  ClassbookEntryState,
+  OccurrenceDetail,
+  RemarkItem,
+} from '@sp/shared';
 
 export type Mutation =
   | {
@@ -22,9 +27,21 @@ export type Mutation =
       topic: string | null;
       homework: string | null;
       homeworkDueOn: string | null;
+      /** Notiz zur Stunde (KB-07); fehlt bei älteren Outbox-Einträgen und bleibt dann unverändert. */
+      note?: string | null;
       clientMutationId: string;
     }
-  | { kind: 'close'; occurrenceId: string; clientMutationId: string; closedAt: string };
+  | { kind: 'close'; occurrenceId: string; clientMutationId: string; closedAt: string }
+  | {
+      /** Besonderes Vorkommnis (KB-07): wird nur angelegt, nie zusammengefasst. */
+      kind: 'remark';
+      occurrenceId: string;
+      studentId: string;
+      text: string;
+      clientMutationId: string;
+      /** Gerätezeit der Erfassung (für die Anzeige, solange noch nicht gesendet). */
+      writtenAt: string;
+    };
 
 export type OutboxState = 'pending' | 'sending' | 'conflict' | 'failed';
 
@@ -42,7 +59,8 @@ export type OutboxItem = Mutation & {
 export type NewMutation =
   | Omit<Extract<Mutation, { kind: 'attendance' }>, 'clientMutationId' | 'clientUpdatedAt'>
   | Omit<Extract<Mutation, { kind: 'entry' }>, 'clientMutationId' | 'baseVersion'>
-  | Omit<Extract<Mutation, { kind: 'close' }>, 'clientMutationId' | 'closedAt'>;
+  | Omit<Extract<Mutation, { kind: 'close' }>, 'clientMutationId' | 'closedAt'>
+  | Omit<Extract<Mutation, { kind: 'remark' }>, 'clientMutationId' | 'writtenAt'>;
 
 export interface EnqueuePlan {
   /** Bestehenden, noch nie gesendeten Eintrag ersetzen (gleiche seq). */
@@ -97,6 +115,8 @@ export function planEnqueue(
       },
     };
   }
+  if (m.kind === 'remark')
+    return { add: { ...m, ...base, clientMutationId: newId(), writtenAt: now.toISOString() } };
   if (outbox.some((o) => o.kind === 'close' && o.occurrenceId === m.occurrenceId)) return {};
   return { add: { ...m, ...base, clientMutationId: newId(), closedAt: now.toISOString() } };
 }
@@ -130,6 +150,7 @@ export function applyPending(detail: OccurrenceDetail, outbox: OutboxItem[]): Oc
   if (mine.length === 0) return detail;
   const attendance = { ...detail.attendance };
   let entry = detail.entry;
+  let remarks = detail.remarks;
   for (const o of mine) {
     if (o.state === 'failed') continue;
     if (o.kind === 'attendance') {
@@ -145,13 +166,33 @@ export function applyPending(detail: OccurrenceDetail, outbox: OutboxItem[]): Oc
         topic: o.topic,
         homework: o.homework,
         homeworkDueOn: o.homeworkDueOn,
+        ...(o.note !== undefined
+          ? { note: o.note }
+          : entry?.note !== undefined
+            ? { note: entry.note }
+            : {}),
         closedAt: entry?.closedAt ?? null,
         version: entry?.version ?? 0,
       };
+    } else if (o.kind === 'remark') {
+      // Noch nicht gesendet: als eigener Vermerk ohne Server-Id anzeigen
+      if (remarks)
+        remarks = [
+          ...remarks,
+          {
+            id: `pending-${o.clientMutationId}`,
+            studentId: o.studentId,
+            text: o.text,
+            createdAt: o.writtenAt,
+            author: '',
+            own: true,
+          },
+        ];
     } else {
       for (const s of detail.students)
         attendance[s.id] ??= { status: 'PRESENT', lateMinutes: null, clientUpdatedAt: null };
       entry = {
+        ...entry,
         topic: entry?.topic ?? null,
         homework: entry?.homework ?? null,
         homeworkDueOn: entry?.homeworkDueOn ?? null,
@@ -160,7 +201,7 @@ export function applyPending(detail: OccurrenceDetail, outbox: OutboxItem[]): Oc
       };
     }
   }
-  return { ...detail, attendance, entry };
+  return { ...detail, attendance, entry, ...(remarks ? { remarks } : {}) };
 }
 
 /** Bestätigten Serverstand in den Zwischenspeicher übernehmen. */
@@ -169,12 +210,17 @@ export function mergeServer(
   patch: {
     entry?: ClassbookEntryState;
     attendance?: OccurrenceDetail['attendance'];
+    remark?: RemarkItem;
   },
 ): OccurrenceDetail {
+  const remark = patch.remark;
   return {
     ...detail,
     ...(patch.entry ? { entry: patch.entry } : {}),
     ...(patch.attendance ? { attendance: { ...detail.attendance, ...patch.attendance } } : {}),
+    ...(remark && detail.remarks
+      ? { remarks: [...detail.remarks.filter((r) => r.id !== remark.id), remark] }
+      : {}),
   };
 }
 

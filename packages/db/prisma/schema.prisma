@@ -127,6 +127,8 @@ model Person {
   groupMemberships        GroupMember[]
   lessonTeachers          LessonTeacher[]
   teacherSubjects         TeacherSubject[]
+  remarksAbout            ClassbookRemark[]        @relation("RemarkStudent")
+  remarksWritten          ClassbookRemark[]        @relation("RemarkAuthor")
   requirements            LessonRequirement[]
   attendances             Attendance[]
   absences                Absence[]
@@ -495,6 +497,7 @@ model Occurrence {
   room         Room?               @relation(fields: [roomId], references: [id])
   teachers     OccurrenceTeacher[] // wirksame Lehrer nach Supplierung
   classbook    ClassbookEntry?
+  remarks      ClassbookRemark[]
   attendances  Attendance[]
   substitution Substitution?
 
@@ -536,6 +539,28 @@ model ClassbookEntry {
   occurrence Occurrence @relation(fields: [occurrenceId], references: [id])
 
   @@index([tenantId, closedAt])
+}
+
+/// Besondere Vorkommnisse (KB-07): Vermerk zu einer Schülerin oder einem Schüler in einer Stunde. Sichtbar nur für
+/// Lehrkräfte der Stunde, Klassenvorstand und Direktion; nie für Schüler:innen und Eltern.
+model ClassbookRemark {
+  id               String   @id @default(cuid())
+  tenantId         String
+  occurrenceId     String
+  studentId        String
+  text             String
+  createdById      String
+  clientMutationId String? // Idempotenz bei Offline-Sync
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+
+  occurrence Occurrence @relation(fields: [occurrenceId], references: [id])
+  student    Person     @relation("RemarkStudent", fields: [studentId], references: [id])
+  createdBy  Person     @relation("RemarkAuthor", fields: [createdById], references: [id])
+
+  @@unique([tenantId, clientMutationId])
+  @@index([tenantId, studentId])
+  @@index([tenantId, occurrenceId])
+  @@index([tenantId, createdAt])
 }
 
 model Attendance {

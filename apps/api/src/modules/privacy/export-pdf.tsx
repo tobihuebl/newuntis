@@ -120,6 +120,12 @@ function ExportDocument({ d, tz }: { d: PersonExport; tz: string }) {
           rows={d.attendance.map((a) => [day(a.date), a.subject, a.status, a.lateMinutes])}
         />
 
+        <Text style={s.h2}>Vermerke im Klassenbuch</Text>
+        <Table
+          head={['Datum', 'Fach', 'Vermerk']}
+          rows={d.remarks.map((r) => [day(r.date), r.subject, r.text])}
+        />
+
         <Text style={s.h2}>Fehlzeiten</Text>
         <Table
           head={['von', 'bis', 'Status', 'Grund', 'Anmerkung', 'Kommentar', 'Anhang']}

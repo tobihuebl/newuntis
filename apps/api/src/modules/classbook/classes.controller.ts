@@ -1,5 +1,5 @@
 import { Controller, ForbiddenException, Get, NotFoundException, Param } from '@nestjs/common';
-import { can, hasScope, type MyClass, type MyClassDetail } from '@sp/shared';
+import { can, hasScope, type ClassRemarkItem, type MyClass, type MyClassDetail } from '@sp/shared';
 import { Authenticated } from '../../common/decorators';
 import { Actor, TenantId } from '../../common/params';
 import type { Principal } from '../../common/request';
@@ -7,7 +7,7 @@ import { AuditService } from '../audit/audit.service';
 import { currentEnrollments, fullName, guardianLinks } from '../messages/recipients';
 import { PolicyService } from '../policy/policy.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { todayIn } from '../timetable/data';
+import { iso, todayIn } from '../timetable/data';
 
 /**
  * "Klassen" für Lehrkräfte (Spec Abschnitt 5, /klassen): unterrichtete Klassen mit Schülerliste.
@@ -134,6 +134,60 @@ export class MyClassesController {
       subjects: [...subjects.entries()]
         .map(([name, teachers]) => ({ name, teachers: [...teachers].sort() }))
         .sort((a, b) => a.name.localeCompare(b.name, 'de')),
+    };
+  }
+
+  /**
+   * Vermerke der Klasse (KB-07) für den Klassenvorstand und die Direktion, neueste zuerst. Lehrkräfte sehen
+   * Vermerke nur in ihren eigenen Stunden.
+   */
+  @Authenticated()
+  @Get(':id/remarks')
+  async remarks(
+    @TenantId() tenantId: string,
+    @Actor() me: Principal,
+    @Param('id') id: string,
+  ): Promise<{ data: ClassRemarkItem[] }> {
+    const tx = this.prisma.tx;
+    const user = await this.policy.loadUser(tenantId, me);
+    const allowed =
+      (user.homeroomClassIds ?? []).includes(id) ||
+      can(user, 'classbook.write', { teacherIds: [] });
+    if (!allowed) throw new ForbiddenException({ title: 'Keine Berechtigung für diese Klasse' });
+    const rows = await tx.classbookRemark.findMany({
+      where: {
+        student: { enrollments: { some: { classId: id } } },
+        occurrence: { OR: [{ classId: id }, { groupId: { not: null } }] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 300,
+      include: {
+        createdBy: { select: { firstName: true, lastName: true } },
+        student: { select: { firstName: true, lastName: true } },
+        occurrence: { select: { date: true, subject: { select: { name: true } } } },
+      },
+    });
+    await this.audit.record({
+      tenantId,
+      actorId: me.personId,
+      action: 'classbook.remark.read',
+      entity: 'class',
+      entityId: id,
+      meta: { count: rows.length },
+    });
+    return {
+      data: rows.map((r) => ({
+        id: r.id,
+        studentId: r.studentId,
+        text: r.text,
+        createdAt: r.createdAt.toISOString(),
+        author: fullName(r.createdBy),
+        own: r.createdById === me.personId,
+        date: iso(r.occurrence.date),
+        occurrenceId: r.occurrenceId,
+        subject: r.occurrence.subject.name,
+        student: `${r.student.lastName} ${r.student.firstName}`.trim(),
+      })),
     };
   }
 }
