@@ -18,7 +18,8 @@ Stammdaten, die sie nur lesen darf. Zwei Links im Lagebild der Administration f�
 2. **Reiter der Klasse** (Übersicht, Entschuldigungen, Fehlzeiten, Vermerke) für Klassenvorstand, Direktion und
    Administration auf allen vier Seiten; "Meine Klasse" führt zur Übersicht. Die Stammdaten-Seite verlinkt sie.
 3. **Direktion:** Schule = Stundenplan, Klassen, Personen, Räume, Protokoll, Einstellungen. Stammdaten (Schuljahr,
-   Raster, Fächer, Räume) und die Stundenplan-Versionen bleiben über Links erreichbar. "Freigaben" sammelt, was auf
+   Raster, Fächer, Räume, Klassen) bleiben lesbar, haben aber keinen Menüeintrag und keinen Link mehr (nur über die
+   Adresse; bewusst so belassen, Stand 14.10.). Die Stundenplan-Versionen erreicht sie über "Freigaben". "Freigaben" sammelt, was auf
    die Direktion wartet: Stundenplan-Entwürfe und gemeldete Entschuldigungen je Klasse.
 4. **Administration:** Lagebild-Links (Prüfungen, Klassenbuch lesen) sind erlaubt; die Prüfungsseite lädt die
    Auswahl zum Eintragen nur für Rollen mit `exam.write`.
