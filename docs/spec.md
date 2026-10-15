@@ -807,67 +807,67 @@ zusammen, was gebaut wurde und was als Nächstes folgt.
 
 ### M0: Fundament
 
-- [ ] Monorepo (pnpm, Turborepo) mit `apps/web`, `apps/api`, `packages/db`, `packages/shared`, `packages/ui`, `packages/config`
-- [ ] Docker Compose mit Postgres, Mailpit, MinIO, `.env.example`
-- [ ] Prisma-Schema aus Abschnitt 8 und 10, erste Migration, Seed einer Demoschule
-- [ ] Design-Tokens, Tailwind-Preset, Grundkomponenten in `packages/ui`
-- [ ] CI-Pipeline mit Lint, Typprüfung, Tests, Build
+- [x] Monorepo (pnpm, Turborepo) mit `apps/web`, `apps/api`, `packages/db`, `packages/shared`, `packages/ui`, `packages/config`
+- [x] Docker Compose mit Postgres, Mailpit, S3-kompatiblem Speicher (SeaweedFS statt MinIO, ADR 0002), `.env.example`
+- [x] Prisma-Schema aus Abschnitt 8 und 10, erste Migration, Seed einer Demoschule
+- [x] Design-Tokens, Tailwind-Preset, Grundkomponenten in `packages/ui`
+- [x] CI-Pipeline mit Lint, Typprüfung, Tests, Build
 
 **Fertig wenn:** `pnpm dev` startet Web und API, die Demoschule ist geladen, CI ist grün.
 
 ### M1: Mandanten, Login, Rechte
 
-- [ ] Mandantenauflösung per Subdomain, Row-Level-Security mit `SET LOCAL app.tenant_id`
-- [ ] Login, Einladung, Passwort-Reset, Sessions, CSRF
-- [ ] TOTP-Zwei-Faktor mit Wiederherstellungscodes
-- [ ] `policy`-Modul und `permissions.ts` nach der Matrix aus Abschnitt 3, automatische Matrix-Tests
-- [ ] Audit-Log, App-Rahmen mit rollenabhängiger Navigation
+- [x] Mandantenauflösung per Subdomain, Row-Level-Security mit `SET LOCAL app.tenant_id`
+- [x] Login, Einladung, Passwort-Reset, Sessions, CSRF
+- [x] TOTP-Zwei-Faktor mit Wiederherstellungscodes
+- [x] `policy`-Modul und `permissions.ts` nach der Matrix aus Abschnitt 3, automatische Matrix-Tests
+- [x] Audit-Log, App-Rahmen mit rollenabhängiger Navigation
 
 **Fertig wenn:** Alle Rollen der Demoschule können sich anmelden und sehen nur ihre Navigation, Mandantentest ist grün.
 
 ### M2: Stammdaten und Import
 
-- [ ] Verwaltung von Schuljahr, Ferien, Klassen, Gruppen, Fächern, Räumen, Raster
-- [ ] Personen-CSV-Import mit Vorschau, Fehlerbericht und Einladungen
-- [ ] Eltern-Kind-Verknüpfung per Einladungscode
-- [ ] Admin-Oberfläche `/admin/*` für alle Stammdaten
+- [x] Verwaltung von Schuljahr, Ferien, Klassen, Gruppen, Fächern, Räumen, Raster
+- [x] Personen-CSV-Import mit Vorschau, Fehlerbericht und Einladungen
+- [x] Eltern-Kind-Verknüpfung per Einladungscode
+- [x] Admin-Oberfläche `/admin/*` für alle Stammdaten
 
 **Fertig wenn:** Eine Schule lässt sich aus CSV-Dateien vollständig anlegen.
 
 ### M3: Stundenplan
 
-- [ ] `LessonRequirement`, Versionen, Regeln, `validateTimetable` mit Property-Tests
-- [ ] Editor mit Raster, Drag and Drop, Pool, Rückgängig, Konfliktpanel
-- [ ] Veröffentlichen mit Gültig-ab, Job `generate-occurrences`, Terminerzeugung
-- [ ] Pläne für Klasse, Lehrer, Raum, eigener Plan, iCal-Feed
+- [x] `LessonRequirement`, Versionen, Regeln, `validateTimetable` mit Property-Tests
+- [x] Editor mit Raster, Drag and Drop, Pool, Rückgängig, Konfliktpanel
+- [x] Veröffentlichen mit Gültig-ab, Job `generate-occurrences`, Terminerzeugung
+- [x] Pläne für Klasse, Lehrer, Raum, eigener Plan, iCal-Feed
 
 **Fertig wenn:** Ein Plan lässt sich ohne harte Konflikte veröffentlichen, alle Rollen sehen ihren Plan, Zeitumstellungstest ist grün.
 
 ### M4: Heute und Klassenbuch
 
-- [ ] Heute-Ansicht für Schüler, Eltern, Lehrer
-- [ ] Klassenbuch-Screen mit Anwesenheit per Tap, Stoff, Hausübung, Abschließen
-- [ ] Hinweis auf offene Einträge, Supplierstunde mit Vorbelegung
-- [ ] PWA, Offline-Zwischenspeicher, Outbox, Konfliktbehandlung, Statusanzeige
-- [ ] Echtzeit-Stream (SSE) und Aktualisierung der Ansichten
+- [x] Heute-Ansicht für Schüler, Eltern, Lehrer
+- [x] Klassenbuch-Screen mit Anwesenheit per Tap, Stoff, Hausübung, Abschließen
+- [x] Hinweis auf offene Einträge, Supplierstunde mit Vorbelegung
+- [x] PWA, Offline-Zwischenspeicher, Outbox, Konfliktbehandlung, Statusanzeige
+- [x] Echtzeit-Stream (SSE) und Aktualisierung der Ansichten
 
 **Fertig wenn:** Ein Lehrer trägt eine Klasse offline ein und sie synchronisiert danach fehlerfrei, E2E-Test dafür ist grün.
 
 ### M5: Abwesenheit, Supplierung, Benachrichtigungen
 
-- [ ] Abwesenheit melden, prüfen, Erinnerungen, Fristen-Job
-- [ ] Lehrerabwesenheit, Supplierungsvorschläge, Aktionen, Veröffentlichen
-- [ ] Benachrichtigungsdienst mit Web-Push, E-Mail, Einstellungen, Ruhezeiten, Bündelung
-- [ ] Prüfungskalender mit Kollisionswarnung
+- [x] Abwesenheit melden, prüfen, Erinnerungen, Fristen-Job
+- [x] Lehrerabwesenheit, Supplierungsvorschläge, Aktionen, Veröffentlichen
+- [x] Benachrichtigungsdienst mit Web-Push, E-Mail, Einstellungen, Ruhezeiten, Bündelung
+- [x] Prüfungskalender mit Kollisionswarnung
 
 **Fertig wenn:** Der Ablauf aus Abschnitt 11 funktioniert Ende zu Ende, Push kommt auf Android und installiertem iOS-PWA an.
 
 ### M6: Kommunikation, Direktion, Pilotreife
 
-- [ ] Nachrichten und Rundschreiben mit Lesebestätigung
-- [ ] Direktions-Lagebild und Basis-Auswertungen
-- [ ] Datenschutzfunktionen (Export, Anonymisierung, Aufbewahrungsjobs)
-- [ ] Barrierefreiheits-Durchlauf, Lasttest, Sicherheitsdurchlauf, Betriebshandbuch
+- [x] Nachrichten und Rundschreiben mit Lesebestätigung
+- [x] Direktions-Lagebild und Basis-Auswertungen
+- [x] Datenschutzfunktionen (Export, Anonymisierung, Aufbewahrungsjobs)
+- [x] Barrierefreiheits-Durchlauf, Lasttest, Sicherheitsdurchlauf (intern: CSP, Ratenbegrenzung, RLS-Tests, `pnpm audit`; ein externer Penetrationstest steht vor dem Pilotbetrieb aus), Betriebshandbuch
 - [x] Onboarding-Abläufe für alle Rollen (Engine mit Flows je Rolle, ADR 0020)
 
 **Fertig wenn:** Eine Pilotschule kann den Alltag ohne WebUntis-Klassenbuch und ohne WhatsApp-Gruppen abbilden.
@@ -876,13 +876,13 @@ zusammen, was gebaut wurde und was als Nächstes folgt.
 
 Ziel: Die Administration erstellt einen Stundenplan nicht mehr Stunde für Stunde, sondern lässt ihn aus den Soll-Stunden vorschlagen und korrigiert nur noch.
 
-- [ ] Lehrfächerverteilung (Soll-Stunden) per CSV importieren, Prüfung "zu wenige/zu viele Stunden eingeplant" vor dem Veröffentlichen
-- [ ] Planungswünsche erfassen: Sperrzeiten und freie Tage von Lehrkräften, Fachräume, maximale Stunden pro Tag, Doppelstunden, keine Hohlstunden für Schüler:innen
-- [ ] Solver erzeugt einen Vorschlag als neuen Entwurf: harte Regeln aus Abschnitt 10 werden immer eingehalten, weiche Regeln (Hohlstunden, Tagesbelastung, gleiches Fach zweimal am Tag) werden minimiert
-- [ ] Teilplanung: bestehende Stunden festpinnen, nur den Rest planen lassen (z. B. eine Klasse oder eine Lehrkraft neu)
-- [ ] Erklärung für nicht einplanbare Stunden ("Mathe 3A: keine freie Zeit, in der Lehrkraft und Klasse gleichzeitig frei sind")
-- [ ] KI-Unterstützung: Planungswünsche in natürlicher Sprache eingeben ("Frau Huber hat freitags frei", "Turnen nicht in der ersten Stunde"), werden in überprüfbare Regeln übersetzt; die eigentliche Planung bleibt deterministisch (Solver), damit Ergebnisse nachvollziehbar und reproduzierbar sind
-- [ ] Datenschutz: an ein KI-Modell gehen nur Planungsdaten ohne Personenbezug (Kürzel statt Namen), Anbieter mit EU-Verarbeitung
+- [x] Lehrfächerverteilung (Soll-Stunden) per CSV importieren, Prüfung "zu wenige/zu viele Stunden eingeplant" vor dem Veröffentlichen
+- [x] Planungswünsche erfassen: Sperrzeiten und freie Tage von Lehrkräften, Fachräume, maximale Stunden pro Tag, Doppelstunden, keine Hohlstunden für Schüler:innen
+- [x] Solver erzeugt einen Vorschlag als neuen Entwurf: harte Regeln aus Abschnitt 10 werden immer eingehalten, weiche Regeln (Hohlstunden, Tagesbelastung, gleiches Fach zweimal am Tag) werden minimiert
+- [x] Teilplanung: bestehende Stunden festpinnen, nur den Rest planen lassen (z. B. eine Klasse oder eine Lehrkraft neu)
+- [x] Erklärung für nicht einplanbare Stunden ("Mathe 3A: keine freie Zeit, in der Lehrkraft und Klasse gleichzeitig frei sind")
+- [x] KI-Unterstützung: Planungswünsche in natürlicher Sprache eingeben ("Frau Huber hat freitags frei", "Turnen nicht in der ersten Stunde"), werden in überprüfbare Regeln übersetzt; die eigentliche Planung bleibt deterministisch (Solver), damit Ergebnisse nachvollziehbar und reproduzierbar sind
+- [x] Datenschutz: an ein KI-Modell gehen nur Planungsdaten ohne Personenbezug (Kürzel statt Namen), Anbieter mit EU-Verarbeitung
 
 **Fertig wenn:** Für die Demoschule entsteht aus den Soll-Stunden ohne Handarbeit ein Entwurf ohne harte Konflikte, und die Administration kann Wünsche in Worten nachreichen.
 
