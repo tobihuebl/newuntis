@@ -64,6 +64,7 @@ const supplierung = item('supplierung', '/supplierung', 'arrow-left-right', {
 const auswertung = item('auswertung', '/auswertung', 'chart-column');
 const freigaben = item('freigaben', '/freigaben', 'circle-check');
 const rundschreiben = item('rundschreiben', '/rundschreiben', 'megaphone');
+const einverstaendnis = item('einverstaendnis', '/einverstaendnis', 'file-signature');
 const adminStundenplan = item('stundenplan', '/admin/stundenplan', 'calendar-range');
 const personen = item('personen', '/admin/personen', 'users');
 const adminKlassen = item('klassen', '/admin/klassen', 'graduation-cap');
@@ -77,6 +78,8 @@ const einstellungen = item('einstellungen', '/admin/einstellungen', 'settings');
 const primary = (i: NavItem, labelKey = i.labelKey): NavItem => ({ ...i, labelKey, primary: true });
 
 const TEACHER_ROUTES = [
+  '/einverstaendnis/neu',
+  '/einverstaendnis/[id]',
   '/klassenbuch/[occurrenceId]',
   '/klassen/[id]',
   '/pruefungen',
@@ -123,6 +126,7 @@ const NAV: Record<Role, RoleNav> = {
           item('abwesenheit', '/abwesenheit/neu', 'user-round-x'),
           item('termine', '/termine', 'calendar-range'),
           noten,
+          einverstaendnis,
           nachrichten,
         ],
       },
@@ -133,7 +137,7 @@ const NAV: Record<Role, RoleNav> = {
     home: '/heute',
     tabs: [heute, plan, primary(klassenbuch), chat, mehr],
     sections: [
-      { items: [heute, stundenplan, klassenbuch, pruefungen, noten, nachrichten] },
+      { items: [heute, stundenplan, klassenbuch, pruefungen, noten, einverstaendnis, nachrichten] },
       { labelKey: 'schule', items: [klassen, raeume, krankmeldung] },
     ],
     routes: TEACHER_ROUTES,
@@ -150,6 +154,7 @@ const NAV: Record<Role, RoleNav> = {
           item('meineKlasse', '/klasse', 'graduation-cap'),
           pruefungen,
           noten,
+          einverstaendnis,
           nachrichten,
         ],
       },
@@ -181,6 +186,7 @@ const NAV: Record<Role, RoleNav> = {
           freigaben,
           nachrichten,
           rundschreiben,
+          einverstaendnis,
         ],
       },
       // Bedienbarkeit (Durchgang 14.10.): eine Klassenseite statt drei, Stammdaten nur noch über Links erreichbar
@@ -192,6 +198,8 @@ const NAV: Record<Role, RoleNav> = {
     routes: [
       '/rundschreiben/neu',
       '/rundschreiben/[id]',
+      '/einverstaendnis/neu',
+      '/einverstaendnis/[id]',
       '/profil',
       '/klassen/[id]',
       '/klasse',
@@ -245,6 +253,7 @@ const NAV: Record<Role, RoleNav> = {
           auswertung,
           supplierung,
           rundschreiben,
+          einverstaendnis,
           item('abwesenheitMelden', '/abwesenheit/neu', 'user-round-x'),
           item('plan', '/plan', 'calendar-days'),
           item('datenschutz', '/admin/datenschutz', 'lock'),
@@ -259,6 +268,8 @@ const NAV: Record<Role, RoleNav> = {
       '/admin/stundenplan/[id]',
       '/rundschreiben/neu',
       '/rundschreiben/[id]',
+      '/einverstaendnis/neu',
+      '/einverstaendnis/[id]',
       '/profil',
       '/klasse',
       '/klassen',

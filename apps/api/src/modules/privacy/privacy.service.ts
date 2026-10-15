@@ -80,6 +80,7 @@ export class PrivacyService implements OnModuleInit {
       audit,
       remarks,
       grades,
+      consentAnswers,
     ] = await Promise.all([
       tx.attendance.findMany({
         where: { studentId: personId },
@@ -135,6 +136,19 @@ export class PrivacyService implements OnModuleInit {
           },
         },
       }),
+      // Einverständniserklärungen (KO-05): über das Kind und als Elternteil gegebene Antworten
+      tx.consentFormAnswer.findMany({
+        where: { OR: [{ studentId: personId }, { answeredById: personId }] },
+        orderBy: { createdAt: 'asc' },
+        select: {
+          answer: true,
+          note: true,
+          answeredAt: true,
+          onPaper: true,
+          student: { select: { firstName: true, lastName: true } },
+          form: { select: { title: true, dueOn: true } },
+        },
+      }),
     ]);
     return {
       generatedAt: new Date().toISOString(),
@@ -187,6 +201,15 @@ export class PrivacyService implements OnModuleInit {
         title: g.assessment.title,
         value: g.value,
         comment: g.comment,
+      })),
+      consentForms: consentAnswers.map((c) => ({
+        title: c.form.title,
+        dueOn: dayOrNull(c.form.dueOn),
+        student: `${c.student.firstName} ${c.student.lastName}`.trim(),
+        answer: c.answer,
+        note: c.note,
+        answeredAt: c.answeredAt?.toISOString() ?? null,
+        onPaper: c.onPaper,
       })),
       remarks: remarks.map((r) => ({
         date: iso(r.occurrence.date),

@@ -147,6 +147,9 @@ model Person {
   invitations             Invitation[]
   guardianCodes           GuardianCode[]
   accessCodes             AccessCode[]
+  consentFormsCreated     ConsentForm[]            @relation("ConsentFormAuthor")
+  consentFormAnswers      ConsentFormAnswer[]      @relation("ConsentFormStudent")
+  consentAnswersGiven     ConsentFormAnswer[]      @relation("ConsentFormAnsweredBy")
   messages                Message[]
   threadsAbout            Thread[]                 @relation("ThreadAbout")
   announcements           Announcement[]
@@ -1094,6 +1097,56 @@ model GuardianCode {
   student Person @relation(fields: [studentId], references: [id])
 
   @@index([tenantId, studentId])
+}
+
+enum ConsentAnswerKind {
+  OPEN
+  YES
+  NO
+}
+
+/// Einverständniserklärung (KO-05, ADR 0021): Bitte an die Eltern ausgewählter Schüler:innen um Zustimmung.
+/// Die Angefragten werden beim Verschicken als Antwortzeilen festgehalten (wie Empfänger:innen von Rundschreiben).
+model ConsentForm {
+  id          String    @id @default(cuid())
+  tenantId    String
+  title       String
+  body        String
+  dueOn       DateTime? @db.Date // letzter Tag für Antworten in der App
+  createdById String
+  closedAt    DateTime? @db.Timestamptz(3)
+  remindedAt  DateTime? @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+
+  createdBy Person              @relation("ConsentFormAuthor", fields: [createdById], references: [id])
+  answers   ConsentFormAnswer[]
+
+  @@index([tenantId, createdAt])
+}
+
+/// Antwort je Schüler:in; ein Elternteil antwortet für das Kind, die Lehrkraft kann eine Zettel-Antwort nachtragen.
+model ConsentFormAnswer {
+  id           String            @id @default(cuid())
+  tenantId     String
+  formId       String
+  studentId    String
+  classId      String // Klasse beim Verschicken (Sichtbarkeit für Lehrkräfte der Klasse)
+  answer       ConsentAnswerKind @default(OPEN)
+  note         String?
+  answeredById String?
+  answeredAt   DateTime?         @db.Timestamptz(3)
+  onPaper      Boolean           @default(false)
+  createdAt    DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime          @updatedAt @db.Timestamptz(3)
+
+  form       ConsentForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  student    Person      @relation("ConsentFormStudent", fields: [studentId], references: [id])
+  answeredBy Person?     @relation("ConsentFormAnsweredBy", fields: [answeredById], references: [id])
+
+  @@unique([formId, studentId])
+  @@index([tenantId, studentId])
+  @@index([tenantId, classId])
 }
 
 /// Persönlicher Zugangscode (Onboarding, ADR 0020): Schüler:innen ohne E-Mail-Adresse bekommen vom

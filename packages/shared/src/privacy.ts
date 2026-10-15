@@ -87,6 +87,16 @@ export interface PersonExport {
   }[];
   /** Vermerke im Klassenbuch über die Person (KB-07). */
   remarks: { date: string; subject: string; text: string; createdAt: string }[];
+  /** Einverständniserklärungen (KO-05): Antworten über das Kind und als Elternteil. */
+  consentForms: {
+    title: string;
+    dueOn: string | null;
+    student: string;
+    answer: string;
+    note: string | null;
+    answeredAt: string | null;
+    onPaper: boolean;
+  }[];
   absences: {
     fromAt: string;
     toAt: string;

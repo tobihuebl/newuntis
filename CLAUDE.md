@@ -109,6 +109,11 @@ die Spezifikation anpassen, dann bauen.
 - Schuljahreswechsel (SD-05, ADR 0019): TransitionService (apps/api/src/modules/transition), Stufe aus dem Klassennamen (levelOf), SchoolClass.previousClassId; Umstellen des Schuljahres entfernt alte KV-Rollen.
 - Globale Suche (PL-06): GET /search (apps/api/src/modules/search), Treffer nur nach bestehenden Rechten; Palette in src/components/shell/command-palette.tsx.
 
+## Einverständniserklärungen (KO-05, ADR 0021)
+
+- ConsentFormsService (apps/api/src/modules/consent-forms): Antwortzeilen je Kind beim Verschicken (ConsentFormAnswer, mit classId für die Sichtbarkeit); consentForm.manage (eigene Klassen) und consentForm.answer (Eltern, eigene Kinder). Frist einschließlich (consentOpen in @sp/shared/consent-forms.ts), Job consent-forms-daily erinnert am Tag davor.
+- Web: /einverstaendnis (Eltern beantworten, sonst Liste), /einverstaendnis/neu, /einverstaendnis/[id]; Hinweis für Eltern unter Heute (ConsentHint).
+
 ## Onboarding (ADR 0020)
 
 - Flows je Rolle als Konfiguration in packages/shared/src/onboarding.ts (Phasen welcome, setup, aha, checklist); Fortschritt je Schritt in OnboardingProgress. Neuer Schritt = Eintrag in ONBOARDING (Version erhöhen), Texte title_/tour_ in onboarding (de-AT), Screen in src/components/onboarding/steps.tsx oder Erkennung in DETECTORS (apps/api/src/modules/onboarding/onboarding.service.ts).

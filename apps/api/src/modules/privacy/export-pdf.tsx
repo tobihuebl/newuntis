@@ -132,6 +132,18 @@ function ExportDocument({ d, tz }: { d: PersonExport; tz: string }) {
           rows={d.remarks.map((r) => [day(r.date), r.subject, r.text])}
         />
 
+        <Text style={s.h2}>Einverständniserklärungen</Text>
+        <Table
+          head={['Erklärung', 'Kind', 'Antwort', 'Anmerkung', 'beantwortet']}
+          rows={d.consentForms.map((c) => [
+            c.title,
+            c.student,
+            c.answer === 'YES' ? 'Ja' : c.answer === 'NO' ? 'Nein' : 'offen',
+            c.note,
+            c.answeredAt ? `${when(c.answeredAt, tz)}${c.onPaper ? ' (Papier)' : ''}` : null,
+          ])}
+        />
+
         <Text style={s.h2}>Fehlzeiten</Text>
         <Table
           head={['von', 'bis', 'Status', 'Grund', 'Anmerkung', 'Kommentar', 'Anhang']}

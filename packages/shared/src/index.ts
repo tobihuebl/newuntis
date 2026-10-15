@@ -21,3 +21,4 @@ export * from './search';
 export * from './grades';
 export * from './promotions';
 export * from './onboarding';
+export * from './consent-forms';

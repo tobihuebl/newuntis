@@ -33,6 +33,12 @@ export async function anonymizePerson(tx: Tx, personId: string): Promise<void> {
   await tx.teacherSubject.deleteMany({ where: { teacherId: personId } });
   // Vermerke über die Person (KB-07) sind keine Schulunterlage im engeren Sinn und enthalten oft Namen im Text
   await tx.classbookRemark.deleteMany({ where: { studentId: personId } });
+  // Einverständniserklärungen (KO-05): Antworten über das Kind löschen, Antworten als Elternteil bleiben ohne Namen
+  await tx.consentFormAnswer.deleteMany({ where: { studentId: personId } });
+  await tx.consentFormAnswer.updateMany({
+    where: { answeredById: personId },
+    data: { answeredById: null, note: null },
+  });
   await tx.schoolClass.updateMany({
     where: { homeroomTeacherId: personId },
     data: { homeroomTeacherId: null },

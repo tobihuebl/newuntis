@@ -39,6 +39,7 @@ import { useCached, useOutbox } from '../../offline/hooks';
 import { cachePlanPages, prefetchTeacher } from '../../offline/prefetch';
 import { SyncStatus } from '../sync-status';
 import { NowCard } from './now-card';
+import { ConsentHint } from '../consent/consent-forms';
 import { LessonRow, PlanStatusBadge, lessonDetail, periodLabel } from './lesson-row';
 import { useT } from '../../lib/i18n';
 import { greetingKey } from '../../lib/now';
@@ -491,6 +492,7 @@ function StudentToday({ data }: { data: TodayResponse }) {
   const aside = (
     <>
       <InboxHint data={data} />
+      {data.view === 'guardian' ? <ConsentHint /> : null}
       {data.view === 'guardian' && data.studentId ? (
         <div className="flex flex-wrap gap-3">
           <Button variant="secondary" asChild iconLeft={UserRoundX}>

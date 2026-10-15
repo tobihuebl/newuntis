@@ -18,6 +18,8 @@ export const NOTIFICATION_TYPES = [
   'message.new',
   'announcement.published',
   'announcement.required',
+  'consent.requested',
+  'consent.reminder',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -40,6 +42,8 @@ export const DEFAULT_CHANNELS: Record<NotificationType, Record<Channel, boolean>
   'message.new': { push: true, email: false },
   'announcement.published': { push: true, email: false },
   'announcement.required': { push: true, email: true },
+  'consent.requested': { push: true, email: true },
+  'consent.reminder': { push: true, email: true },
 };
 
 /**
@@ -65,6 +69,8 @@ export const TYPES_FOR_ROLE: Record<string, NotificationType[]> = {
     ...COMMUNICATION,
   ],
   GUARDIAN: [
+    'consent.requested',
+    'consent.reminder',
     'substitution.published',
     'timetable.published',
     'absence.reminder',
@@ -194,6 +200,16 @@ export const NOTIFICATION_TEXTS: Record<
     title: 'Lesebestätigung erbeten',
     one: 'Bitte ein Rundschreiben lesen und bestätigen.',
     many: 'Bitte {n} Rundschreiben lesen und bestätigen.',
+  },
+  'consent.requested': {
+    title: 'Einverständnis erbeten',
+    one: 'Die Schule bittet um Ihr Einverständnis.',
+    many: 'Die Schule bittet {n}-mal um Ihr Einverständnis.',
+  },
+  'consent.reminder': {
+    title: 'Einverständnis noch offen',
+    one: 'Eine Einverständniserklärung wartet noch auf Ihre Antwort.',
+    many: '{n} Einverständniserklärungen warten noch auf Ihre Antwort.',
   },
 };
 

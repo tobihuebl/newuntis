@@ -73,6 +73,8 @@ Rollen sind additiv: Eine Person kann Lehrer und Klassenvorstand sein, oder Lehr
 | Noten einsehen | eigene | Kinder | eigene Fächer | eigene Klasse | alle (lesen) | alle (lesen) |
 | Nachrichten an Klasse oder Eltern senden | nein | an Lehrer | ja | ja | ja | ja |
 | Rundschreiben an alle oder Gruppen | nein | nein | nein | nein | ja | ja |
+| Einverständniserklärung verschicken | nein | nein | eigene Klassen | eigene Klasse | ja | ja |
+| Einverständniserklärung beantworten | nein | Kinder | nein | nein | nein | nein |
 | Supplierung planen und veröffentlichen | nein | nein | nein | nein | ja | ja |
 | Stundenplan bearbeiten | nein | nein | nein | nein | freigeben | ja |
 | Personen, Klassen, Fächer, Räume verwalten | nein | nein | nein | nein | lesen | ja |
@@ -111,7 +113,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - SD-04 MVP: Eltern-Kind-Verknüpfung per Einladungscode
 - SD-05 V1: Schuljahreswechsel-Assistent — umgesetzt: Entscheidung je Schüler:in (aufsteigen, wiederholen, Wiederholungsprüfung, verlassen), Folgeklassen und Übernahme durch die Administration (ADR 0019)
 - SD-06 V2: Sokrates- und Untis-Import
-- SD-07 V1: Lehrkräfte mit Fächern (Lehrbefähigung) und Stundenausmaß (Beschäftigungsausmaß, davon Unterricht); Grundlage für die Auslastung in der Lehrfächerverteilung und für Supplier-Vorschläge (ADR 0013)
+- SD-07 V1: Lehrkräfte mit Fächern (Lehrbefähigung) und Stundenausmaß (Beschäftigungsausmaß, davon Unterricht); Grundlage für die Auslastung in der Lehrfächerverteilung und für Supplier-Vorschläge — umgesetzt (ADR 0013)
 
 ### Stundenplan (SP)
 
@@ -164,7 +166,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - KO-02 MVP: Rundschreiben mit Lesebestätigung
 - KO-03 V1: Vorlagen, Anhänge, Ruhezeiten
 - KO-04 V1: Elternsprechtag-Buchung
-- KO-05 V1: Digitale Einverständniserklärungen mit Bestätigung
+- KO-05 V1: Digitale Einverständniserklärungen mit Bestätigung — umgesetzt: Lehrkräfte, KV, Direktion und Administration verschicken an Eltern ausgewählter Schüler:innen, Antwort je Kind mit Frist, Erinnerung und Nachtrag auf Papier (ADR 0021)
 - KO-06 V2: Übersetzung von Mitteilungen
 
 ### Dashboards und Auswertung (DB)
@@ -608,6 +610,7 @@ Noten (`Grade`, `GradeCategory`) kommen in V1 hinzu und folgen denselben Regeln.
 | Supplierung | `GET /substitutions?date`, `GET /substitutions/:id/suggestions`, `PATCH /substitutions/:id`, `POST /substitutions/publish`, `POST /substitutions` (Änderung ohne Abwesenheit, z. B. Entfall), `DELETE /substitutions/:id` | Direktion, Administration (lesen: alle Betroffenen) |
 | Prüfungen | `GET /exams`, `GET /exams/options`, `POST /exams`, `PATCH /exams/:id`, `DELETE /exams/:id` | Lehrer, Direktion (lesen: Schüler, Eltern) |
 | Nachrichten | `GET /threads`, `GET /threads/unread`, `GET /threads/recipients`, `POST /threads`, `GET /threads/:id`, `POST /threads/:id/messages`, `POST /threads/:id/read`, `GET /announcements?view=inbox\|sent`, `POST /announcements`, `POST /announcements/preview`, `GET /announcements/:id`, `POST /announcements/:id/read`, `POST /announcements/:id/remind` | je nach Rechte-Matrix (Lesen und Antworten: Teilnehmer:innen) |
+| Einverständnis | `GET /consent-forms`, `GET /consent-forms/options`, `POST /consent-forms`, `GET /consent-forms/:id`, `POST /consent-forms/:id/remind`, `POST /consent-forms/:id/close`, `PUT /consent-forms/:id/answers/:studentId` (Papier), `GET /me/consent-forms`, `PUT /me/consent-forms/:id/answers/:studentId` | Lehrer, Klassenvorstand, Direktion, Administration; Eltern (eigene Kinder) |
 | Klassen der Lehrkraft | `GET /my-classes`, `GET /my-classes/:id` | Lehrer, Klassenvorstand, Direktion |
 | Benachrichtigungen | `GET /notifications`, `POST /notifications/:id/read`, `POST /notifications/read-all`, `GET/PATCH /me/preferences`, `POST /push/subscribe`, `DELETE /push/subscribe` | alle |
 | Echtzeit | `GET /events` (Server-Sent Events) | alle |

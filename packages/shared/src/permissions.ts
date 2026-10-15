@@ -35,6 +35,8 @@ export const ACTIONS = [
   'grade.read',
   'promotion.decide',
   'access.issue',
+  'consentForm.manage',
+  'consentForm.answer',
   'message.send',
   'announcement.send',
   'substitution.manage',
@@ -96,6 +98,14 @@ export const PERMISSION_MATRIX: Matrix = {
   'promotion.decide': { HOMEROOM: 'OWN_CLASS', PRINCIPAL: 'ALL', ADMIN: 'ALL' },
   // Onboarding (ADR 0020): Zugangsbriefe mit persönlichem Code für Schüler:innen der Klasse
   'access.issue': { HOMEROOM: 'OWN_CLASS', ADMIN: 'ALL' },
+  // Einverständniserklärungen (KO-05): verschicken für eigene Klassen, beantworten für die eigenen Kinder
+  'consentForm.manage': {
+    TEACHER: 'OWN_CLASSES',
+    HOMEROOM: 'OWN_CLASS',
+    PRINCIPAL: 'ALL',
+    ADMIN: 'ALL',
+  },
+  'consentForm.answer': { GUARDIAN: 'CHILDREN' },
   'message.send': {
     GUARDIAN: 'TO_TEACHERS',
     TEACHER: 'ALL',
