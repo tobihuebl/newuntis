@@ -1,6 +1,13 @@
 'use client';
-import { GRADE_VALUES, type AssessmentItem, type CourseRef, type GradeWeights } from '@sp/shared';
-import { cn } from '@sp/ui';
+import {
+  GRADE_VALUES,
+  type AssessmentItem,
+  type CourseRef,
+  type GradeWeights,
+  type SemesterNo,
+  type SemesterRange,
+} from '@sp/shared';
+import { SegmentedControl, cn } from '@sp/ui';
 import { useT } from '../../lib/i18n';
 
 const avgFormat = new Intl.NumberFormat('de-AT', {
@@ -82,3 +89,34 @@ export function GradeSpread({
     </figure>
   );
 }
+
+/** Filter "Ganzes Jahr / 1. Semester / 2. Semester" (SD-01); ohne Semester am Schuljahr nicht sichtbar. */
+export function SemesterSwitch({
+  semesters,
+  value,
+  onChange,
+}: {
+  semesters: SemesterRange[] | null;
+  value: SemesterNo | null;
+  onChange: (v: SemesterNo | null) => void;
+}) {
+  const t = useT('grades');
+  if (!semesters) return null;
+  return (
+    <SegmentedControl
+      label={t('semesterLabel')}
+      hideLabel
+      value={value === null ? 'year' : String(value)}
+      onChange={(v) => onChange(v === 'year' ? null : (Number(v) as SemesterNo))}
+      options={[
+        { value: 'year', label: t('wholeYear') },
+        { value: '1', label: t('semester1') },
+        { value: '2', label: t('semester2') },
+      ]}
+    />
+  );
+}
+
+/** Abfrage-Anhang für den Semesterfilter. */
+export const semesterParam = (s: SemesterNo | null, sep: '?' | '&') =>
+  s === null ? '' : `${sep}semester=${s}`;

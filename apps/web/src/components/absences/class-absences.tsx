@@ -354,7 +354,7 @@ export function ClassAbsences({
  */
 function ClassWarnings({ classId }: { classId: string }) {
   const t = useT('klasse');
-  const q = useApi<{ data: AbsenceWarningItem[] }>(
+  const q = useApi<{ data: AbsenceWarningItem[]; since: 'SEMESTER' | 'YEAR' }>(
     ['absences', 'warnings', classId],
     `/absences/warnings?classId=${classId}`,
   );
@@ -374,7 +374,12 @@ function ClassWarnings({ classId }: { classId: string }) {
             <li key={w.studentId} className="flex flex-wrap items-center gap-2 px-4 py-3">
               <span className="flex-1 text-label">{w.name}</span>
               {w.kinds.includes('UNEXCUSED') ? (
-                <Chip tone="danger">{t('warnUnexcused', { count: w.unexcused })}</Chip>
+                <Chip tone="danger">
+                  {t('warnUnexcused', {
+                    count: w.unexcused,
+                    since: q.data?.since === 'SEMESTER' ? 'semester' : 'year',
+                  })}
+                </Chip>
               ) : null}
               {w.kinds.includes('FREQUENT') ? (
                 <Chip tone="late">{t('warnFrequent', { count: w.recent })}</Chip>

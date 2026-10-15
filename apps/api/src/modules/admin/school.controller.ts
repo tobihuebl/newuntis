@@ -29,6 +29,7 @@ import type { Principal } from '../../common/request';
 import { ZodPipe } from '../../common/zod.pipe';
 import { AuditService } from '../audit/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { semestersOf } from '../timetable/semesters';
 import { bad, isoDate, list, toDate } from './util';
 
 type Tx = PrismaService['tx'];
@@ -65,7 +66,7 @@ export class SchoolController {
       orderBy: { startsOn: 'desc' },
       include: { _count: { select: { classes: true, freeDays: true } } },
     });
-    return list(rows.map((r) => this.yearDto(r)));
+    return list(await Promise.all(rows.map((r) => this.yearDto(r))));
   }
 
   @Can('masterdata.read')
@@ -77,7 +78,7 @@ export class SchoolController {
     });
     if (!row) throw new NotFoundException({ title: 'Schuljahr nicht gefunden' });
     return {
-      ...this.yearDto(row),
+      ...(await this.yearDto(row)),
       freeDays: row.freeDays.map((f) => ({
         id: f.id,
         fromDate: isoDate(f.fromDate),
@@ -104,6 +105,7 @@ export class SchoolController {
         startsOn: toDate(body.startsOn),
         endsOn: toDate(body.endsOn),
         isCurrent: body.isCurrent,
+        secondSemesterFrom: body.secondSemesterFrom ? toDate(body.secondSemesterFrom) : null,
       },
     });
     await this.log(tenantId, actor, 'schoolYear.create', 'schoolYear', row.id);
@@ -124,6 +126,12 @@ export class SchoolController {
     const startsOn = body.startsOn ?? isoDate(current.startsOn)!;
     const endsOn = body.endsOn ?? isoDate(current.endsOn)!;
     if (startsOn >= endsOn) bad('Beginn muss vor dem Ende liegen');
+    const second =
+      body.secondSemesterFrom !== undefined
+        ? body.secondSemesterFrom
+        : isoDate(current.secondSemesterFrom);
+    if (second !== null && (second <= startsOn || second > endsOn))
+      bad('Das 2. Semester muss im Schuljahr beginnen');
     if (body.isCurrent)
       await tx.schoolYear.updateMany({
         data: { isCurrent: false },
@@ -141,6 +149,7 @@ export class SchoolController {
         startsOn: toDate(startsOn),
         endsOn: toDate(endsOn),
         isCurrent: body.isCurrent,
+        secondSemesterFrom: second ? toDate(second) : null,
       },
     });
     await this.log(tenantId, actor, 'schoolYear.update', 'schoolYear', id);
@@ -197,20 +206,25 @@ export class SchoolController {
     await this.log(tenantId, actor, 'schoolFreeDay.delete', 'schoolFreeDay', id);
   }
 
-  private yearDto(r: {
+  /** Mit eingetragenem und wirksamem Beginn des 2. Semesters (sonst aus den Semesterferien, ADR 0022). */
+  private async yearDto(r: {
     id: string;
     name: string;
     startsOn: Date;
     endsOn: Date;
     isCurrent: boolean;
+    secondSemesterFrom: Date | null;
     _count?: { classes: number; freeDays: number };
   }) {
+    const semesters = await semestersOf(this.prisma.tx, r);
     return {
       id: r.id,
       name: r.name,
       startsOn: isoDate(r.startsOn),
       endsOn: isoDate(r.endsOn),
       isCurrent: r.isCurrent,
+      secondSemesterFrom: isoDate(r.secondSemesterFrom),
+      semesters,
       classCount: r._count?.classes,
       freeDayCount: r._count?.freeDays,
     };

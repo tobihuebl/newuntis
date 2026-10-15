@@ -21,6 +21,7 @@ import {
   type CourseDetail,
   type CourseRef,
   type GradeWeights,
+  type SemesterNo,
 } from '@sp/shared';
 import {
   Banner,
@@ -42,7 +43,14 @@ import { useT } from '../../lib/i18n';
 import { FormError } from '../form-bits';
 import { LoadError } from '../load-error';
 import { PageTitle } from '../page-title';
-import { courseHref, formatAverage, GradeSpread, WeightsLine } from './grade-bits';
+import {
+  courseHref,
+  formatAverage,
+  GradeSpread,
+  semesterParam,
+  SemesterSwitch,
+  WeightsLine,
+} from './grade-bits';
 
 const queryOf = (c: CourseRef) =>
   `/grades/course?${c.classId ? `classId=${c.classId}` : `groupId=${c.groupId}`}&subjectId=${c.subjectId}`;
@@ -54,7 +62,13 @@ const queryOf = (c: CourseRef) =>
 export function CourseScreen({ course, selected }: { course: CourseRef; selected?: string }) {
   const t = useT('grades');
   const key = ['grades', 'course', course.classId ?? course.groupId, course.subjectId];
-  const q = useApi<CourseDetail>(key, queryOf(course));
+  // Semesterfilter nur in der Übersicht; die Erfassung einer Leistung sieht immer das ganze Jahr
+  const [semester, setSemester] = useState<SemesterNo | null>(null);
+  const sem = selected ? null : semester;
+  const q = useApi<CourseDetail>(
+    [...key, sem ?? 'year'],
+    queryOf(course) + semesterParam(sem, '&'),
+  );
   const d = q.data;
   const assessment = d?.assessments.find((a) => a.id === selected);
   const back = d?.canWrite || !course.classId ? '/noten' : `/noten/klasse/${course.classId}`;
@@ -85,6 +99,7 @@ export function CourseScreen({ course, selected }: { course: CourseRef; selected
               </p>
             )}
           </div>
+          <SemesterSwitch semesters={d.semesters} value={sem} onChange={setSemester} />
           <WeightingCard d={d} queryKey={key} />
           <AssessmentsSection d={d} queryKey={key} />
           {d.assessments.length ? <OverviewTable d={d} /> : null}

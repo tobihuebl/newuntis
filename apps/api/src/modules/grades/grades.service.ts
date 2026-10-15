@@ -21,6 +21,7 @@ import {
   type CourseRef,
   type CourseSummary,
   type GradeWeights,
+  type SemesterNo,
   type PolicyUser,
   type StudentGrades,
 } from '@sp/shared';
@@ -32,6 +33,7 @@ import { AuditService } from '../audit/audit.service';
 import { currentEnrollments, guardianLinks } from '../messages/recipients';
 import { NotificationsService } from '../notifications/notifications.service';
 import { asDate, iso, todayIn } from '../timetable/data';
+import { semestersOf } from '../timetable/semesters';
 
 export const courseKey = (c: CourseRef) => `${c.classId ?? c.groupId}:${c.subjectId}`;
 const subjectSelect = { id: true, name: true, code: true, color: true } as const;
@@ -64,10 +66,25 @@ export class GradesService {
   async currentYear(tx: Tx) {
     const y = await tx.schoolYear.findFirst({
       where: { isCurrent: true },
-      select: { id: true, startsOn: true, endsOn: true },
+      select: { id: true, startsOn: true, endsOn: true, secondSemesterFrom: true },
     });
     if (!y) throw new UnprocessableEntityException({ title: 'Es gibt kein aktuelles Schuljahr' });
     return y;
+  }
+
+  /** Semester des Jahres und Datumsfilter für Leistungen (ohne Semester oder ohne Wahl: ganzes Jahr). */
+  private async semesterFilter(
+    tx: Tx,
+    year: { id: string; startsOn: Date; endsOn: Date; secondSemesterFrom: Date | null },
+    semester: SemesterNo | undefined,
+  ) {
+    const semesters = await semestersOf(tx, year);
+    const r = semester ? semesters?.find((x) => x.no === semester) : undefined;
+    return {
+      semesters,
+      semester: r ? r.no : null,
+      date: r ? { gte: asDate(r.from), lte: asDate(r.to) } : undefined,
+    };
   }
 
   /** Kurs prüfen (Klasse oder Gruppe des Schuljahres, Fach) und Bezeichnung liefern. */
@@ -175,10 +192,12 @@ export class GradesService {
     me: Principal,
     user: PolicyUser,
     c: CourseRef,
+    semester?: SemesterNo,
   ): Promise<CourseDetail> {
     if (!this.canRead(user, c))
       throw new ForbiddenException({ title: 'Keine Berechtigung für diese Noten' });
     const year = await this.currentYear(tx);
+    const sem = await this.semesterFilter(tx, year, semester);
     const { tz } = await this.tz(tx, tenantId);
     const key = courseKey(c);
     const [{ subject, label }, students, w, assessments, exams] = await Promise.all([
@@ -186,7 +205,7 @@ export class GradesService {
       this.students(tx, c, todayIn(tz)),
       this.weights(tx, year.id, key),
       tx.assessment.findMany({
-        where: { schoolYearId: year.id, courseKey: key },
+        where: { schoolYearId: year.id, courseKey: key, ...(sem.date ? { date: sem.date } : {}) },
         orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
         include: { grades: { select: { studentId: true, value: true, comment: true } } },
       }),
@@ -232,6 +251,8 @@ export class GradesService {
       ]),
     );
     return {
+      semesters: sem.semesters,
+      semester: sem.semester,
       course: {
         ...c,
         label,
@@ -523,6 +544,7 @@ export class GradesService {
     me: Principal,
     user: PolicyUser,
     classId: string,
+    semester?: SemesterNo,
   ): Promise<ClassGradesOverview> {
     if (!can(user, 'grade.read', { classId }))
       throw new ForbiddenException({ title: 'Keine Berechtigung für diese Klasse' });
@@ -532,6 +554,7 @@ export class GradesService {
       select: { name: true },
     });
     if (!cls) throw new NotFoundException({ title: 'Klasse nicht gefunden' });
+    const sem = await this.semesterFilter(tx, year, semester);
     const { tz } = await this.tz(tx, tenantId);
     const students = await this.students(
       tx,
@@ -540,7 +563,7 @@ export class GradesService {
     );
     const [assessments, weightings] = await Promise.all([
       tx.assessment.findMany({
-        where: { schoolYearId: year.id, classId },
+        where: { schoolYearId: year.id, classId, ...(sem.date ? { date: sem.date } : {}) },
         select: {
           subjectId: true,
           kind: true,
@@ -567,6 +590,8 @@ export class GradesService {
       entityId: classId,
     });
     return {
+      semesters: sem.semesters,
+      semester: sem.semester,
       classId,
       className: cls.name,
       subjects,
@@ -599,6 +624,7 @@ export class GradesService {
     me: Principal,
     user: PolicyUser,
     studentId: string,
+    semester?: SemesterNo,
   ): Promise<StudentGrades> {
     // Diese Ansicht ist für die Person selbst und ihre Eltern; Lehrkräfte und Direktion nutzen Kurs und Klasse
     const self = studentId === me.personId;
@@ -622,9 +648,11 @@ export class GradesService {
         throw new ForbiddenException({ title: `Noten sind ab ${minAge} Jahren sichtbar` });
     }
     const year = await this.currentYear(tx);
+    const sem = await this.semesterFilter(tx, year, semester);
     const assessments = await tx.assessment.findMany({
       where: {
         schoolYearId: year.id,
+        ...(sem.date ? { date: sem.date } : {}),
         releasedAt: { not: null },
         grades: { some: { studentId } },
       },
@@ -684,6 +712,11 @@ export class GradesService {
         entity: 'person',
         entityId: studentId,
       });
-    return { student: { id: person.id, name: `${person.firstName} ${person.lastName}` }, subjects };
+    return {
+      semesters: sem.semesters,
+      semester: sem.semester,
+      student: { id: person.id, name: `${person.firstName} ${person.lastName}` },
+      subjects,
+    };
   }
 }

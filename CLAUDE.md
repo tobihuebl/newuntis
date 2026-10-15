@@ -109,6 +109,11 @@ die Spezifikation anpassen, dann bauen.
 - Schuljahreswechsel (SD-05, ADR 0019): TransitionService (apps/api/src/modules/transition), Stufe aus dem Klassennamen (levelOf), SchoolClass.previousClassId; Umstellen des Schuljahres entfernt alte KV-Rollen.
 - Globale Suche (PL-06): GET /search (apps/api/src/modules/search), Treffer nur nach bestehenden Rechten; Palette in src/components/shell/command-palette.tsx.
 
+## Semester (SD-01, ADR 0022)
+
+- SchoolYear.secondSemesterFrom; leer = Tag nach den Semesterferien. Immer über semestersOf (apps/api/src/modules/timetable/semesters.ts) bzw. semesterRanges (@sp/shared/semesters.ts) lesen, nie das Feld direkt.
+- Noten-Endpunkte nehmen ?semester=1|2 (semesterQuery); Frühwarnung zählt Unentschuldigtes je Semester.
+
 ## Einverständniserklärungen (KO-05, ADR 0021)
 
 - ConsentFormsService (apps/api/src/modules/consent-forms): Antwortzeilen je Kind beim Verschicken (ConsentFormAnswer, mit classId für die Sichtbarkeit); consentForm.manage (eigene Klassen) und consentForm.answer (Eltern, eigene Kinder). Frist einschließlich (consentOpen in @sp/shared/consent-forms.ts), Job consent-forms-daily erinnert am Tag davor.

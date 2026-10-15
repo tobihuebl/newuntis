@@ -107,7 +107,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 
 ### Stammdaten (SD)
 
-- SD-01 MVP: Schuljahr, Semester, Ferien und schulfreie Tage
+- SD-01 MVP: Schuljahr, Semester, Ferien und schulfreie Tage — Semester: Beginn des 2. Semesters am Schuljahr oder aus den Semesterferien, Notenfilter und Frühwarnung je Semester (ADR 0022)
 - SD-02 MVP: Klassen, Gruppen (z. B. Wahlfach), Fächer, Räume
 - SD-03 MVP: Personen per CSV importieren mit Vorschau und Fehlerbericht
 - SD-04 MVP: Eltern-Kind-Verknüpfung per Einladungscode

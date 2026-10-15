@@ -54,7 +54,7 @@ export class AbsencesController {
       : hasScope(user, 'absence.review', 'ALL');
     if (!allowed) throw new ForbiddenException({ title: 'Keine Berechtigung für diese Klasse' });
     const r = await this.warnings.list(this.prisma.tx, tenantId, q.classId ? [q.classId] : null);
-    return { data: r.data };
+    return { data: r.data, since: r.since };
   }
 
   /** Melden bzw. entschuldigen (Eltern, Schüler:in ab Altersgrenze, Administration für andere). */

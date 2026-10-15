@@ -19,13 +19,27 @@ export const schoolYearInput = z
     startsOn: dateSchema,
     endsOn: dateSchema,
     isCurrent: z.boolean().default(false),
+    /** Beginn des 2. Semesters (SD-01); leer = Tag nach den Semesterferien. */
+    secondSemesterFrom: dateSchema.nullable().default(null),
   })
   .refine((v) => v.startsOn < v.endsOn, {
     message: 'Beginn muss vor dem Ende liegen',
     path: ['endsOn'],
-  });
+  })
+  .refine(
+    (v) =>
+      v.secondSemesterFrom === null ||
+      (v.startsOn < v.secondSemesterFrom && v.secondSemesterFrom <= v.endsOn),
+    { message: 'Das 2. Semester muss im Schuljahr beginnen', path: ['secondSemesterFrom'] },
+  );
 export const schoolYearPatch = z
-  .object({ name: trimmed(20), startsOn: dateSchema, endsOn: dateSchema, isCurrent: z.boolean() })
+  .object({
+    name: trimmed(20),
+    startsOn: dateSchema,
+    endsOn: dateSchema,
+    isCurrent: z.boolean(),
+    secondSemesterFrom: dateSchema.nullable(),
+  })
   .partial();
 export const freeDayInput = z
   .object({ fromDate: dateSchema, toDate: dateSchema, label: trimmed(80) })

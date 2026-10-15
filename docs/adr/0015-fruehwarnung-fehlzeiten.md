@@ -11,7 +11,8 @@ Grenzen des Schulpflichtgesetzes erreicht sind (unentschuldigt mehr als drei Sch
 
 1. **Zwei Schwellen je Schule** in `settings.absence`: `warnUnexcusedLessons` (unentschuldigte Fehlstunden im
    Schuljahr, Standard 10) und `warnLessons` in `warnWindowDays` (alle Fehlstunden im Zeitraum, Standard 30 in
-   30 Tagen). 0 schaltet eine Schwelle aus. Semester gibt es im Datenmodell nicht; gezählt wird ab Schuljahresbeginn.
+   30 Tagen). 0 schaltet eine Schwelle aus. Gezählt wird ab Beginn des laufenden Semesters, ohne Semester ab Schuljahresbeginn
+   (Nachtrag ADR 0022).
 2. **Grundlage sind Klassenbuch-Stunden mit "abwesend"**. Unentschuldigt ist eine Stunde, wenn die Fehlzeit, die
    sie abdeckt, abgelehnt (REJECTED) oder unentschuldigt (UNEXCUSED) ist; offene und gemeldete zählen noch nicht.
    Reine Funktion `absenceWarnings` in `@sp/shared`.

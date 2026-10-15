@@ -284,7 +284,12 @@
       "freeTo": "Bis",
       "freeLabel": "Bezeichnung",
       "addFree": "Eintrag hinzufügen",
-      "noFree": "Noch keine Einträge"
+      "noFree": "Noch keine Einträge",
+      "secondSemesterFrom": "2. Semester ab",
+      "secondSemesterHint": "Leer lassen: Tag nach den Semesterferien (schulfreie Tage mit dem Namen „Semesterferien“)",
+      "semesters": "Semester",
+      "semesterRange": "1. Sem. bis {end} · 2. Sem. ab {start}",
+      "noSemesters": "nicht festgelegt"
     },
     "classes": {
       "title": "Klassen",
@@ -747,7 +752,7 @@
     "noClass": "Du bist keiner Klasse als Klassenvorstand zugeordnet.",
     "warnings": "Frühwarnung: {count, plural, one {# Schüler:in} other {# Schüler:innen}} über der Warnschwelle",
     "warningsHelp": "Viele Fehlstunden oder unentschuldigte Stunden. Ein frühes Gespräch mit Eltern und Schüler:in hilft oft. Die Schwellen legt die Schule in den Einstellungen fest.",
-    "warnUnexcused": "{count, plural, one {# Stunde} other {# Stunden}} unentschuldigt im Schuljahr",
+    "warnUnexcused": "{count, plural, one {# Stunde} other {# Stunden}} unentschuldigt {since, select, semester {im Semester} other {im Schuljahr}}",
     "warnFrequent": "{count, plural, one {# Fehlstunde} other {# Fehlstunden}} in den letzten Wochen",
     "overview": "Übersicht",
     "remarks": "Vermerke",
@@ -1209,7 +1214,7 @@
     "field_excuseDeadlineDays": "Frist für Entschuldigungen (Tage)",
     "field_attachmentRequiredFromDays": "Bestätigung Pflicht ab (Tage)",
     "field_reminderAfterDays": "Erinnerungen nach (Tage)",
-    "field_warnUnexcusedLessons": "Frühwarnung: unentschuldigte Stunden im Schuljahr (0 = aus)",
+    "field_warnUnexcusedLessons": "Frühwarnung: unentschuldigte Stunden im Semester (0 = aus; ohne Semester im Schuljahr)",
     "field_warnLessons": "Frühwarnung: Fehlstunden im Zeitraum (0 = aus)",
     "field_warnWindowDays": "Frühwarnung: Zeitraum in Tagen",
     "field_maxPerDayPerClass": "Höchstens Prüfungen pro Tag und Klasse",
@@ -1872,7 +1877,11 @@
     "classEmpty": "Noch keine Noten in dieser Klasse",
     "mineHelp": "Freigegebene Noten je Fach mit Durchschnitt. Der Notenspiegel zeigt die Verteilung in der Klasse.",
     "mineEmpty": "Noch keine Noten",
-    "mineEmptyText": "Sobald eine Lehrkraft Noten freigibt, erscheinen sie hier."
+    "mineEmptyText": "Sobald eine Lehrkraft Noten freigibt, erscheinen sie hier.",
+    "semesterLabel": "Zeitraum",
+    "wholeYear": "Ganzes Jahr",
+    "semester1": "1. Semester",
+    "semester2": "2. Semester"
   },
   "transition": {
     "title": "Schuljahresende {name}",

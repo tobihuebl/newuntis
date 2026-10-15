@@ -22,3 +22,4 @@ export * from './grades';
 export * from './promotions';
 export * from './onboarding';
 export * from './consent-forms';
+export * from './semesters';

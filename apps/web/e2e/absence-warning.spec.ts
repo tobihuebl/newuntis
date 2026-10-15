@@ -67,7 +67,7 @@ test('Klassenvorstand und Direktion sehen die Frühwarnung', async ({ browser })
   const warning = kv.getByRole('region', { name: /Frühwarnung/ }).getByRole('listitem');
   await expect(warning).toHaveCount(1);
   await expect(warning).toContainText(r.name);
-  await expect(warning).toContainText('2 Stunden unentschuldigt im Schuljahr');
+  await expect(warning).toContainText('2 Stunden unentschuldigt im Semester');
   await kv.close();
 
   const page = await browser.newPage();

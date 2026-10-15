@@ -1,13 +1,14 @@
 'use client';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import type { ClassGradesOverview } from '@sp/shared';
+import { useState } from 'react';
+import type { ClassGradesOverview, SemesterNo } from '@sp/shared';
 import { Button, Card, EmptyState, Skeleton } from '@sp/ui';
 import { useApi } from '../../lib/use-api';
 import { useT } from '../../lib/i18n';
 import { LoadError } from '../load-error';
 import { PageTitle } from '../page-title';
-import { courseHref, formatAverage } from './grade-bits';
+import { courseHref, formatAverage, semesterParam, SemesterSwitch } from './grade-bits';
 
 /**
  * Notenübersicht einer Klasse (Klassenvorstand, Direktion, Administration): gewichteter Durchschnitt je
@@ -15,7 +16,11 @@ import { courseHref, formatAverage } from './grade-bits';
  */
 export function ClassGradesScreen({ classId }: { classId: string }) {
   const t = useT('grades');
-  const q = useApi<ClassGradesOverview>(['grades', 'class', classId], `/grades/classes/${classId}`);
+  const [semester, setSemester] = useState<SemesterNo | null>(null);
+  const q = useApi<ClassGradesOverview>(
+    ['grades', 'class', classId, semester ?? 'year'],
+    `/grades/classes/${classId}${semesterParam(semester, '?')}`,
+  );
   const d = q.data;
   return (
     <div className="mx-auto flex w-full max-w-(--content-max) flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
@@ -32,6 +37,7 @@ export function ClassGradesScreen({ classId }: { classId: string }) {
             <PageTitle area="noten">{t('classTitle', { name: d.className })}</PageTitle>
             <p className="text-body-sm text-ink-muted">{t('classHelp')}</p>
           </div>
+          <SemesterSwitch semesters={d.semesters} value={semester} onChange={setSemester} />
           {d.subjects.length === 0 ? (
             <Card flat>
               <EmptyState title={t('classEmpty')} />

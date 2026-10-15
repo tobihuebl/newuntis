@@ -17,6 +17,7 @@ import {
   gradesInput,
   myGradesQuery,
   weightingInput,
+  semesterQuery,
 } from '@sp/shared';
 import { z } from 'zod';
 import { Can } from '../../common/decorators';
@@ -56,9 +57,10 @@ export class GradesController {
     @TenantId() tenantId: string,
     @Actor() me: Principal,
     @Query(new ZodPipe(courseRef)) q: z.infer<typeof courseRef>,
+    @Query(new ZodPipe(semesterQuery)) s: z.infer<typeof semesterQuery>,
   ) {
     const user = await this.policy.loadUser(tenantId, me);
-    return this.grades.detail(this.prisma.tx, tenantId, me, user, q);
+    return this.grades.detail(this.prisma.tx, tenantId, me, user, q, s.semester);
   }
 
   @Can('grade.write')
@@ -130,9 +132,10 @@ export class GradesController {
     @TenantId() tenantId: string,
     @Actor() me: Principal,
     @Param('classId') classId: string,
+    @Query(new ZodPipe(semesterQuery)) s: z.infer<typeof semesterQuery>,
   ) {
     const user = await this.policy.loadUser(tenantId, me);
-    return this.grades.classOverview(this.prisma.tx, tenantId, me, user, classId);
+    return this.grades.classOverview(this.prisma.tx, tenantId, me, user, classId, s.semester);
   }
 
   /** Eigene Noten (Schüler:in) bzw. die eines Kindes (Eltern, ?studentId=). */
@@ -142,8 +145,16 @@ export class GradesController {
     @TenantId() tenantId: string,
     @Actor() me: Principal,
     @Query(new ZodPipe(myGradesQuery)) q: z.infer<typeof myGradesQuery>,
+    @Query(new ZodPipe(semesterQuery)) s: z.infer<typeof semesterQuery>,
   ) {
     const user = await this.policy.loadUser(tenantId, me);
-    return this.grades.forStudent(this.prisma.tx, tenantId, me, user, q.studentId ?? me.personId);
+    return this.grades.forStudent(
+      this.prisma.tx,
+      tenantId,
+      me,
+      user,
+      q.studentId ?? me.personId,
+      s.semester,
+    );
   }
 }

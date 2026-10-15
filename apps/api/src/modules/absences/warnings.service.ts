@@ -10,6 +10,7 @@ import { QueueService } from '../jobs/queue.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { asDate, iso, todayIn } from '../timetable/data';
+import { semestersOf } from '../timetable/semesters';
 
 export const QUEUE_ABSENCE_WARNINGS = 'absence-warnings-daily';
 const DAY = 86_400_000;
@@ -39,15 +40,25 @@ export class AbsenceWarningsService implements OnModuleInit {
     tx: Tx,
     tenantId: string,
     classIds: string[] | null,
-  ): Promise<{ schoolYearId: string | null; data: AbsenceWarningItem[] }> {
+  ): Promise<{
+    schoolYearId: string | null;
+    /** Zählung der unentschuldigten Stunden: im laufenden Semester oder im Schuljahr (ohne Semester). */
+    since: 'SEMESTER' | 'YEAR';
+    countFrom: string | null;
+    data: AbsenceWarningItem[];
+  }> {
     const t = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
     const s = tenantSettingsSchema.parse(t.settings).absence;
     const today = todayIn(t.timezone);
     const year = await tx.schoolYear.findFirst({
       where: { isCurrent: true },
-      select: { id: true, startsOn: true },
+      select: { id: true, startsOn: true, endsOn: true, secondSemesterFrom: true },
     });
-    if (!year) return { schoolYearId: null, data: [] };
+    if (!year) return { schoolYearId: null, since: 'YEAR', countFrom: null, data: [] };
+    const semesters = await semestersOf(tx, year);
+    const semester = semesters?.find((r) => r.from <= today && today <= r.to) ?? null;
+    const since = semester ? ('SEMESTER' as const) : ('YEAR' as const);
+    const countFrom = semester?.from ?? iso(year.startsOn);
     const enrollments = await tx.enrollment.findMany({
       where: {
         ...(classIds ? { classId: { in: classIds } } : { class: { schoolYearId: year.id } }),
@@ -62,7 +73,7 @@ export class AbsenceWarningsService implements OnModuleInit {
       },
     });
     const ids = enrollments.map((e) => e.studentId);
-    if (ids.length === 0) return { schoolYearId: year.id, data: [] };
+    if (ids.length === 0) return { schoolYearId: year.id, since, countFrom, data: [] };
     const yearStart = iso(year.startsOn);
     const [lessons, absences] = await Promise.all([
       tx.attendance.findMany({
@@ -91,6 +102,7 @@ export class AbsenceWarningsService implements OnModuleInit {
       {
         today,
         yearStart,
+        unexcusedFrom: countFrom,
         warnUnexcusedLessons: s.warnUnexcusedLessons,
         warnLessons: s.warnLessons,
         warnWindowDays: s.warnWindowDays,
@@ -99,6 +111,8 @@ export class AbsenceWarningsService implements OnModuleInit {
     const byStudent = new Map(enrollments.map((e) => [e.studentId, e]));
     return {
       schoolYearId: year.id,
+      since,
+      countFrom,
       data: warnings.map((w) => {
         const e = byStudent.get(w.studentId)!;
         return {
@@ -124,10 +138,11 @@ export class AbsenceWarningsService implements OnModuleInit {
 
   /**
    * Hinweis an den Klassenvorstand (ohne Namen) für neu überschrittene Schwellen. "Unentschuldigt" kommt einmal je
-   * Schuljahr, "häufig" erneut, wenn die letzte Warnung länger als das Beobachtungsfenster zurückliegt.
+   * Semester (ohne Semester: je Schuljahr), "häufig" erneut, wenn die letzte Warnung länger als das
+   * Beobachtungsfenster zurückliegt.
    */
   async notifyNew(tx: Tx, tenantId: string, now = new Date()): Promise<number> {
-    const { schoolYearId, data } = await this.list(tx, tenantId, null);
+    const { schoolYearId, countFrom, data } = await this.list(tx, tenantId, null);
     if (!schoolYearId || data.length === 0) return 0;
     const t = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
     const windowDays = tenantSettingsSchema.parse(t.settings).absence.warnWindowDays;
@@ -143,7 +158,8 @@ export class AbsenceWarningsService implements OnModuleInit {
       const fresh = w.kinds.filter((kind) => {
         const k = known.find((x) => x.studentId === w.studentId && x.kind === kind);
         if (!k) return true;
-        return kind === 'FREQUENT' && now.getTime() - k.notifiedAt.getTime() > windowDays * DAY;
+        if (kind === 'UNEXCUSED') return countFrom !== null && iso(k.notifiedAt) < countFrom;
+        return now.getTime() - k.notifiedAt.getTime() > windowDays * DAY;
       });
       if (fresh.length === 0) continue;
       for (const kind of fresh)

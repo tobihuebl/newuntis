@@ -4,6 +4,7 @@
  * durch die Lehrkraft für Schüler:innen und Eltern sichtbar.
  */
 import { z } from 'zod';
+import type { SemesterNo, SemesterRange } from './semesters';
 import { dateSchema } from './masterdata';
 
 export const GRADE_VALUES = [1, 2, 3, 4, 5] as const;
@@ -174,6 +175,9 @@ export interface AssessmentItem {
 }
 
 export interface CourseDetail {
+  /** Semester des Schuljahres (null = keine festgelegt) und der gewählte Filter (null = ganzes Jahr). */
+  semesters: SemesterRange[] | null;
+  semester: SemesterNo | null;
   course: CourseSummary;
   /** Darf Noten eintragen (Lehrkraft des Fachs in dieser Klasse oder Gruppe). */
   canWrite: boolean;
@@ -193,6 +197,9 @@ export interface CourseDetail {
 
 /** Notenübersicht einer Klasse (KV, Direktion, Administration): Durchschnitt je Schüler:in und Fach. */
 export interface ClassGradesOverview {
+  /** Semester des Schuljahres (null = keine festgelegt) und der gewählte Filter (null = ganzes Jahr). */
+  semesters: SemesterRange[] | null;
+  semester: SemesterNo | null;
   classId: string;
   className: string;
   subjects: { id: string; name: string; code: string }[];
@@ -201,6 +208,9 @@ export interface ClassGradesOverview {
 
 /** Eigene Noten (Schüler:in) bzw. die eines Kindes (Eltern): nur freigegebene Leistungen. */
 export interface StudentGrades {
+  /** Semester des Schuljahres (null = keine festgelegt) und der gewählte Filter (null = ganzes Jahr). */
+  semesters: SemesterRange[] | null;
+  semester: SemesterNo | null;
   student: { id: string; name: string };
   subjects: {
     subject: { id: string; name: string; code: string; color: string | null };

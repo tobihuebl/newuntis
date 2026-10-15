@@ -261,6 +261,10 @@ export interface YearRow {
   startsOn: string;
   endsOn: string;
   isCurrent: boolean;
+  /** Eingetragener Beginn des 2. Semesters (leer = aus den Semesterferien). */
+  secondSemesterFrom?: string | null;
+  /** Wirksame Semester (ADR 0022). */
+  semesters?: { no: 1 | 2; from: string; to: string }[] | null;
   classCount?: number;
   freeDayCount?: number;
 }
@@ -303,6 +307,14 @@ export function YearsManager({
         { key: 'startsOn', label: t('startsOn'), render: (r) => r.startsOn },
         { key: 'endsOn', label: t('endsOn'), render: (r) => r.endsOn },
         {
+          key: 'semesters',
+          label: t('semesters'),
+          render: (r) =>
+            r.semesters?.length === 2
+              ? t('semesterRange', { end: r.semesters[0]!.to, start: r.semesters[1]!.from })
+              : t('noSemesters'),
+        },
+        {
           key: 'current',
           label: t('current'),
           render: (r) => (r.isCurrent ? c('yes') : c('none')),
@@ -312,12 +324,19 @@ export function YearsManager({
         { name: 'name', label: t('name'), type: 'text', required: true, placeholder: '2026/27' },
         { name: 'startsOn', label: t('startsOn'), type: 'date', required: true },
         { name: 'endsOn', label: t('endsOn'), type: 'date', required: true },
+        {
+          name: 'secondSemesterFrom',
+          label: t('secondSemesterFrom'),
+          type: 'date',
+          hint: t('secondSemesterHint'),
+        },
         { name: 'isCurrent', label: t('isCurrent'), type: 'checkbox' },
       ]}
       toForm={(r) => ({
         name: r.name,
         startsOn: r.startsOn,
         endsOn: r.endsOn,
+        secondSemesterFrom: r.secondSemesterFrom ?? '',
         isCurrent: r.isCurrent,
       })}
     />

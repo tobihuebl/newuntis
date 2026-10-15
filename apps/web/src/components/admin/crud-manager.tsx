@@ -31,6 +31,7 @@ export interface Field {
   createOnly?: boolean;
   emptyLabel?: string;
   placeholder?: string;
+  hint?: string;
 }
 
 export interface Column<Row> {
@@ -367,6 +368,7 @@ export function CrudManager<Row extends { id: string }>(props: CrudManagerProps<
                     }
                     required={f.required}
                     placeholder={f.placeholder}
+                    hint={f.hint}
                     defaultValue={typeof value === 'string' ? value : ''}
                     error={fieldErrors[f.name]}
                   />

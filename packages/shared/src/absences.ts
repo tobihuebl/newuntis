@@ -146,8 +146,10 @@ export type AbsenceWarningKind = (typeof ABSENCE_WARNING_KINDS)[number];
 export interface AbsenceWarningOptions {
   /** Heute (YYYY-MM-DD, Europe/Vienna). */
   today: string;
-  /** Beginn des Schuljahres (YYYY-MM-DD) für die unentschuldigten Stunden. */
+  /** Beginn des Schuljahres (YYYY-MM-DD). */
   yearStart: string;
+  /** Ab hier zählen unentschuldigte Stunden: Beginn des laufenden Semesters, sonst des Schuljahres (ADR 0022). */
+  unexcusedFrom?: string;
   warnUnexcusedLessons: number;
   warnLessons: number;
   warnWindowDays: number;
@@ -155,7 +157,7 @@ export interface AbsenceWarningOptions {
 
 export interface AbsenceWarning {
   studentId: string;
-  /** Unentschuldigte Fehlstunden im Schuljahr (abgelehnt oder nicht entschuldigt). */
+  /** Unentschuldigte Fehlstunden im Semester bzw. Schuljahr (abgelehnt oder nicht entschuldigt). */
   unexcused: number;
   /** Fehlstunden insgesamt in den letzten `warnWindowDays` Tagen. */
   recent: number;
@@ -186,7 +188,12 @@ export function absenceWarnings(
     const cover = absences.find(
       (a) => a.studentId === l.studentId && a.fromAt <= l.startsAt && l.startsAt < a.toAt,
     );
-    if (cover && (cover.status === 'UNEXCUSED' || cover.status === 'REJECTED')) row.unexcused++;
+    if (
+      cover &&
+      (cover.status === 'UNEXCUSED' || cover.status === 'REJECTED') &&
+      l.date >= (o.unexcusedFrom ?? o.yearStart)
+    )
+      row.unexcused++;
     if (l.date >= windowStart) row.recent++;
     byStudent.set(l.studentId, row);
   }
