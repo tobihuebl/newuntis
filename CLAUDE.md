@@ -109,6 +109,11 @@ die Spezifikation anpassen, dann bauen.
 - Schuljahreswechsel (SD-05, ADR 0019): TransitionService (apps/api/src/modules/transition), Stufe aus dem Klassennamen (levelOf), SchoolClass.previousClassId; Umstellen des Schuljahres entfernt alte KV-Rollen.
 - Globale Suche (PL-06): GET /search (apps/api/src/modules/search), Treffer nur nach bestehenden Rechten; Palette in src/components/shell/command-palette.tsx.
 
+## Untis-Import (SD-06, ADR 0023)
+
+- Leselogik rein in packages/shared/src/untis.ts (parseDif, readTimetable, buildLessons, buildRequirements); Zuordnung und Übernahme in apps/api/src/modules/admin/untis.service.ts. Übernahme legt immer einen neuen Entwurf an.
+- Lehrkräfte aus Untis tragen externalId "untis:<Kürzel>"; Kopplungen werden Gruppen "1A/1B RK". Web: /admin/import?art=untis.
+
 ## Semester (SD-01, ADR 0022)
 
 - SchoolYear.secondSemesterFrom; leer = Tag nach den Semesterferien. Immer über semestersOf (apps/api/src/modules/timetable/semesters.ts) bzw. semesterRanges (@sp/shared/semesters.ts) lesen, nie das Feld direkt.

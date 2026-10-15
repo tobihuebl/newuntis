@@ -99,7 +99,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 
 - PL-01 MVP: Login mit E-Mail und Passwort, Passwort-Reset, Einladung per Link oder Code; Schüler:innen ohne E-Mail mit Benutzername und persönlichem Zugangscode (Zugangsbrief mit QR-Code vom Klassenvorstand, ADR 0020)
 - PL-02 MVP: Zwei-Faktor-Login (TOTP), Pflicht für Lehrer, Direktion und Administration
-- PL-03 MVP: Profil, Benachrichtigungseinstellungen, Dark Mode, Sprache
+- PL-03 MVP: Profil, Benachrichtigungseinstellungen, Dark Mode, Sprache — Deutsch umgesetzt; Elternansicht in den häufigsten Familiensprachen folgt mit M8
 - PL-04 MVP: Eltern mit mehreren Kindern: Umschalten mit einem Tap
 - PL-05 V1: Single Sign-on (Microsoft, Google, OIDC der Schule)
 - PL-06 V1: Globale Suche (Strg/Cmd+K) nach Personen, Klassen, Räumen — umgesetzt, Treffer nach Rechten der Rolle (ADR 0016)
@@ -112,7 +112,9 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - SD-03 MVP: Personen per CSV importieren mit Vorschau und Fehlerbericht
 - SD-04 MVP: Eltern-Kind-Verknüpfung per Einladungscode
 - SD-05 V1: Schuljahreswechsel-Assistent — umgesetzt: Entscheidung je Schüler:in (aufsteigen, wiederholen, Wiederholungsprüfung, verlassen), Folgeklassen und Übernahme durch die Administration (ADR 0019)
-- SD-06 V2: Sokrates- und Untis-Import
+- SD-06 V1 (vorgezogen für den Pilot, M8): Untis-Import der Stundenplandaten aus den GPU-Dateien (Unterricht, Stundenplan, Lehrkräfte, Fächer, Räume) als neuer Entwurf — umgesetzt (ADR 0023); Sokrates-Zuordnung für den Personenimport folgt (SD-08)
+- SD-08 V1 (M8): Fertige Zuordnung des Sokrates-Exports für den Personen-CSV-Import (Schüler:innen, Erziehungsberechtigte, Klassen)
+- SD-09 V1 (M8): Notfallkontakte je Schüler:in (Name, Beziehung, Telefon), sichtbar für Lehrkräfte der Klasse, KV und Direktion
 - SD-07 V1: Lehrkräfte mit Fächern (Lehrbefähigung) und Stundenausmaß (Beschäftigungsausmaß, davon Unterricht); Grundlage für die Auslastung in der Lehrfächerverteilung und für Supplier-Vorschläge — umgesetzt (ADR 0013)
 
 ### Stundenplan (SP)
@@ -167,7 +169,9 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - KO-03 V1: Vorlagen, Anhänge, Ruhezeiten
 - KO-04 V1: Elternsprechtag-Buchung
 - KO-05 V1: Digitale Einverständniserklärungen mit Bestätigung — umgesetzt: Lehrkräfte, KV, Direktion und Administration verschicken an Eltern ausgewählter Schüler:innen, Antwort je Kind mit Frist, Erinnerung und Nachtrag auf Papier (ADR 0021)
-- KO-06 V2: Übersetzung von Mitteilungen
+- KO-06 V1 (vorgezogen, M8): Übersetzung von Nachrichten, Rundschreiben und Erklärungen auf Knopfdruck in die Familiensprachen; Übersetzungsdienst mit EU-Verarbeitung, in AVV und DSFA aufgenommen
+- KO-07 V1 (M8): Umfragen und Anmeldungen (z. B. Schulfest, Elternabend): Fragen mit Auswahl-Antworten, Frist, Auswertung je Klasse; erweitert die Einverständniserklärungen (KO-05)
+- KO-08 V2: Notfall-SMS an Eltern (SMS-Anbieter mit Kosten, nur Direktion)
 
 ### Dashboards und Auswertung (DB)
 
@@ -615,6 +619,7 @@ Noten (`Grade`, `GradeCategory`) kommen in V1 hinzu und folgen denselben Regeln.
 | Benachrichtigungen | `GET /notifications`, `POST /notifications/:id/read`, `POST /notifications/read-all`, `GET/PATCH /me/preferences`, `POST /push/subscribe`, `DELETE /push/subscribe` | alle |
 | Echtzeit | `GET /events` (Server-Sent Events) | alle |
 | Stammdaten | `GET/POST/PATCH/DELETE /admin/{persons,classes,groups,subjects,rooms,school-years,periods}`, `POST /admin/guardian-links`, `POST /admin/invitations` | Administration |
+| Untis-Import | `POST /admin/import/untis` (Vorschau), `POST /admin/import/untis/commit` | Administration (`timetable.edit`) |
 | Import | `POST /admin/import/persons?dryRun=true`, `POST /admin/import/persons/commit` | Administration |
 | Stundenplan | `GET/POST /admin/timetable-versions`, `GET /admin/timetable-versions/:id`, `POST …/lessons`, `PATCH/DELETE …/lessons/:lessonId`, `POST …/validate`, `POST …/publish` | Administration, Veröffentlichung auch Direktion |
 | Auswertung | `GET /dashboard/principal?date`, `GET /reports/attendance?from&to&classId&format=json\|csv`, `GET /reports/substitutions?from&to&format` | Direktion, Administration (Anwesenheit: Klassenvorstand für die eigene Klasse) |
@@ -885,6 +890,27 @@ Ziel: Die Administration erstellt einen Stundenplan nicht mehr Stunde für Stund
 - [x] Datenschutz: an ein KI-Modell gehen nur Planungsdaten ohne Personenbezug (Kürzel statt Namen), Anbieter mit EU-Verarbeitung
 
 **Fertig wenn:** Für die Demoschule entsteht aus den Soll-Stunden ohne Handarbeit ein Entwurf ohne harte Konflikte, und die Administration kann Wünsche in Worten nachreichen.
+
+### M8: Pilotreife Mittelschule (Untis-Import, Ablöse von Schoolfox)
+
+Ziel: Eine Mittelschule steigt um, ohne Daten neu abzutippen und ohne neben PROfessor weiter Schoolfox zu
+betreiben. Schoolfox ist an vielen Mittelschulen das Elternheft (in Niederösterreich für Pflichtschulen gratis);
+es bietet Nachrichten mit Bestätigung, Übersetzung in 40 Sprachen, Umfragen, Abwesenheitsmeldung,
+Sprechtag-Buchung, Anhänge, Ruhezeiten und Notfall-SMS. Elternkonten lassen sich nicht übernehmen; der Umstieg
+läuft über die Zugangsbriefe mit Eltern-Code (ADR 0020). Reihenfolge der Abarbeitung:
+
+- [x] Untis-Import (SD-06): GPU001 bis GPU006 hochladen, Vorschau mit Zuordnung von Klassen, Fächern, Räumen und Lehrkräften, Übernahme als neuer Stundenplan-Entwurf samt Lehrfächerverteilung (ADR 0023)
+- [ ] Sokrates-Zuordnung für den Personenimport (SD-08)
+- [ ] Anhänge an Nachrichten, Rundschreiben und Einverständniserklärungen (KO-03)
+- [ ] Umfragen und Anmeldungen mit Auswahl-Antworten (KO-07)
+- [ ] Übersetzung von Mitteilungen (KO-06) und Elternansicht in den häufigsten Familiensprachen (PL-03)
+- [ ] Elternsprechtag-Buchung (KO-04)
+- [ ] Notfallkontakte je Schüler:in (SD-09)
+- [ ] Klassenbuch als PDF-Archiv je Klasse und Bescheinigungen (AD-03)
+- [ ] Anmeldung mit dem Microsoft-Schulkonto (PL-05)
+
+**Fertig wenn:** Eine Mittelschule übernimmt ihren Untis-Stundenplan und ihre Sokrates-Daten an einem Nachmittag,
+und Eltern erledigen alles, wofür sie bisher Schoolfox nutzten, in PROfessor in ihrer Sprache.
 
 ### CLAUDE.md (in das Repository-Stammverzeichnis legen)
 

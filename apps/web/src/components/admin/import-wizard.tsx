@@ -42,7 +42,7 @@ const TEMPLATE = [
 ].join('\r\n');
 
 /** Dateien aus Excel sind oft Windows-1252: erst streng als UTF-8 lesen, sonst als Windows-1252. */
-async function readText(file: File): Promise<string> {
+export async function readText(file: File): Promise<string> {
   const buf = await file.arrayBuffer();
   try {
     return new TextDecoder('utf-8', { fatal: true }).decode(buf);
@@ -51,7 +51,7 @@ async function readText(file: File): Promise<string> {
   }
 }
 
-export function ImportWizard({ csrfToken }: { csrfToken: string }) {
+export function ImportWizard({ csrfToken, nav }: { csrfToken: string; nav?: React.ReactNode }) {
   const t = useT('admin.import');
   const c = useT('common');
   const [csv, setCsv] = useState<string | null>(null);
@@ -176,6 +176,7 @@ export function ImportWizard({ csrfToken }: { csrfToken: string }) {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 pb-8 lg:px-6 lg:pt-6">
       <PageTitle area="stammdaten">{t('title')}</PageTitle>
+      {nav}
 
       <section aria-labelledby="step1" className="flex flex-col gap-3">
         <h2 id="step1" className="text-h2">

@@ -23,3 +23,4 @@ export * from './promotions';
 export * from './onboarding';
 export * from './consent-forms';
 export * from './semesters';
+export * from './untis';

@@ -11,6 +11,8 @@ import { PersonsController } from './persons.controller';
 import { SchoolController } from './school.controller';
 import { SettingsController } from './settings.controller';
 import { RolesController } from './roles.controller';
+import { UntisController } from './untis.controller';
+import { UntisService } from './untis.service';
 
 @Module({
   imports: [AuthModule],
@@ -24,7 +26,8 @@ import { RolesController } from './roles.controller';
     AuditController,
     SettingsController,
     RolesController,
+    UntisController,
   ],
-  providers: [ImportService, InvitationsService],
+  providers: [ImportService, InvitationsService, UntisService],
 })
 export class AdminModule {}
