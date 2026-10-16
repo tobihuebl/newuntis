@@ -44,6 +44,8 @@ export class TodayService {
       lessons: [],
       homework: [],
       exams: [],
+      freeDay: (await this.plans.freeDays(tx, date, date))[0] ?? null,
+      examsToday: [],
       teacher: null,
       children: [],
       studentId: null,
@@ -76,6 +78,7 @@ export class TodayService {
     if (!filter) return base;
     const plan = await this.plans.plan(tx, tenantId, filter, date, date, timezone);
     base.lessons = plan.entries.map((e) => ({ ...e, classbook: null }));
+    base.examsToday = plan.exams;
 
     const groupOr = [
       ...(filter.classIds.length ? [{ classId: { in: filter.classIds } }] : []),
@@ -190,6 +193,12 @@ export class TodayService {
       ...e,
       classbook: e.status === 'CANCELLED' ? null : (progress.get(e.id) ?? 'none'),
     }));
+    base.examsToday = await this.plans.exams(
+      tx,
+      { classIds: [], groupIds: [], teacherIds: [personId], roomIds: [] },
+      date,
+      date,
+    );
     base.teacher = {
       openEntries,
       substitutions: await this.plans.toEntries(tx, substitutions.map(rawFromOccurrence)),

@@ -25,12 +25,13 @@ test('Klassenvorstand und Direktion sehen die Frühwarnung', async ({ browser })
     FROM "SchoolClass" c
     JOIN "Enrollment" e ON e."classId" = c.id
     JOIN "Person" p ON p.id = e."studentId"
-    WHERE c.name = '3A'
-      -- ohne Fehlzeiten aus dem Demo-Seed (der verteilt sie je nach Datum), damit genau 2 Stunden zählen
-      AND NOT EXISTS (SELECT 1 FROM "Attendance" a WHERE a."studentId" = p.id AND a.status = 'ABSENT')
-      AND NOT EXISTS (SELECT 1 FROM "Absence" x WHERE x."studentId" = p.id)
-    ORDER BY p."lastName" DESC LIMIT 1`);
+    WHERE c.name = '3A' ORDER BY p."lastName" DESC LIMIT 1`);
   const r = rows[0]!;
+  // Fehlzeiten aus dem Demo-Seed (je nach Datum verteilt) entfernen, damit genau 2 Stunden zählen
+  await db.query(`DELETE FROM "Absence" WHERE "studentId" = $1`, [r.studentId]);
+  await db.query(`UPDATE "Attendance" SET status = 'PRESENT' WHERE "studentId" = $1`, [
+    r.studentId,
+  ]);
   await db.query(
     `UPDATE "Tenant" SET settings = jsonb_set(settings, '{absence}',
        coalesce(settings->'absence', '{}'::jsonb) || '{"warnUnexcusedLessons": 2}'::jsonb)

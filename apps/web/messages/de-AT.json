@@ -131,7 +131,10 @@
     "openEntriesLabel": "{count, plural, one {Offener Eintrag} other {Offene Einträge}}",
     "substituteFor": "{day}: Du vertrittst {className}, {period}, {room}",
     "allDoneTitle": "Alles eingetragen",
-    "allDoneText": "Heute keine offenen Einträge und keine Supplierungen."
+    "allDoneText": "Heute keine offenen Einträge und keine Supplierungen.",
+    "freeToday": "Heute schulfrei",
+    "examToday": "Heute: {kind} in {subject}",
+    "examSupervise": "Heute: {kind} in {subject}, {className}"
   },
   "placeholder": {
     "title": "Kommt bald",
@@ -564,7 +567,13 @@
     "calendarApp_apple": "Apple Kalender",
     "calendarApp_google": "Google Kalender",
     "calendarApp_outlook": "Outlook",
-    "calendarStopped": "Abo beendet"
+    "calendarStopped": "Abo beendet",
+    "free": "Schulfrei",
+    "displaced": "Entfällt ({kind} {subject})",
+    "examsWeek": "Prüfungen dieser Woche",
+    "viewLabel": "Ansicht",
+    "viewDay": "Tag",
+    "viewWeek": "Woche"
   },
   "timetable": {
     "versions": "Stundenplan-Versionen",
@@ -943,7 +952,14 @@
     "collision": "Kollision",
     "collisionHint": "Zwei Prüfungen einer Klasse am selben Tag sind eine Kollision; darüber entscheidet die Direktion.",
     "collisionLive": "{count, plural, one {{className} hat an diesem Tag schon eine Prüfung.} other {{className} hat an diesem Tag schon # Prüfungen.}}",
-    "saved": "Prüfung eingetragen"
+    "saved": "Prüfung eingetragen",
+    "periodFrom": "Von Stunde",
+    "periodTo": "Bis Stunde",
+    "wholeDay": "ohne Stunde",
+    "periodOption": "{n}. Stunde ({time})",
+    "displaceHint": "Andere Stunden der Klasse in dieser Zeit entfallen automatisch; die betroffenen Lehrkräfte werden benachrichtigt.",
+    "periods": "{from}.–{to}. Stunde",
+    "period": "{n}. Stunde"
   },
   "tasks": {
     "title": "Hausübungen",

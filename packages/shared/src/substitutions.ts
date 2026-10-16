@@ -103,21 +103,44 @@ export function rankSuggestions(xs: Suggestion[]): Suggestion[] {
 
 export const EXAM_KINDS = ['Schularbeit', 'Test', 'Mündlich', 'Sonstiges'] as const;
 
-export const examInput = z.object({
-  classId: z.string().min(1),
-  subjectId: z.string().min(1),
-  date: dateSchema,
-  title: z.string().trim().min(1).max(120),
-  kind: z.enum(EXAM_KINDS),
-  /** Trotz Kollisionswarnung eintragen. */
-  force: z.boolean().default(false),
-});
-export const examPatchInput = z.object({
-  date: dateSchema.optional(),
-  title: z.string().trim().min(1).max(120).optional(),
-  kind: z.enum(EXAM_KINDS).optional(),
-  force: z.boolean().default(false),
-});
+/** Von/bis Stunde (ADR 0024): beides oder keines; bis nicht vor von. */
+const examPeriods = {
+  periodStart: z.number().int().min(1).max(20).nullable().default(null),
+  periodEnd: z.number().int().min(1).max(20).nullable().default(null),
+};
+const periodsValid = (v: { periodStart?: number | null; periodEnd?: number | null }) =>
+  (v.periodStart == null) === (v.periodEnd == null) &&
+  (v.periodStart == null || v.periodEnd! >= v.periodStart);
+const periodsMessage = {
+  message: 'Bitte von und bis Stunde angeben (bis nicht vor von)',
+  path: ['periodEnd'],
+};
+export const examInput = z
+  .object({
+    classId: z.string().min(1),
+    subjectId: z.string().min(1),
+    date: dateSchema,
+    title: z.string().trim().min(1).max(120),
+    kind: z.enum(EXAM_KINDS),
+    ...examPeriods,
+    /** Trotz Kollisionswarnung eintragen. */
+    force: z.boolean().default(false),
+  })
+  .refine(periodsValid, periodsMessage);
+export const examPatchInput = z
+  .object({
+    date: dateSchema.optional(),
+    title: z.string().trim().min(1).max(120).optional(),
+    kind: z.enum(EXAM_KINDS).optional(),
+    /** Beide gemeinsam ändern; null + null entfernt die Stunden. */
+    periodStart: examPeriods.periodStart.optional(),
+    periodEnd: examPeriods.periodEnd.optional(),
+    force: z.boolean().default(false),
+  })
+  .refine(
+    (v) => (v.periodStart === undefined) === (v.periodEnd === undefined) && periodsValid(v),
+    periodsMessage,
+  );
 export const examListQuery = z.object({
   from: dateSchema.optional(),
   to: dateSchema.optional(),
@@ -132,6 +155,9 @@ export interface ExamItem {
   kind: string;
   subject: { id: string; name: string; code: string; color: string | null };
   class: { id: string; name: string } | null;
+  /** Stunden der Prüfung (null = nur der Tag). */
+  periodStart: number | null;
+  periodCount: number;
   canEdit: boolean;
 }
 

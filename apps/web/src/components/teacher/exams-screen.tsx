@@ -32,7 +32,20 @@ import { useT } from '../../lib/i18n';
 import { PageTitle } from '../page-title';
 
 interface Options {
+  /** Raster für "von/bis Stunde" (ADR 0024). */
+  periods: { number: number; startTime: string; endTime: string }[];
   classes: { id: string; name: string; subjects: { id: string; name: string }[] }[];
+}
+
+/** "2.–5. Stunde" bzw. "3. Stunde"; ohne Stunden leer. */
+export function examPeriods(
+  t: (key: string, values?: Record<string, string | number>) => string,
+  x: { periodStart: number | null; periodCount: number },
+): string {
+  if (x.periodStart === null) return '';
+  return x.periodCount > 1
+    ? t('periods', { from: x.periodStart, to: x.periodStart + x.periodCount - 1 })
+    : t('period', { n: x.periodStart });
 }
 
 const monthStart = (d: string) => `${d.slice(0, 7)}-01`;
@@ -73,6 +86,8 @@ export function ExamsScreen({ canWrite = true }: { canWrite?: boolean }) {
   const [date, setDate] = useState(addDays(today, 7));
   const [title, setTitle] = useState('');
   const [kind, setKind] = useState<(typeof EXAM_KINDS)[number]>('Schularbeit');
+  const [periodStart, setPeriodStart] = useState('');
+  const [periodEnd, setPeriodEnd] = useState('');
   const [warnings, setWarnings] = useState<ExamWarning[] | null>(null);
   const cls = options.data?.classes.find((c) => c.id === classId);
   const items = list.data?.data ?? [];
@@ -92,7 +107,16 @@ export function ExamsScreen({ canWrite = true }: { canWrite?: boolean }) {
   async function submit(force: boolean) {
     setWarnings(null);
     try {
-      await create.mutateAsync({ classId, subjectId, date, title, kind, force });
+      await create.mutateAsync({
+        classId,
+        subjectId,
+        date,
+        title,
+        kind,
+        periodStart: periodStart ? Number(periodStart) : null,
+        periodEnd: periodStart ? Number(periodEnd || periodStart) : null,
+        force,
+      });
       setTitle('');
       setOpen(false);
       toast({ text: t('saved') });
@@ -290,6 +314,38 @@ export function ExamsScreen({ canWrite = true }: { canWrite?: boolean }) {
               {t('collisionLive', { count: sameDay.length, className: cls?.name ?? '' })}
             </Banner>
           ) : null}
+          {/* Von/bis Stunde (ADR 0024): mehrere Stunden lassen andere Stunden der Klasse entfallen */}
+          <div className="grid grid-cols-2 gap-3">
+            <Select
+              label={t('periodFrom')}
+              value={periodStart}
+              emptyLabel={t('wholeDay')}
+              onChange={(e) => {
+                setPeriodStart(e.target.value);
+                if (!e.target.value || Number(periodEnd) < Number(e.target.value))
+                  setPeriodEnd(e.target.value);
+              }}
+              options={(options.data?.periods ?? []).map((p) => ({
+                value: String(p.number),
+                label: t('periodOption', { n: p.number, time: p.startTime }),
+              }))}
+            />
+            <Select
+              label={t('periodTo')}
+              value={periodEnd}
+              disabled={!periodStart}
+              onChange={(e) => setPeriodEnd(e.target.value)}
+              options={(options.data?.periods ?? [])
+                .filter((p) => p.number >= Number(periodStart || 0))
+                .map((p) => ({
+                  value: String(p.number),
+                  label: t('periodOption', { n: p.number, time: p.endTime }),
+                }))}
+            />
+          </div>
+          {periodStart && Number(periodEnd) > Number(periodStart) ? (
+            <p className="text-body-sm text-ink-muted">{t('displaceHint')}</p>
+          ) : null}
           <SegmentedControl
             label={t('kind')}
             value={kind}
@@ -353,6 +409,8 @@ function ExamTile({ x, collision }: { x: ExamItem; collision: boolean }) {
       className={cn(
         'pf-tt__cell min-h-0 cursor-default items-start p-2 text-left active:scale-100',
         collision ? 'is-conflict' : `is-${fachColorOf(x.subject)}`,
+        // Mehrstündig: goldener Rahmen wie in Untis (ADR 0024)
+        x.periodCount > 1 && 'ring-3 ring-signal',
       )}
     >
       <span className="flex items-center gap-1">
@@ -360,6 +418,7 @@ function ExamTile({ x, collision }: { x: ExamItem; collision: boolean }) {
         {x.class?.name} · {x.subject.code}
       </span>
       <small className="line-clamp-2">{x.title}</small>
+      {x.periodStart !== null ? <small>{examPeriods(t, x)}</small> : null}
       {collision ? <small className="font-text">{t('collision')}</small> : null}
     </div>
   );
@@ -388,6 +447,7 @@ export function ExamRows({
             <p className="text-body-sm text-ink-muted">
               {x.subject.name}
               {x.class ? ` · ${x.class.name}` : ''} · {t(`kinds.${x.kind}`)}
+              {x.periodStart !== null ? ` · ${examPeriods(t, x)}` : ''}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

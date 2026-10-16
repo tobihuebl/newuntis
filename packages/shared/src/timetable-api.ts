@@ -101,10 +101,43 @@ export interface PlanEntry {
   group: { id: string; name: string } | null;
   room: { id: string; name: string } | null;
   teachers: { id: string; name: string }[];
+  /** Entfällt wegen einer mehrstündigen Prüfung der Klasse (ADR 0024). */
+  displacedBy?: { title: string; kind: string; subject: string } | null;
 }
+
+/** Prüfung im Plan (ADR 0024): mit Stunden als Block (goldener Rahmen), ohne Stunden als Hinweis am Tag. */
+export interface PlanExam {
+  id: string;
+  date: string;
+  title: string;
+  kind: string;
+  subject: { id: string; name: string; code: string; color: string | null };
+  class: { id: string; name: string } | null;
+  periodStart: number | null;
+  periodCount: number;
+}
+
+/** Schulfreier Tag im Plan (Ferien, Feiertag, schulautonom frei). */
+export interface PlanFreeDay {
+  date: string;
+  label: string;
+}
+
 export interface PlanResponse {
   from: string;
   to: string;
   periods: { number: number; startTime: string; endTime: string }[];
   entries: PlanEntry[];
+  freeDays: PlanFreeDay[];
+  exams: PlanExam[];
 }
+
+/** Stunden einer Prüfung überschneiden sich mit einem Termin (beide mit Stundenangabe). */
+export const examOverlaps = (
+  x: { date: string; periodStart: number | null; periodCount: number },
+  e: { date: string; periodStart: number; periodCount: number },
+) =>
+  x.periodStart !== null &&
+  x.date === e.date &&
+  e.periodStart <= x.periodStart + x.periodCount - 1 &&
+  x.periodStart <= e.periodStart + e.periodCount - 1;

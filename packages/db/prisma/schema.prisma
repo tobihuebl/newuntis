@@ -502,22 +502,25 @@ model LessonRequirement {
 }
 
 model Occurrence {
-  id          String           @id @default(cuid())
-  tenantId    String
-  lessonId    String?
-  date        DateTime         @db.Date
-  periodStart Int
-  periodCount Int
-  startsAt    DateTime         @db.Timestamptz(3)
-  endsAt      DateTime         @db.Timestamptz(3)
-  classId     String?
-  groupId     String?
-  subjectId   String
-  roomId      String? // wirksamer Raum nach Änderungen
-  status      OccurrenceStatus @default(SCHEDULED)
-  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
+  id                String           @id @default(cuid())
+  tenantId          String
+  lessonId          String?
+  date              DateTime         @db.Date
+  periodStart       Int
+  periodCount       Int
+  startsAt          DateTime         @db.Timestamptz(3)
+  endsAt            DateTime         @db.Timestamptz(3)
+  classId           String?
+  groupId           String?
+  subjectId         String
+  roomId            String? // wirksamer Raum nach Änderungen
+  status            OccurrenceStatus @default(SCHEDULED)
+  /// Entfällt wegen einer mehrstündigen Prüfung der Klasse (ADR 0024); beim Ändern oder Löschen der Prüfung zurück
+  displacedByExamId String?
+  createdAt         DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime         @updatedAt @db.Timestamptz(3)
 
+  displacedBy  Exam?               @relation("ExamDisplaces", fields: [displacedByExamId], references: [id], onDelete: SetNull)
   lesson       Lesson?             @relation(fields: [lessonId], references: [id])
   class        SchoolClass?        @relation(fields: [classId], references: [id])
   group        Group?              @relation(fields: [groupId], references: [id])
@@ -711,6 +714,9 @@ model Exam {
   groupId     String?
   subjectId   String
   date        DateTime @db.Date
+  /// Stunden der Prüfung (ADR 0024); ohne Angabe gilt sie nur für den Tag
+  periodStart Int?
+  periodCount Int      @default(1)
   title       String
   kind        String // Schularbeit, Test, Mündlich
   createdById String
@@ -721,6 +727,7 @@ model Exam {
   group      Group?       @relation(fields: [groupId], references: [id])
   subject    Subject      @relation(fields: [subjectId], references: [id])
   assessment Assessment?
+  displaces  Occurrence[] @relation("ExamDisplaces")
 
   @@index([tenantId, date])
   @@index([tenantId, classId, date])

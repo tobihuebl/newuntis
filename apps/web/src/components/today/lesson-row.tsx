@@ -18,7 +18,15 @@ export function PlanStatusBadge({ entry }: { entry: PlanEntry }) {
       : entry.status === 'SUBSTITUTED'
         ? 'substituted'
         : 'roomChanged';
-  return <StatusBadge status={status} label={t(status)} />;
+  const tx = useT('exams');
+  // Entfällt wegen einer mehrstündigen Prüfung der Klasse (ADR 0024)
+  const label = entry.displacedBy
+    ? t('displaced', {
+        kind: tx(`kinds.${entry.displacedBy.kind}`),
+        subject: entry.displacedBy.subject,
+      })
+    : t(status);
+  return <StatusBadge status={status} label={label} />;
 }
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;

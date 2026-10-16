@@ -1,6 +1,15 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import type { Prisma, Tx } from '@sp/db';
-import { addDays, mondayOf, type PlanEntry, type PlanResponse, type Role } from '@sp/shared';
+import {
+  addDays,
+  examOverlaps,
+  mondayOf,
+  type PlanEntry,
+  type PlanExam,
+  type PlanFreeDay,
+  type PlanResponse,
+  type Role,
+} from '@sp/shared';
 import type { Principal } from '../../common/request';
 import { bad } from '../admin/util';
 import { PolicyService } from '../policy/policy.service';
@@ -22,6 +31,7 @@ export interface RawEntry {
   groupId: string | null;
   roomId: string | null;
   teacherIds: string[];
+  displacedByExamId?: string | null;
 }
 
 export const rawFromOccurrence = (o: {
@@ -37,6 +47,7 @@ export const rawFromOccurrence = (o: {
   groupId: string | null;
   roomId: string | null;
   teachers: { teacherId: string }[];
+  displacedByExamId?: string | null;
 }): RawEntry => ({
   id: o.id,
   planned: false,
@@ -51,6 +62,7 @@ export const rawFromOccurrence = (o: {
   groupId: o.groupId,
   roomId: o.roomId,
   teacherIds: o.teachers.map((t) => t.teacherId),
+  displacedByExamId: o.displacedByExamId ?? null,
 });
 
 /** Welche Termine gehören in einen Plan (ODER-verknüpft). */
@@ -204,7 +216,8 @@ export class PlansService {
         filter.teacherIds.length +
         filter.roomIds.length ===
       0;
-    if (empty) return { from, to, periods, entries: [] };
+    const freeDays = await this.freeDays(tx, from, to);
+    if (empty) return { from, to, periods, entries: [], freeDays, exams: [] };
     const windowEnd = addDays(todayIn(timezone), WINDOW_DAYS);
     const or: Prisma.OccurrenceWhereInput[] = [];
     if (filter.classIds.length) or.push({ classId: { in: filter.classIds } });
@@ -234,19 +247,89 @@ export class PlansService {
         (p.groupId !== null && filter.groupIds.includes(p.groupId)) ||
         (p.roomId !== null && filter.roomIds.includes(p.roomId)) ||
         p.teacherIds.some((t) => filter.teacherIds.includes(t));
+      // Geplante Termine jenseits des Fensters: Verdrängung durch Prüfungen nur für die Anzeige (ADR 0024)
+      const longExams = await tx.exam.findMany({
+        where: {
+          date: { gte: asDate(planFrom), lte: asDate(to) },
+          periodStart: { not: null },
+          classId: { not: null },
+        },
+        select: {
+          id: true,
+          date: true,
+          classId: true,
+          subjectId: true,
+          periodStart: true,
+          periodCount: true,
+        },
+      });
       for (const p of await this.occurrences.plannedRange(tx, tenantId, planFrom, to)) {
-        if (matches(p))
-          raw.push({
-            ...p,
-            id: `plan:${p.lessonId}:${p.date}`,
-            planned: true,
-            status: 'SCHEDULED',
-          });
+        if (!matches(p)) continue;
+        const by = longExams.find(
+          (x) =>
+            x.classId === p.classId &&
+            x.subjectId !== p.subjectId &&
+            examOverlaps({ ...x, date: iso(x.date) }, p),
+        );
+        raw.push({
+          ...p,
+          id: `plan:${p.lessonId}:${p.date}`,
+          planned: true,
+          status: by ? 'CANCELLED' : 'SCHEDULED',
+          displacedByExamId: by?.id ?? null,
+        });
       }
     }
 
-    const entries = await this.toEntries(tx, raw);
-    return { from, to, periods, entries };
+    const [entries, exams] = await Promise.all([
+      this.toEntries(tx, raw),
+      this.exams(tx, filter, from, to),
+    ]);
+    return { from, to, periods, entries, freeDays, exams };
+  }
+
+  /** Schulfreie Tage im Zeitraum, je Kalendertag (Ferien über mehrere Tage werden aufgelöst). */
+  async freeDays(tx: Tx, from: string, to: string): Promise<PlanFreeDay[]> {
+    const rows = await tx.schoolFreeDay.findMany({
+      where: { fromDate: { lte: asDate(to) }, toDate: { gte: asDate(from) } },
+      select: { fromDate: true, toDate: true, label: true },
+    });
+    const out: PlanFreeDay[] = [];
+    for (let d = from; d <= to; d = addDays(d, 1)) {
+      const f = rows.find((r) => iso(r.fromDate) <= d && d <= iso(r.toDate));
+      if (f) out.push({ date: d, label: f.label });
+    }
+    return out;
+  }
+
+  /**
+   * Prüfungen im Plan: Klassen- und Gruppenpläne zeigen die Prüfungen der Klasse bzw. Gruppe, Lehrerpläne die
+   * selbst eingetragenen (die Lehrkraft beaufsichtigt sie), Raumpläne keine.
+   */
+  async exams(tx: Tx, filter: PlanFilter, from: string, to: string): Promise<PlanExam[]> {
+    const or: Prisma.ExamWhereInput[] = [];
+    if (filter.classIds.length) or.push({ classId: { in: filter.classIds } });
+    if (filter.groupIds.length) or.push({ groupId: { in: filter.groupIds } });
+    if (filter.teacherIds.length) or.push({ createdById: { in: filter.teacherIds } });
+    if (or.length === 0) return [];
+    const rows = await tx.exam.findMany({
+      where: { date: { gte: asDate(from), lte: asDate(to) }, OR: or },
+      include: {
+        subject: { select: { id: true, name: true, code: true, color: true } },
+        class: { select: { id: true, name: true } },
+      },
+      orderBy: [{ date: 'asc' }, { periodStart: 'asc' }],
+    });
+    return rows.map((x) => ({
+      id: x.id,
+      date: iso(x.date),
+      title: x.title,
+      kind: x.kind,
+      subject: x.subject,
+      class: x.class,
+      periodStart: x.periodStart,
+      periodCount: x.periodCount,
+    }));
   }
 
   /** Ergänzt Fach, Klasse, Gruppe, Raum und Lehrkräfte und sortiert nach Beginn. */
@@ -254,7 +337,7 @@ export class PlansService {
     const ids = (pick: (r: RawEntry) => (string | null)[]) => [
       ...new Set(raw.flatMap(pick).filter((x): x is string => x !== null)),
     ];
-    const [subjects, classes, groups, rooms, teachers] = await Promise.all([
+    const [subjects, classes, groups, rooms, teachers, displacing] = await Promise.all([
       tx.subject.findMany({
         where: { id: { in: ids((r) => [r.subjectId]) } },
         select: { id: true, name: true, code: true, color: true },
@@ -275,7 +358,12 @@ export class PlansService {
         where: { id: { in: ids((r) => r.teacherIds) } },
         select: { id: true, firstName: true, lastName: true },
       }),
+      tx.exam.findMany({
+        where: { id: { in: ids((r) => [r.displacedByExamId ?? null]) } },
+        select: { id: true, title: true, kind: true, subject: { select: { code: true } } },
+      }),
     ]);
+    const X = new Map(displacing.map((x) => [x.id, x]));
     const byId = <T extends { id: string }>(xs: T[]) => new Map(xs.map((x) => [x.id, x]));
     const S = byId(subjects);
     const C = byId(classes);
@@ -301,6 +389,10 @@ export class PlansService {
           .map((id) => T.get(id))
           .filter((t) => t !== undefined)
           .map((t) => ({ id: t.id, name: `${t.firstName} ${t.lastName}` })),
+        displacedBy: (() => {
+          const x = r.displacedByExamId ? X.get(r.displacedByExamId) : undefined;
+          return x ? { title: x.title, kind: x.kind, subject: x.subject.code } : null;
+        })(),
       }));
   }
 }

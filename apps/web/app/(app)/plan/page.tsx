@@ -70,7 +70,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
     if (child) keep.set('child', child.id);
     plan = child
       ? await apiGet<PlanResponse>(`/me/timetable?${range}&studentId=${child.id}`)
-      : { from: week.from, to: week.to, periods: [], entries: [] };
+      : { from: week.from, to: week.to, periods: [], entries: [], freeDays: [], exams: [] };
     perspective = 'student';
     if (child) title = `${child.firstName}${child.className ? ` (${child.className})` : ''}`;
   } else {

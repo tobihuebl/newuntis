@@ -5,7 +5,7 @@
 import { z } from 'zod';
 import { dateSchema } from './masterdata';
 import type { InboxCounts } from './messages';
-import type { PlanEntry } from './timetable-api';
+import type { PlanEntry, PlanExam, PlanFreeDay } from './timetable-api';
 
 export const ATTENDANCE_STATUSES = ['PRESENT', 'LATE', 'ABSENT'] as const;
 export type AttendanceStatusName = (typeof ATTENDANCE_STATUSES)[number];
@@ -186,6 +186,10 @@ export interface TodayResponse {
   homework: TodayHomework[];
   /** Schüler:innen und Eltern: Prüfungen der nächsten 7 Tage. */
   exams: TodayExam[];
+  /** Heute schulfrei (Ferien, Feiertag): wird wie ein eigener Termin gezeigt. */
+  freeDay: PlanFreeDay | null;
+  /** Prüfungen heute (Klasse bzw. selbst beaufsichtigt), mit Stunden als Block im Tagesablauf. */
+  examsToday: PlanExam[];
   /** Lehrkräfte: offene Klassenbuch-Einträge und Supplierungen für die Person. */
   teacher: { openEntries: number; substitutions: PlanEntry[] } | null;
   /** Eltern: Kinder zum Umschalten (PL-04) und das gewählte Kind. */

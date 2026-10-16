@@ -442,3 +442,20 @@ describe('Weiche Regeln (SP-06)', () => {
     expect(codes(cs)).toEqual(['GAP_STUDENT']);
   });
 });
+
+describe('Prüfung überdeckt Termin (ADR 0024)', () => {
+  it('nur mit Stunden, am selben Tag und bei überlappenden Stunden', async () => {
+    const { examOverlaps } = await import('./timetable-api');
+    const x = { date: '2026-10-20', periodStart: 2, periodCount: 3 };
+    expect(examOverlaps(x, { date: '2026-10-20', periodStart: 4, periodCount: 2 })).toBe(true);
+    expect(examOverlaps(x, { date: '2026-10-20', periodStart: 5, periodCount: 1 })).toBe(false);
+    expect(examOverlaps(x, { date: '2026-10-20', periodStart: 1, periodCount: 1 })).toBe(false);
+    expect(examOverlaps(x, { date: '2026-10-21', periodStart: 2, periodCount: 1 })).toBe(false);
+    expect(
+      examOverlaps(
+        { ...x, periodStart: null },
+        { date: '2026-10-20', periodStart: 2, periodCount: 1 },
+      ),
+    ).toBe(false);
+  });
+});

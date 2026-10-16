@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -20,10 +21,12 @@ import {
   examListQuery,
   examPatchInput,
   examWarnings,
+  mondayOf,
   tenantSettingsSchema,
   type ExamItem,
   type PolicyUser,
 } from '@sp/shared';
+import { DateTime } from 'luxon';
 import type { z } from 'zod';
 import { Can } from '../../common/decorators';
 import { Actor, TenantId } from '../../common/params';
@@ -34,6 +37,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { PolicyService } from '../policy/policy.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { asDate, iso, todayIn } from '../timetable/data';
+import { applyExamDisplacement, restore } from '../timetable/exam-displacement';
 
 const subjectSelect = { id: true, name: true, code: true, color: true } as const;
 
@@ -118,6 +122,8 @@ export class ExamsController {
         kind: x.kind,
         subject: x.subject,
         class: x.class,
+        periodStart: x.periodStart,
+        periodCount: x.periodCount,
         canEdit: this.mayEdit(user, me, x),
       })),
     };
@@ -148,7 +154,12 @@ export class ExamsController {
       c.subjects.set(l.subject.id, l.subject.name);
       byClass.set(l.class.id, c);
     }
+    const periods = await tx.period.findMany({
+      orderBy: { number: 'asc' },
+      select: { number: true, startTime: true, endTime: true },
+    });
     return {
+      periods,
       classes: [...byClass.values()]
         .sort((a, b) => a.name.localeCompare(b.name, 'de'))
         .map((c) => ({
@@ -169,6 +180,50 @@ export class ExamsController {
     return (
       can(user, 'exam.write', { classId: x.classId ?? undefined, subjectId: x.subjectId }) &&
       (x.createdById === me.personId || user.roles.includes('PRINCIPAL'))
+    );
+  }
+
+  /** Von/bis Stunde prüfen (müssen im Raster stehen) und als Beginn und Anzahl speichern. */
+  private async periods(tx: Tx, start: number | null, end: number | null) {
+    if (start === null || end === null) return { periodStart: null, periodCount: 1 };
+    const known = new Set(
+      (await tx.period.findMany({ select: { number: true } })).map((p) => p.number),
+    );
+    for (let n = start; n <= end; n++)
+      if (!known.has(n))
+        throw new BadRequestException({ title: `Die ${n}. Stunde gibt es im Raster nicht` });
+    return { periodStart: start, periodCount: end - start + 1 };
+  }
+
+  /** Verdrängung neu setzen und betroffene Lehrkräfte informieren (Entfall bzw. wieder Unterricht). */
+  private async displace(tx: Tx, tenantId: string, examId: string, tz: string) {
+    const r = await applyExamDisplacement(tx, examId);
+    const x = await tx.exam.findUniqueOrThrow({ where: { id: examId }, select: { date: true } });
+    const changed = [...new Set([...r.restored, ...r.displaced])].filter(
+      (id) => !(r.restored.includes(id) && r.displaced.includes(id)),
+    );
+    await this.notifyTeachers(tx, tenantId, changed, iso(x.date), tz);
+  }
+
+  private async notifyTeachers(
+    tx: Tx,
+    tenantId: string,
+    occurrenceIds: string[],
+    date: string,
+    tz: string,
+  ) {
+    if (occurrenceIds.length === 0) return;
+    const teachers = await tx.occurrenceTeacher.findMany({
+      where: { occurrenceId: { in: occurrenceIds } },
+      select: { teacherId: true },
+    });
+    const weekday = DateTime.fromISO(date, { zone: tz }).setLocale('de-AT').toFormat('cccc');
+    await this.notifications.emit(
+      tx,
+      tenantId,
+      'substitution.published',
+      [...new Set(teachers.map((t) => t.teacherId))],
+      { params: { day: weekday }, url: `/plan?from=${mondayOf(date)}` },
     );
   }
 
@@ -214,6 +269,7 @@ export class ExamsController {
     if (body.date < todayIn(tz))
       throw new ConflictException({ title: 'Das Datum liegt in der Vergangenheit' });
     const warnings = await this.checkCollisions(tx, tenantId, body.classId, body.date, body.force);
+    const periods = await this.periods(tx, body.periodStart, body.periodEnd);
     const exam = await tx.exam.create({
       data: {
         tenantId,
@@ -222,6 +278,7 @@ export class ExamsController {
         date: asDate(body.date),
         title: body.title,
         kind: body.kind,
+        ...periods,
         createdById: me.personId,
       },
       include: { subject: { select: subjectSelect }, class: { select: { id: true, name: true } } },
@@ -234,6 +291,7 @@ export class ExamsController {
       entityId: exam.id,
       meta: { warnings: warnings.length },
     });
+    await this.displace(tx, tenantId, exam.id, tz);
     // exam.created an Schüler:innen und Eltern der Klasse (In-App, Spec Abschnitt 12)
     const day = asDate(body.date);
     const students = (
@@ -263,6 +321,8 @@ export class ExamsController {
         kind: exam.kind,
         subject: exam.subject,
         class: exam.class,
+        periodStart: exam.periodStart,
+        periodCount: exam.periodCount,
         canEdit: true,
       } satisfies ExamItem,
       warnings,
@@ -292,8 +352,13 @@ export class ExamsController {
         ...(body.date ? { date: asDate(body.date) } : {}),
         ...(body.title ? { title: body.title } : {}),
         ...(body.kind ? { kind: body.kind } : {}),
+        ...(body.periodStart !== undefined
+          ? await this.periods(tx, body.periodStart, body.periodEnd ?? null)
+          : {}),
       },
     });
+    if (body.date || body.periodStart !== undefined)
+      await this.displace(tx, tenantId, id, (await this.limits(tx, tenantId)).tz);
     await this.audit.record({
       tenantId,
       actorId: me.personId,
@@ -313,7 +378,16 @@ export class ExamsController {
     const x = await tx.exam.findUnique({ where: { id } });
     if (!x) throw new NotFoundException({ title: 'Prüfung nicht gefunden' });
     if (!this.mayEdit(user, me, x)) throw new ForbiddenException({ title: 'Keine Berechtigung' });
+    // Verdrängte Stunden kommen zurück (ADR 0024)
+    const restored = await restore(tx, id);
     await tx.exam.delete({ where: { id } });
+    await this.notifyTeachers(
+      tx,
+      tenantId,
+      restored,
+      iso(x.date),
+      (await this.limits(tx, tenantId)).tz,
+    );
     await this.audit.record({
       tenantId,
       actorId: me.personId,

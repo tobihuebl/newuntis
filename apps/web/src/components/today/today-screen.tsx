@@ -2,9 +2,11 @@
 import {
   BookOpenCheck,
   CalendarDays,
+  CalendarOff,
   CloudOff,
   FileClock,
   MessageSquare,
+  NotebookPen,
   UserRoundCog,
   UserRoundX,
 } from 'lucide-react';
@@ -13,6 +15,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   addDays,
+  examOverlaps,
   fachColorOf,
   mondayOf,
   nextWeekday,
@@ -243,6 +246,58 @@ function SubstitutionCard({
   );
 }
 
+/**
+ * Tag als Ganzes (ADR 0024): schulfrei als eigener Eintrag, Prüfungen mit Stunden als Block mit goldenem
+ * Rahmen (Schüler:innen und Eltern: ihre Klasse; Lehrkräfte: selbst beaufsichtigte).
+ */
+function DayNotes({ data, teacher }: { data: TodayResponse; teacher: boolean }) {
+  const t = useT('today');
+  const tx = useT('exams');
+  const free = data.freeDay ?? null;
+  const exams = data.examsToday ?? [];
+  if (!free && exams.length === 0) return null;
+  return (
+    <>
+      {free ? (
+        <Card flat className="flex items-center gap-3">
+          <CalendarOff aria-hidden="true" className="size-6 shrink-0 text-ink-muted" />
+          <span className="flex flex-col">
+            <span className="text-body-strong">{t('freeToday')}</span>
+            <span className="text-body-sm text-ink-muted">{free.label}</span>
+          </span>
+        </Card>
+      ) : null}
+      {exams.map((x) => (
+        <Card
+          key={x.id}
+          className={cn('flex items-start gap-3', x.periodStart !== null && 'ring-3 ring-signal')}
+        >
+          <NotebookPen aria-hidden="true" className="mt-0.5 size-6 shrink-0 text-brand-text" />
+          <span className="flex flex-col gap-1">
+            <span className="text-body-strong">
+              {t(teacher ? 'examSupervise' : 'examToday', {
+                kind: tx(`kinds.${x.kind}`),
+                subject: x.subject.name,
+                className: x.class?.name ?? '',
+              })}
+            </span>
+            <span className="text-body-sm text-ink-muted">
+              {[
+                x.title,
+                x.periodStart !== null
+                  ? periodLabel(t, { periodStart: x.periodStart, periodCount: x.periodCount })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+          </span>
+        </Card>
+      ))}
+    </>
+  );
+}
+
 function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boolean }) {
   const t = useT('today');
   const now = useNow();
@@ -279,6 +334,7 @@ function TeacherToday({ data, fromCache }: { data: TodayResponse; fromCache: boo
 
   const main = (
     <>
+      <DayNotes data={data} teacher />
       {/* Mobil steht "Du vertrittst …" ganz oben (Design System, Supplierung); ab 1024 px rechts */}
       {subs.length > 0 ? <SubstitutionCard subs={subs} className="lg:hidden" /> : null}
       {hero ? (
@@ -407,7 +463,9 @@ function StudentToday({ data }: { data: TodayResponse }) {
         />
       </Card>
     );
-  const lessons = data.lessons;
+  // Stunden unter einer Prüfung der Klasse ersetzt der Prüfungsblock (ADR 0024)
+  const blocks = (data.examsToday ?? []).filter((x) => x.periodStart !== null);
+  const lessons = data.lessons.filter((l) => !blocks.some((x) => examOverlaps(x, l)));
   const next = lessons.find((l) => l.status !== 'CANCELLED' && Date.parse(l.endsAt) > now);
   const changes = lessons.filter((l) => l.status !== 'SCHEDULED');
   const restPrev = previousEnds(lessons);
@@ -418,7 +476,8 @@ function StudentToday({ data }: { data: TodayResponse }) {
   const main = (
     <>
       <ChildSwitcher data={data} />
-      {lessons.length === 0 ? (
+      <DayNotes data={data} teacher={false} />
+      {lessons.length === 0 && (data.freeDay || blocks.length) ? null : lessons.length === 0 ? (
         <Card flat>
           <EmptyState
             title={t('emptyTitle')}

@@ -94,6 +94,8 @@ describe('Prüfungskollisionen', () => {
     kind: 'Schularbeit',
     subject: { id: 's', name: 'M', code: 'M', color: null },
     class: classId ? { id: classId, name: classId.toUpperCase() } : null,
+    periodStart: null,
+    periodCount: 1,
     canEdit: false,
   });
   it('zählt nur zwei oder mehr Prüfungen einer Klasse am selben Tag', () => {

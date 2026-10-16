@@ -109,6 +109,11 @@ die Spezifikation anpassen, dann bauen.
 - Schuljahreswechsel (SD-05, ADR 0019): TransitionService (apps/api/src/modules/transition), Stufe aus dem Klassennamen (levelOf), SchoolClass.previousClassId; Umstellen des Schuljahres entfernt alte KV-Rollen.
 - Globale Suche (PL-06): GET /search (apps/api/src/modules/search), Treffer nur nach bestehenden Rechten; Palette in src/components/shell/command-palette.tsx.
 
+## Prüfungen und schulfreie Tage im Plan (ADR 0024)
+
+- PlanResponse hat freeDays und exams; TodayResponse freeDay und examsToday. Verdrängung durch mehrstündige Prüfungen nur über applyExamDisplacement/restore (apps/api/src/modules/timetable/exam-displacement.ts), nie Occurrence.status direkt setzen.
+- Web: Prüfungsblock mit ring-3 ring-signal; Handy-Umschalter Tag/Woche in src/components/plan/plan-views.tsx.
+
 ## Untis-Import (SD-06, ADR 0023)
 
 - Leselogik rein in packages/shared/src/untis.ts (parseDif, readTimetable, buildLessons, buildRequirements); Zuordnung und Übernahme in apps/api/src/modules/admin/untis.service.ts. Übernahme legt immer einen neuen Entwurf an.

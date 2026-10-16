@@ -124,6 +124,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - SP-03 MVP: Harte Konfliktprüfung (Lehrer, Raum, Klasse, Gruppe) in Echtzeit
 - SP-04 MVP: Entwurf und Veröffentlichung mit Gültig-ab-Datum, Doppelstunden
 - SP-05 MVP: Kalender-Sync per iCal-Link (Apple, Google, Outlook)
+- SP-09 V1: Plan zeigt schulfreie Tage als eigenen Eintrag und Prüfungen; am Handy umschaltbar zwischen Tag und Woche — umgesetzt (ADR 0024)
 - SP-06 V1: Weiche Regeln mit Warnungen (Hohlstunden, Tagesbelastung), Wochenmuster A/B
 - SP-07 V1: Raumbuchung außerhalb des Stundenplans
 - SP-08 V2: Automatische Planung (Solver mit KI-Unterstützung für Planungswünsche, Meilenstein M7), Untis-Import
@@ -158,7 +159,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 
 ### Prüfungen und Noten (PN)
 
-- PN-01 MVP: Prüfungskalender mit Kollisionswarnung (Grenzwerte pro Schule)
+- PN-01 MVP: Prüfungskalender mit Kollisionswarnung (Grenzwerte pro Schule); Prüfungen optional mit Stunden, mehrstündige als Block mit goldenem Rahmen im Plan, andere Stunden der Klasse entfallen automatisch (ADR 0024)
 - PN-02 V1: Notenerfassung 1 bis 5 mit Gewichtung, Notenspiegel — umgesetzt: Gewichtung in Prozent je Notenart, Freigabe durch die Lehrkraft (ADR 0018)
 - PN-03 V2: Zeugnisse und verbale Beurteilung
 

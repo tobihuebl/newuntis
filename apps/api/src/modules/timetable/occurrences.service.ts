@@ -10,6 +10,7 @@ import {
 } from '@sp/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { asDate, iso, lessonInclude, loadPeriods, toRule, todayIn } from './data';
+import { applyExamDisplacementInRange } from './exam-displacement';
 
 /** Gleitendes Fenster der erzeugten Termine (Spec Abschnitt 10: heute bis heute + 28 Tage). */
 export const WINDOW_DAYS = 28;
@@ -173,6 +174,8 @@ export class OccurrencesService {
       if (teacherRows.length) await tx.occurrenceTeacher.createMany({ data: teacherRows });
       result.created = creates.length;
     }
+    // Mehrstündige Prüfungen verdrängen auch neu erzeugte Termine der Klasse (ADR 0024)
+    await applyExamDisplacementInRange(tx, from, to);
     return result;
   }
 
