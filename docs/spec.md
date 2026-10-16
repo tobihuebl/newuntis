@@ -101,7 +101,7 @@ Priorität: **MVP** = im ersten Release, **V1** = direkt danach, **V2** = späte
 - PL-02 MVP: Zwei-Faktor-Login (TOTP), Pflicht für Lehrer, Direktion und Administration
 - PL-03 MVP: Profil, Benachrichtigungseinstellungen, Dark Mode, Sprache — Deutsch umgesetzt; Elternansicht in den häufigsten Familiensprachen folgt mit M8
 - PL-04 MVP: Eltern mit mehreren Kindern: Umschalten mit einem Tap
-- PL-05 V1: Single Sign-on (Microsoft, Google, OIDC der Schule)
+- PL-05 V1 (nach dem Pilotstart, M9): Single Sign-on (Microsoft, Google, OIDC der Schule)
 - PL-06 V1: Globale Suche (Strg/Cmd+K) nach Personen, Klassen, Räumen — umgesetzt, Treffer nach Rechten der Rolle (ADR 0016)
 - PL-07 V1: Datenauskunft und Kontolöschung durch die Person selbst
 
@@ -908,10 +908,24 @@ läuft über die Zugangsbriefe mit Eltern-Code (ADR 0020). Reihenfolge der Abarb
 - [ ] Elternsprechtag-Buchung (KO-04)
 - [ ] Notfallkontakte je Schüler:in (SD-09)
 - [ ] Klassenbuch als PDF-Archiv je Klasse und Bescheinigungen (AD-03)
-- [ ] Anmeldung mit dem Microsoft-Schulkonto (PL-05)
 
 **Fertig wenn:** Eine Mittelschule übernimmt ihren Untis-Stundenplan und ihre Sokrates-Daten an einem Nachmittag,
 und Eltern erledigen alles, wofür sie bisher Schoolfox nutzten, in PROfessor in ihrer Sprache.
+
+### M9: Nach dem Pilotstart
+
+Ziel: Erst wenn die ersten Pilotschulen arbeiten, kommen Funktionen, die organisatorische Abstimmung mit Schulträger
+oder Bildungsdirektion brauchen.
+
+- [ ] Anmeldung mit dem Microsoft-Schulkonto (PL-05), danach Google und OIDC der Schule über denselben Weg
+  - OpenID Connect (Code-Flow mit PKCE); PROfessor sieht nie ein Passwort
+  - Nur bekannte Personen: Zuordnung beim ersten Mal über die E-Mail-Adresse, danach über die feste Microsoft-ID; unbekannte Konten werden abgewiesen (keine Selbstregistrierung)
+  - Je Schule die erlaubte Microsoft-Mandanten-ID; private Konten und fremde Schulen kommen nicht hinein
+  - Zentrale Rücksprung-Adresse mit sicherer Weiterleitung zur Subdomain der Schule (Microsoft erlaubt keine Platzhalter-Adressen)
+  - Offen, mit der Pilotschule zu klären: Reicht die Mehrfaktor-Prüfung von Microsoft statt unseres Codes (Vorschlag: ja, wenn Microsoft sie bestätigt)? Dürfen auch Schüler:innen mit Schulkonto Microsoft nutzen (Vorschlag: ja)?
+  - Voraussetzungen: App-Registrierung in Microsoft Entra (Client-ID und Secret nur in der Umgebung, nie im Code), einmalige Zustimmung der Schul-IT bzw. der für Microsoft 365 zuständigen Stelle (bei Pflichtschulen oft das Land)
+
+**Fertig wenn:** Lehrkräfte einer Pilotschule melden sich mit ihrem Schulkonto an, ohne ein eigenes PROfessor-Passwort.
 
 ### CLAUDE.md (in das Repository-Stammverzeichnis legen)
 
